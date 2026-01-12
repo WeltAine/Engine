@@ -15,12 +15,21 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Test.cpp">
+    <ClCompile Include="src\Ayin\Application.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Test.h">
+    <ClInclude Include="src\Ayin\Core.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Ayin\Application.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Ayin.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Ayin\EntryPoint.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
