@@ -1,0 +1,3 @@
+[submodule "Ayin/Dependency/spdlog"]
+	path = Ayin/Dependency/spdlog
+	url = https://github.com/gabime/spdlog
