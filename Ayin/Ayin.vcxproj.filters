@@ -4,6 +4,9 @@
     <Filter Include="Ayin">
       <UniqueIdentifier>{D6C4827C-C2FB-830D-6BE8-691057FEFF0E}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Ayin\Events">
+      <UniqueIdentifier>{FAE3BBC7-6699-34BD-EF8D-2E945B422BC1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Ayin.h" />
@@ -15,6 +18,9 @@
     </ClInclude>
     <ClInclude Include="src\Ayin\EntryPoint.h">
       <Filter>Ayin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Ayin\Events\Event.h">
+      <Filter>Ayin\Events</Filter>
     </ClInclude>
     <ClInclude Include="src\Ayin\Log.h">
       <Filter>Ayin</Filter>

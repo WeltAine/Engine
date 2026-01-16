@@ -24,6 +24,7 @@ project "Ayin"
 
     includedirs --项目包含文件
     {
+        "%{prj.name}/src", --Ayin文件的根目录，为更深层次目录中的文件include时提供方便
         "%{prj.name}/Dependency/spdlog/include"
     }
 
