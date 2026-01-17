@@ -19,7 +19,16 @@
     <ClInclude Include="src\Ayin\EntryPoint.h">
       <Filter>Ayin</Filter>
     </ClInclude>
+    <ClInclude Include="src\Ayin\Events\ApplicationEvent.h">
+      <Filter>Ayin\Events</Filter>
+    </ClInclude>
     <ClInclude Include="src\Ayin\Events\Event.h">
+      <Filter>Ayin\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Ayin\Events\KeyEvent.h">
+      <Filter>Ayin\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Ayin\Events\MouseEvent.h">
       <Filter>Ayin\Events</Filter>
     </ClInclude>
     <ClInclude Include="src\Ayin\Log.h">

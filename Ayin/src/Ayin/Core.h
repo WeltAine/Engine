@@ -14,3 +14,4 @@
 	#error AYIN ONLY SUPPORT WINDOWS PLATFORM
 #endif
 
+#define BIT(x) (1 << x) 

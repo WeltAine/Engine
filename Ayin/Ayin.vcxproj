@@ -156,7 +156,10 @@ copy /B /Y ..\bin\Dist-windows-x86_64\Ayin\Ayin.dll ..\bin\Dist-windows-x86_64\S
     <ClInclude Include="src\Ayin\Application.h" />
     <ClInclude Include="src\Ayin\Core.h" />
     <ClInclude Include="src\Ayin\EntryPoint.h" />
+    <ClInclude Include="src\Ayin\Events\ApplicationEvent.h" />
     <ClInclude Include="src\Ayin\Events\Event.h" />
+    <ClInclude Include="src\Ayin\Events\KeyEvent.h" />
+    <ClInclude Include="src\Ayin\Events\MouseEvent.h" />
     <ClInclude Include="src\Ayin\Log.h" />
   </ItemGroup>
   <ItemGroup>
