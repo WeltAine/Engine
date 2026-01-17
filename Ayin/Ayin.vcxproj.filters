@@ -34,6 +34,7 @@
     <ClInclude Include="src\Ayin\Log.h">
       <Filter>Ayin</Filter>
     </ClInclude>
+    <ClInclude Include="src\AyinPch.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Ayin\Application.cpp">
@@ -42,5 +43,6 @@
     <ClCompile Include="src\Ayin\Log.cpp">
       <Filter>Ayin</Filter>
     </ClCompile>
+    <ClCompile Include="src\AyinPch.cpp" />
   </ItemGroup>
 </Project>

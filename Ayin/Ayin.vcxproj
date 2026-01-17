@@ -76,7 +76,8 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>AyinPch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>AYIN_PLATFORM_WINDOWS;AYIN_BUILD_DLL;AYIN_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>src;Dependency\spdlog\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -99,7 +100,8 @@ copy /B /Y ..\bin\Debug-windows-x86_64\Ayin\Ayin.dll ..\bin\Debug-windows-x86_64
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>AyinPch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>AYIN_PLATFORM_WINDOWS;AYIN_BUILD_DLL;AYIN_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>src;Dependency\spdlog\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -126,7 +128,8 @@ copy /B /Y ..\bin\Release-windows-x86_64\Ayin\Ayin.dll ..\bin\Release-windows-x8
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'">
     <ClCompile>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>AyinPch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>AYIN_PLATFORM_WINDOWS;AYIN_BUILD_DLL;AYIN_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>src;Dependency\spdlog\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -161,10 +164,14 @@ copy /B /Y ..\bin\Dist-windows-x86_64\Ayin\Ayin.dll ..\bin\Dist-windows-x86_64\S
     <ClInclude Include="src\Ayin\Events\KeyEvent.h" />
     <ClInclude Include="src\Ayin\Events\MouseEvent.h" />
     <ClInclude Include="src\Ayin\Log.h" />
+    <ClInclude Include="src\AyinPch.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Ayin\Application.cpp" />
     <ClCompile Include="src\Ayin\Log.cpp" />
+    <ClCompile Include="src\AyinPch.cpp">
+      <PrecompiledHeader>Create</PrecompiledHeader>
+    </ClCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

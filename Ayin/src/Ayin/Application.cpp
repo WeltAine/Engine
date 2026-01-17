@@ -1,3 +1,5 @@
+#include "AyinPch.h"
+
 #include "Application.h"
 
 #include "Ayin/Events/ApplicationEvent.h"

@@ -1,0 +1,1 @@
+#include "AyinPch.h" //vs中构建预编译头文件需要一个包含该预编译头文件的.cpp文件

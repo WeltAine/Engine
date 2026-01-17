@@ -3,7 +3,7 @@
 #include "Ayin/Core.h"
 #include "Event.h"
 
-#include <sstream>
+//#include <sstream>
 
 
 namespace Ayin{
