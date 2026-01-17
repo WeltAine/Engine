@@ -45,7 +45,7 @@ namespace Ayin {
 									virtual EventType GetEventType() const override { return GetStaticEventType(); }\
 									virtual const char* GetName() const override { return #Type; }
 
-#define EVENT_CLASS_CATEGORY(category) virtual int GetCategory() { return category; }
+#define EVENT_CLASS_CATEGORY(category) virtual int GetCategoryFlags() const { return category; }
 
 
 	//基础抽象类
@@ -68,12 +68,15 @@ namespace Ayin {
 		bool m_Handled = false;//事件是否被处理过了，可以用于后续阻断在Layer中的传递
 	};
 
+	//约束
+	template <typename T>
+	concept EventDerived = std::is_base_of_v<Ayin::Event, T>;
 
 	//事件派发类
 	//用于将事件
 	class EventDispatcher {//看来不需要导出，外部不会使用是么，那就先这样
 
-		template<typename T>
+		template<EventDerived T>
 		using EventFunc = std::function<bool(T&)>;
 
 	public:
@@ -92,7 +95,7 @@ namespace Ayin {
 
 			if (m_Event.GetEventType() == T::GetStaticEventType()) {//对比派发起所接受的是事件的原本类型（引用的底层是指针，所以当然能触发多态了）和观察者期望的类型是否一致
 
-				m_Event.m_Handled = func(static_cast<T&>m_Event);//通知观察者（调用回调）
+				m_Event.m_Handled = func(static_cast<T&>(m_Event));//通知观察者（调用回调）
 				return true;
 
 			}
@@ -111,5 +114,16 @@ namespace Ayin {
 	inline std::ostream& operator<< (std::ostream& os, const Event& e) {
 		return os << e.ToString();
 	}
+
+	//spdlog输出自定义类型所需
+
+	template <EventDerived Event>
+	struct fmt::formatter<Event> : fmt::formatter<std::string> {
+		template <typename FormatContext>
+		auto format(const Event& e, FormatContext& ctx) const {
+			return fmt::format_to(ctx.out(), "{}", e.ToString());
+		}
+	};
+
 
 }
