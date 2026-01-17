@@ -19,7 +19,12 @@ namespace Ayin {
 		static std::shared_ptr<spdlog::logger> s_CoreLogger;
 		static std::shared_ptr<spdlog::logger> s_ClientLogger;
 	};
+
 }
+
+
+
+
 
 #define AYIN_CORE_TRACE(...)	Ayin::Log::GetCoreLogger()->trace(__VA_ARGS__)
 #define AYIN_CORE_INFO(...)		Ayin::Log::GetCoreLogger()->info(__VA_ARGS__)
