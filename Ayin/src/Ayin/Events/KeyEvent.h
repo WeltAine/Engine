@@ -53,10 +53,10 @@ namespace Ayin {
 	};
 
 
-	class AYIN_API KeyReleased : public KeyEvent {
+	class AYIN_API KeyReleasedEvent : public KeyEvent {
 
 	public:
-		KeyReleased(int keyCode)
+		KeyReleasedEvent(int keyCode)
 			:KeyEvent(keyCode)
 		{}
 

@@ -44,7 +44,8 @@ namespace Ayin {
 			unsigned int Width, Height;
 			bool VSync;
 
-			EventCallbackFn EventCallback;
+			//当事件发生时，所要触发的回调，交由该回调处理，窗口此时成了组件，而观察者成了组件与中介者之间的一种连接方式
+			EventCallbackFn EventCallback;//与Application的函数指针连接方式
 		};
 
 		WindowData m_Data;

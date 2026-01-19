@@ -4,6 +4,7 @@
 
 #include "Core.h"
 #include "Window.h"
+#include "Ayin/Events/ApplicationEvent.h"
 
 namespace Ayin {
 
@@ -15,6 +16,10 @@ namespace Ayin {
 		virtual ~Application();
 
 		void Run();
+
+		void OnEvent(Event& e);
+		
+		bool OnWindowClose(WindowCloseEvent& e);
 
 	private:
 		std::unique_ptr<Window> m_Window;

@@ -1,4 +1,5 @@
 #pragma once
+#include "AyinPch.h"
 
 #include "Ayin/Core.h"
 //#include "spdlog/fmt/bundled/format.h"
@@ -13,6 +14,7 @@
 //我想我们目前还缺少一个管理事件的类
 namespace Ayin {
 
+#define BIND_EVENT_FUN(funcName) std::bind(&funcName, this, std::placeholders::_1)
 
 	//事件枚举
 	enum class EventType
@@ -92,7 +94,7 @@ namespace Ayin {
 		/// <param name="func"></param>
 		/// <returns></returns>
 		template<typename T>
-		bool Dispatcher(EventFunc<T> func) {
+		bool Dispatch(EventFunc<T> func) {
 
 			if (m_Event.GetEventType() == T::GetStaticEventType()) {//对比派发起所接受的是事件的原本类型（引用的底层是指针，所以当然能触发多态了）和观察者期望的类型是否一致
 
