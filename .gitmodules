@@ -1,3 +1,6 @@
 [submodule "Ayin/Dependency/spdlog"]
 	path = Ayin/Dependency/spdlog
 	url = https://github.com/gabime/spdlog
+[submodule "Ayin/Dependency/GLFW"]
+	path = Ayin/Dependency/GLFW
+	url = https://github.com/WeltAine/glfw

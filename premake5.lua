@@ -12,6 +12,13 @@ workspace "Ayin" --对应解决方案
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}" --比如Debug-Windows-x64，为不同平台做准备，虽然我没这个打算就是了，不过是个好习惯
 
 
+--包含相对于根文件夹（解决方案目录）的目录
+--路径记录数组
+IncludeDir = {}
+IncludeDir["GLFW"] = "Ayin/Dependency/GLFW/include" --编译器包含目录
+
+include "Ayin/Dependency/GLFW" --引入该目录下的premake5.lua，和C++的include一样
+
 project "Ayin"
     location "Ayin" --？？？默认目录么，可是后头的构建包含文件和头文件为什么用了更完整的路径？？
     kind "SharedLib" --生成动态库
@@ -27,7 +34,13 @@ project "Ayin"
     includedirs --项目包含文件
     {
         "%{prj.name}/src", --Ayin文件的根目录，为更深层次目录中的文件include时提供方便
-        "%{prj.name}/Dependency/spdlog/include"
+        "%{prj.name}/Dependency/spdlog/include",
+        "%{IncludeDir.GLFW}"
+    }
+
+    links{
+        "GLFW",
+        "opengl32.lib"
     }
 
 

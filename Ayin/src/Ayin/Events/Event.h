@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Ayin/Core.h"
-#include "spdlog/fmt/bundled/format.h"
+//#include "spdlog/fmt/bundled/format.h"
 
 //#include <functional>
 //#include <string>
@@ -117,7 +117,6 @@ namespace Ayin {
 	}
 
 	//spdlog输出自定义类型所需
-
 	template <EventDerived Event>
 	struct fmt::formatter<Event> : fmt::formatter<std::string> {
 		template <typename FormatContext>
