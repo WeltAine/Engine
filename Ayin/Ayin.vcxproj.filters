@@ -37,6 +37,12 @@
     <ClInclude Include="src\Ayin\Events\MouseEvent.h">
       <Filter>Ayin\Events</Filter>
     </ClInclude>
+    <ClInclude Include="src\Ayin\Layer.h">
+      <Filter>Ayin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Ayin\LayerStack.h">
+      <Filter>Ayin</Filter>
+    </ClInclude>
     <ClInclude Include="src\Ayin\Log.h">
       <Filter>Ayin</Filter>
     </ClInclude>
@@ -50,6 +56,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Ayin\Application.cpp">
+      <Filter>Ayin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Ayin\Layer.cpp">
+      <Filter>Ayin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Ayin\LayerStack.cpp">
       <Filter>Ayin</Filter>
     </ClCompile>
     <ClCompile Include="src\Ayin\Log.cpp">

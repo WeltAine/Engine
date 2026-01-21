@@ -84,7 +84,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/utf-8 /MDd %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
     </ClCompile>
@@ -112,7 +112,7 @@ copy /B /Y ..\bin\Debug-windows-x86_64\Ayin\Ayin.dll ..\bin\Debug-windows-x86_64
       <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/utf-8 /MD %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
     </ClCompile>
@@ -141,7 +141,7 @@ copy /B /Y ..\bin\Release-windows-x86_64\Ayin\Ayin.dll ..\bin\Release-windows-x8
       <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/utf-8 /MD %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
     </ClCompile>
@@ -166,6 +166,8 @@ copy /B /Y ..\bin\Dist-windows-x86_64\Ayin\Ayin.dll ..\bin\Dist-windows-x86_64\S
     <ClInclude Include="src\Ayin\Events\Event.h" />
     <ClInclude Include="src\Ayin\Events\KeyEvent.h" />
     <ClInclude Include="src\Ayin\Events\MouseEvent.h" />
+    <ClInclude Include="src\Ayin\Layer.h" />
+    <ClInclude Include="src\Ayin\LayerStack.h" />
     <ClInclude Include="src\Ayin\Log.h" />
     <ClInclude Include="src\Ayin\Window.h" />
     <ClInclude Include="src\AyinPch.h" />
@@ -173,6 +175,8 @@ copy /B /Y ..\bin\Dist-windows-x86_64\Ayin\Ayin.dll ..\bin\Dist-windows-x86_64\S
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Ayin\Application.cpp" />
+    <ClCompile Include="src\Ayin\Layer.cpp" />
+    <ClCompile Include="src\Ayin\LayerStack.cpp" />
     <ClCompile Include="src\Ayin\Log.cpp" />
     <ClCompile Include="src\AyinPch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>

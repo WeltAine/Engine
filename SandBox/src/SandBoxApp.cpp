@@ -1,10 +1,33 @@
 #include <Ayin.h>
 
 
+class ExampleLayer : public Ayin::Layer {
+
+public:
+	ExampleLayer()
+		:Ayin::Layer("Example") 
+	{}
+
+
+	void OnUpdate() override {
+		AYIN_INFO("ExampleLayer::Update");
+	}
+
+	void OnEvent(Ayin::Event& event) override {
+
+		AYIN_TRACE("{0}", event);
+	}
+
+};
+
+
 class SandBox : public Ayin::Application {
 
 public:
-	SandBox() {};
+	SandBox() {
+
+		PushLayer(new ExampleLayer());
+	};
 
 	~SandBox() {};
 

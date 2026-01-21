@@ -5,6 +5,7 @@
 #include "Core.h"
 #include "Window.h"
 #include "Ayin/Events/ApplicationEvent.h"
+#include "Ayin/LayerStack.h"
 
 namespace Ayin {
 
@@ -21,9 +22,15 @@ namespace Ayin {
 		
 		bool OnWindowClose(WindowCloseEvent& e);
 
+
+		void PushLayer(Layer* layer);
+		void PushOverlay(Layer* overLayer);
+
 	private:
 		std::unique_ptr<Window> m_Window;
 		bool m_Running = true;
+
+		LayerStack m_LayerStack;//栈层
 	};
 
 

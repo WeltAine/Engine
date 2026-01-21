@@ -75,14 +75,17 @@ project "Ayin"
     filter "configurations:Debug" --暂时没用，但先写着
         defines "AYIN_DEBUG"
         symbols "On"
+        buildoptions "/MDd" --使用多线程调试DLL运行时库
 
     filter "configurations:Release"
         defines "AYIN_RELEASE"
         optimize "On"
+        buildoptions "/MD" --使用多线程DLL运行时库
 
     filter "configurations:Dist"
         defines "AYIN_DIST"
         optimize "On"
+        buildoptions "/MD" --使用多线程DLL运行时库
 
 --注意过滤器都是独立的，尽管它们可以多个同时生效，但不具备联合的与判定效果（可以使用filters）
 
@@ -133,11 +136,14 @@ project "SandBox"
     filter "configurations:Debug" --暂时没用，但先写着
         defines "AYIN_DEBUG"
         symbols "On"
+        buildoptions "/MDd" --使用多线程调试DLL运行时库
 
     filter "configurations:Release"
         defines "AYIN_RELEASE"
         optimize "On"
-
+        buildoptions "/MD" --使用多线程DLL运行时库
+        
     filter "configurations:Dist"
         defines "AYIN_DIST"
         optimize "On"
+        buildoptions "/MD" --使用多线程DLL运行时库

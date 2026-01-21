@@ -58,6 +58,9 @@ namespace Ayin {
 		friend class EventDispatcher;
 
 	public:
+		bool handled = false;//事件是否被处理过了，可以用于后续阻断在Layer中的传递
+
+	public:
 		virtual EventType GetEventType() const = 0;//事件类型，虚函数，保证在多态时也能获得正确的原本事件类型
 		virtual const char* GetName() const = 0;//事件名称
 		virtual int GetCategoryFlags() const = 0;//事件类别
@@ -68,7 +71,6 @@ namespace Ayin {
 		}
 
 	private:
-		bool m_Handled = false;//事件是否被处理过了，可以用于后续阻断在Layer中的传递
 	};
 
 	//约束
@@ -98,7 +100,7 @@ namespace Ayin {
 
 			if (m_Event.GetEventType() == T::GetStaticEventType()) {//对比派发起所接受的是事件的原本类型（引用的底层是指针，所以当然能触发多态了）和观察者期望的类型是否一致
 
-				m_Event.m_Handled = func(static_cast<T&>(m_Event));//通知观察者（调用回调）
+				m_Event.handled = func(static_cast<T&>(m_Event));//通知观察者（调用回调）
 				return true;
 
 			}

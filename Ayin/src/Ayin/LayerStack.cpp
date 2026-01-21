@@ -1,0 +1,55 @@
+#include "AyinPch.h"
+#include "LayerStack.h"
+
+
+namespace Ayin {
+
+
+	LayerStack::LayerStack() {//这里可以使用初始化列表，只要你确保好变量的声明顺序，以确保它们之间的依赖顺序正常就行，比如说m_LayerInsert依赖于m_Layers，所以你要确保你的编译器会先初始化m_Layers
+		m_LayerInsert = m_Layers.begin();
+	}
+
+	LayerStack::~LayerStack() {
+		//cherno所说的所有权应该就是指当Stack析构时，Layer*该何去何从
+		for (Layer* layer : m_Layers) {
+			delete layer;
+		}
+	}
+
+	void LayerStack::PushLayer(Layer* layer) {
+
+		 m_LayerInsert = m_Layers.emplace(m_LayerInsert, layer);
+
+	}
+
+	void LayerStack::PushOverlay(Layer* overLayer) {
+
+		//？？？我想我们是不是要约束一下防止有多个覆盖层
+		m_Layers.emplace_back(overLayer);
+
+	}
+
+	void LayerStack::PopLayer(Layer* layer) {
+
+		auto iterator = std::find(m_Layers.begin(), m_Layers.end(), layer);
+
+		if (iterator != m_Layers.end()) {
+			//？？？感觉有风险
+			//我觉得应该改成shared_ptr,否则有泄露风险
+			m_Layers.erase(iterator);
+			m_LayerInsert--;
+		}
+	}
+
+	void LayerStack::PopOverlay(Layer* overLayer) {
+
+		auto iterator = std::find(m_Layers.begin(), m_Layers.end(), overLayer);
+
+		if (iterator == m_Layers.end()) {
+			m_Layers.erase(iterator);
+		}
+
+
+	}
+
+}
