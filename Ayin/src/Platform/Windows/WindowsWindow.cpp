@@ -6,6 +6,8 @@
 #include "Ayin/Events/ApplicationEvent.h"
 
  
+#include <glad/glad.h>
+
 namespace Ayin {
 
 	static bool s_GLFWInitialized = false;//专制变量，确保glfw只初始化一次
@@ -47,6 +49,8 @@ namespace Ayin {
 		//GLFW相关的需要找时间补补
 		m_Window = glfwCreateWindow(m_Data.Width, m_Data.Height, m_Data.Title.c_str(), nullptr, nullptr);//猜测：创建窗口
 		glfwMakeContextCurrent(m_Window);//猜测：构建交互上下文
+		int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);//？？？（严重）不理解这两个个是干嘛的
+		AYIN_CORE_ASSERT(status, "Failed to, initialize GLAFD");
 		glfwSetWindowUserPointer(m_Window, &m_Data);//猜测：上下文映射？？？在写GLFW到引擎侧事件系统的中间层时我有了一点猜想，GLFW是C库一些特性是不支持的，比如lambda的闭包（这在C#中是默认的，让Lambda可以表现出“函数穿透，以访问对象数据”的效果，但是lambda一旦带上了闭包那就无法转换成C风格的函数指针，所以使用一个数据块代替，用以存储外侧的东西。闭包的本质或许就是一个外侧数据块，以此来打到穿透现象）
 
 		//其余窗口属性设置

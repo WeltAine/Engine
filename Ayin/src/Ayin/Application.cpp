@@ -8,6 +8,7 @@
 #include "Ayin/Log.h"
 
 #include <GLFW/glfw3.h>
+#include <glad/glad.h>
 
 namespace Ayin {
 
@@ -17,7 +18,7 @@ namespace Ayin {
 		m_Window = std::unique_ptr<Window>(Window::Create());
 
 		//当窗口发生事件时（通过GLFW），窗口类会调用OnEvent回调，由我们来处理，Application成了中介者，而窗口成为了组件，这道函指则是组件与中介之间的沟通桥梁
-		m_Window->SetEventCallback(BIND_EVENT_FUN(Application::OnEvent, this, std::placeholders:;_1));//通过
+		m_Window->SetEventCallback(BIND_EVENT_FUN(Application::OnEvent));//通过
 
 		//栈层使用默认构造
 	};

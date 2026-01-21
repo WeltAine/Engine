@@ -16,8 +16,10 @@ outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}" --比如Debug-Wi
 --路径记录数组
 IncludeDir = {}
 IncludeDir["GLFW"] = "Ayin/Dependency/GLFW/include" --编译器包含目录
+IncludeDir["Glad"] = "Ayin/Dependency/glad/include"
 
 include "Ayin/Dependency/GLFW" --引入该目录下的premake5.lua，和C++的include一样
+include "Ayin/Dependency/Glad" 
 
 project "Ayin"
     location "Ayin" --？？？默认目录么，可是后头的构建包含文件和头文件为什么用了更完整的路径？？
@@ -35,11 +37,13 @@ project "Ayin"
     {
         "%{prj.name}/src", --Ayin文件的根目录，为更深层次目录中的文件include时提供方便
         "%{prj.name}/Dependency/spdlog/include",
-        "%{IncludeDir.GLFW}"
+        "%{IncludeDir.GLFW}",
+        "%{IncludeDir.Glad}"
     }
 
     links{
         "GLFW",
+        "Glad",
         "opengl32.lib"
     }
 
@@ -62,7 +66,8 @@ project "Ayin"
         defines --宏
         {
             "AYIN_PLATFORM_WINDOWS",
-            "AYIN_BUILD_DLL"
+            "AYIN_BUILD_DLL",
+            "GLFW_INCLUDE_NONE" --让glfw不包含OpenGL头文件，因为我们用的是Glad来加载OpenGL函数，而且由glfw引入头文件会报错（不理解为什么要这么处理）
         }
 
 
