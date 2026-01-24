@@ -15,11 +15,13 @@ outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}" --比如Debug-Wi
 --包含相对于根文件夹（解决方案目录）的目录
 --路径记录数组
 IncludeDir = {}
-IncludeDir["GLFW"] = "Ayin/Dependency/GLFW/include" --编译器包含目录
+IncludeDir["GLFW"] = "Ayin/Dependency/GLFW/include" 
 IncludeDir["Glad"] = "Ayin/Dependency/glad/include"
+IncludeDir["ImGui"] = "Ayin/Dependency/ImGui"
 
 include "Ayin/Dependency/GLFW" --引入该目录下的premake5.lua，和C++的include一样
-include "Ayin/Dependency/Glad" 
+include "Ayin/Dependency/Glad"
+include "Ayin/Dependency/ImGui"
 
 project "Ayin"
     location "Ayin" --？？？默认目录么，可是后头的构建包含文件和头文件为什么用了更完整的路径？？
@@ -38,12 +40,15 @@ project "Ayin"
         "%{prj.name}/src", --Ayin文件的根目录，为更深层次目录中的文件include时提供方便
         "%{prj.name}/Dependency/spdlog/include",
         "%{IncludeDir.GLFW}",
-        "%{IncludeDir.Glad}"
+        "%{IncludeDir.Glad}",
+        "%{IncludeDir.ImGui}"
     }
 
+    -- 依赖项目
     links{
         "GLFW",
         "Glad",
+        "ImGui",
         "opengl32.lib"
     }
 

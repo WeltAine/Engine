@@ -80,7 +80,7 @@
       <PrecompiledHeaderFile>AyinPch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>AYIN_PLATFORM_WINDOWS;AYIN_BUILD_DLL;GLFW_INCLUDE_NONE;AYIN_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;Dependency\spdlog\include;Dependency\GLFW\include;Dependency\glad\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;Dependency\spdlog\include;Dependency\GLFW\include;Dependency\glad\include;Dependency\ImGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -105,7 +105,7 @@ copy /B /Y ..\bin\Debug-windows-x86_64\Ayin\Ayin.dll ..\bin\Debug-windows-x86_64
       <PrecompiledHeaderFile>AyinPch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>AYIN_PLATFORM_WINDOWS;AYIN_BUILD_DLL;GLFW_INCLUDE_NONE;AYIN_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;Dependency\spdlog\include;Dependency\GLFW\include;Dependency\glad\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;Dependency\spdlog\include;Dependency\GLFW\include;Dependency\glad\include;Dependency\ImGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -134,7 +134,7 @@ copy /B /Y ..\bin\Release-windows-x86_64\Ayin\Ayin.dll ..\bin\Release-windows-x8
       <PrecompiledHeaderFile>AyinPch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>AYIN_PLATFORM_WINDOWS;AYIN_BUILD_DLL;GLFW_INCLUDE_NONE;AYIN_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;Dependency\spdlog\include;Dependency\GLFW\include;Dependency\glad\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;Dependency\spdlog\include;Dependency\GLFW\include;Dependency\glad\include;Dependency\ImGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -189,6 +189,9 @@ copy /B /Y ..\bin\Dist-windows-x86_64\Ayin\Ayin.dll ..\bin\Dist-windows-x86_64\S
     </ProjectReference>
     <ProjectReference Include="Dependency\Glad\Ayin\Dependency\Glad\Glad.vcxproj">
       <Project>{BDD6857C-A90D-870D-52FA-6C103E10030F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="Dependency\ImGui\ImGui.vcxproj">
+      <Project>{C0FF640D-2C14-8DBE-F595-301E616989EF}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
