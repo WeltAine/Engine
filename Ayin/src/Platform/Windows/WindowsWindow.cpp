@@ -5,7 +5,7 @@
 #include "Ayin/Events/MouseEvent.h"
 #include "Ayin/Events/ApplicationEvent.h"
 
- 
+
 #include <glad/glad.h>
 
 namespace Ayin {
@@ -46,12 +46,22 @@ namespace Ayin {
 		}
 
 		//创建窗口
-		//GLFW相关的需要找时间补补
-		m_Window = glfwCreateWindow(m_Data.Width, m_Data.Height, m_Data.Title.c_str(), nullptr, nullptr);//猜测：创建窗口
-		glfwMakeContextCurrent(m_Window);//猜测：构建交互上下文
-		int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);//？？？（严重）不理解这两个个是干嘛的
+		m_Window = glfwCreateWindow(m_Data.Width, m_Data.Height, m_Data.Title.c_str(), nullptr, nullptr);
+		//GLFW在创建窗口时也会创建OpenGL/Vulkan上下文（这是让GPU运作的关键之一，类似我们在shader编程中提及的渲染状态信息）
+		//另一间重要的事情是，操作系统只有在创建了窗口（准确的来说是窗口的设备上下文）后才会给与访问显卡驱动的可能（这些驱动由硬件厂商编写，遵循特定规范，比如OpenGL就是一种规范）
+		//而我们的Glad库核心是加载器和一堆函数指针（加载器用于将驱动中的方法记录到函数指针中，而查找驱动方法的手段有GLFW提供，可能是因为窗口是它创建的，它知道如何访问驱动）
+
+		glfwMakeContextCurrent(m_Window);//将线程与窗口绑定，该线程所执行的gl执行都将由该窗口的OpenGL/Vulkan上下文处理
+
+		int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);//正如我们前面所说，glad的核心功能之一是记录所有的现代OpenGL驱动方法，以便我们使用（否则我们就需要自己用GLFW的辅助方法拉驱动，用驱动），但是查找驱动的方法由GLFW提供，因为窗口是GLFW创建的，它知道是什么操作系统，该如何访问驱动
 		AYIN_CORE_ASSERT(status, "Failed to, initialize GLAFD");
-		glfwSetWindowUserPointer(m_Window, &m_Data);//猜测：上下文映射？？？在写GLFW到引擎侧事件系统的中间层时我有了一点猜想，GLFW是C库一些特性是不支持的，比如lambda的闭包（这在C#中是默认的，让Lambda可以表现出“函数穿透，以访问对象数据”的效果，但是lambda一旦带上了闭包那就无法转换成C风格的函数指针，所以使用一个数据块代替，用以存储外侧的东西。闭包的本质或许就是一个外侧数据块，以此来打到穿透现象）
+
+		glfwSetWindowUserPointer(m_Window, &m_Data);
+		//猜测：上下文映射？？？
+		// 在写GLFW到引擎侧事件系统的中间层时我有了一点猜想，GLFW是C库一些特性是不支持的
+		// 比如lambda的闭包（这在C#中是默认的，让Lambda可以表现出“函数穿透，以访问对象数据”的效果，但是lambda一旦带上了闭包那就无法转换成C风格的函数指针，所以使用一个数据块代替，用以存储外侧的东西。闭包的本质或许就是一个外侧数据块，以此来打到穿透现象）
+		// 所以我们写的WindowData就类似一种手动创建的“闭包”
+
 
 		//其余窗口属性设置
 		SetVSync(true);
