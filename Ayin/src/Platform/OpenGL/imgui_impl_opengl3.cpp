@@ -148,38 +148,40 @@
 #pragma GCC diagnostic ignored "-Wstrict-overflow"          // warning: assuming signed overflow does not occur when simplifying division / ..when changing X +- C1 cmp C2 to X cmp C2 -+ C1
 #endif
 
-// GL includes
-#if defined(IMGUI_IMPL_OPENGL_ES2)
-#if (defined(__APPLE__) && (TARGET_OS_IOS || TARGET_OS_TV))
-#include <OpenGLES/ES2/gl.h>    // Use GL ES 2
-#else
-#include <GLES2/gl2.h>          // Use GL ES 2
-#endif
-#if defined(__EMSCRIPTEN__)
-#ifndef GL_GLEXT_PROTOTYPES
-#define GL_GLEXT_PROTOTYPES
-#endif
-#include <GLES2/gl2ext.h>
-#endif
-#elif defined(IMGUI_IMPL_OPENGL_ES3)
-#if (defined(__APPLE__) && (TARGET_OS_IOS || TARGET_OS_TV))
-#include <OpenGLES/ES3/gl.h>    // Use GL ES 3
-#else
-#include <GLES3/gl3.h>          // Use GL ES 3
-#endif
-#elif !defined(IMGUI_IMPL_OPENGL_LOADER_CUSTOM)
-// Modern desktop OpenGL doesn't have a standard portable header file to load OpenGL function pointers.
-// Helper libraries are often used for this purpose! Here we are using our own minimal custom loader based on gl3w.
-// In the rest of your app/engine, you can use another loader of your choice (gl3w, glew, glad, glbinding, glext, glLoadGen, etc.).
-// If you happen to be developing a new feature for this backend (imgui_impl_opengl3.cpp):
-// - You may need to regenerate imgui_impl_opengl3_loader.h to add new symbols. See https://github.com/dearimgui/gl3w_stripped
-//   Typically you would run: python3 ./gl3w_gen.py --output ../imgui/backends/imgui_impl_opengl3_loader.h --ref ../imgui/backends/imgui_impl_opengl3.cpp ./extra_symbols.txt
-// - You can temporarily use an unstripped version. See https://github.com/dearimgui/gl3w_stripped/releases
-// Changes to this backend using new APIs should be accompanied by a regenerated stripped loader version.
-#define IMGL3W_IMPL
-#define IMGUI_IMPL_OPENGL_LOADER_IMGL3W
-#include "imgui_impl_opengl3_loader.h"
-#endif
+//// GL includes
+//#if defined(IMGUI_IMPL_OPENGL_ES2)
+//#if (defined(__APPLE__) && (TARGET_OS_IOS || TARGET_OS_TV))
+//#include <OpenGLES/ES2/gl.h>    // Use GL ES 2
+//#else
+//#include <GLES2/gl2.h>          // Use GL ES 2
+//#endif
+//#if defined(__EMSCRIPTEN__)
+//#ifndef GL_GLEXT_PROTOTYPES
+//#define GL_GLEXT_PROTOTYPES
+//#endif
+//#include <GLES2/gl2ext.h>
+//#endif
+//#elif defined(IMGUI_IMPL_OPENGL_ES3)
+//#if (defined(__APPLE__) && (TARGET_OS_IOS || TARGET_OS_TV))
+//#include <OpenGLES/ES3/gl.h>    // Use GL ES 3
+//#else
+//#include <GLES3/gl3.h>          // Use GL ES 3
+//#endif
+//#elif !defined(IMGUI_IMPL_OPENGL_LOADER_CUSTOM)
+//// Modern desktop OpenGL doesn't have a standard portable header file to load OpenGL function pointers.
+//// Helper libraries are often used for this purpose! Here we are using our own minimal custom loader based on gl3w.
+//// In the rest of your app/engine, you can use another loader of your choice (gl3w, glew, glad, glbinding, glext, glLoadGen, etc.).
+//// If you happen to be developing a new feature for this backend (imgui_impl_opengl3.cpp):
+//// - You may need to regenerate imgui_impl_opengl3_loader.h to add new symbols. See https://github.com/dearimgui/gl3w_stripped
+////   Typically you would run: python3 ./gl3w_gen.py --output ../imgui/backends/imgui_impl_opengl3_loader.h --ref ../imgui/backends/imgui_impl_opengl3.cpp ./extra_symbols.txt
+//// - You can temporarily use an unstripped version. See https://github.com/dearimgui/gl3w_stripped/releases
+//// Changes to this backend using new APIs should be accompanied by a regenerated stripped loader version.
+//#define IMGL3W_IMPL
+//#define IMGUI_IMPL_OPENGL_LOADER_IMGL3W
+//#include "imgui_impl_opengl3_loader.h"
+//#endif
+
+#include <glad/glad.h>//我们手动引入驱动加载器，解决报错
 
 // Vertex arrays are not supported on ES2/WebGL1 unless Emscripten which uses an extension
 #ifndef IMGUI_IMPL_OPENGL_ES2
