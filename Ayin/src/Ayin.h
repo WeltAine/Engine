@@ -10,3 +10,5 @@
 #include "Ayin/EntryPoint.h"
 
 #include "Ayin/Layer.h"
+
+#include "Ayin/ImGui/ImGuiLayer.h"
