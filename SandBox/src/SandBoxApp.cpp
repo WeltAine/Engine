@@ -15,7 +15,7 @@ public:
 
 	void OnEvent(Ayin::Event& event) override {
 
-		AYIN_TRACE("{0}", event);
+		AYIN_TRACE("{0}", event);//输出接收到的日志
 	}
 
 };
@@ -27,6 +27,7 @@ public:
 	SandBox() {
 
 		PushLayer(new ExampleLayer());
+		PushOverlay(new Ayin::ImGuiLayer());
 	};
 
 	~SandBox() {};
