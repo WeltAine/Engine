@@ -12,9 +12,13 @@
 
 namespace Ayin {
 
+	Application* Application::s_Instance = nullptr;
 
 	Application::Application() 
 	{
+		AYIN_ASSERT(!s_Instance, "Application already exists!");//断言，防止破坏单例
+		s_Instance = this;
+
 		m_Window = std::unique_ptr<Window>(Window::Create());
 
 		//当窗口发生事件时（通过GLFW），窗口类会调用OnEvent回调，由我们来处理，Application成了中介者，而窗口成为了组件，这道函指则是组件与中介之间的沟通桥梁
