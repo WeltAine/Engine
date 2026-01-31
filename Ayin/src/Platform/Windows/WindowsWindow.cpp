@@ -8,6 +8,8 @@
 
 #include <glad/glad.h>
 
+#include "Ayin/ImGui/imgui_impl_glfw.h"
+
 namespace Ayin {
 
 	static bool s_GLFWInitialized = false;//专制变量，确保glfw只初始化一次
@@ -65,7 +67,6 @@ namespace Ayin {
 
 		//其余窗口属性设置
 		SetVSync(true);
-
 
 
 		//连接GLFW的回调与我们事件系统，以达成产生GLFW窗口在交互时产生事件的效果，这里是GLFW-》引擎侧事件系统的中间层
@@ -155,6 +156,14 @@ namespace Ayin {
 				WindowCloseEvent event;
 				data.EventCallback(event);
 			});
+
+
+		//ImGui_ImplGlfw_InitForOpenGL(m_Window, true);//创建ImGui平台后端
+		////该方法的第二个参数是是否让ImGui的后端是否接入事件系统（GLFW是C库，它只能放入一个回调，业界通解是，构成一个回调链）
+		////这里使用true就是表明我们已经加入过自己的回调，通过回调链的方式将ImGui也接入GLFW的事件系统中，如果为false则不会接入。（详情可阅读后端实现源码）
+		////我们也可以滞后接入，使用IMGUI_IMPL_API void     ImGui_ImplGlfw_InstallCallbacks(GLFWwindow* window);这样时机就相当随随意了。
+
+
 	}
 
 
@@ -162,6 +171,8 @@ namespace Ayin {
 	{
 		glfwPollEvents();//猜测：？？？
 		glfwSwapBuffers(m_Window);//猜测：交换帧缓冲（可能是双缓冲方案）
+
+
 	}
 
 	void WindowsWindow::Shutdown() {
