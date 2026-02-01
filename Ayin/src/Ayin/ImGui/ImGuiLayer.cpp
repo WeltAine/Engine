@@ -42,20 +42,6 @@ namespace Ayin {
 			|= ImGuiBackendFlags_HasMouseCursors//鼠标光标
 			| ImGuiBackendFlags_HasSetMousePos;//设置鼠标位置
 		
-		//io.KeysData[ImGuiKey_Tab] = GLFW_KEY_TAB;
-		//新的ImGui中已经为我们设置好了映射ImGui_ImplGlfw_KeyCallback与ImGui_ImplGlfw_KeyToImGuiKey方法
-		//实际上新旧ImGui键盘映射之间有很大理念上的不同，旧版中ImGui其实并没有键盘布局意识，它的io.KeysDown中的每一个元素对应的么字母完全由GLFW中的GLFW_KEY来决定，GLFW在这个位置是什么按键就是什么按键
-		//所以在旧版ImGui中读取按键状态时使用的仍旧是GLFW_KEY作为自己的索引，Cherno设置的io.KeysMap是ImGui到GLFW_KEY的映射，是让ImGui在使用时知道某个ImGuiKey要到那个索引中去找。这个索引由GLFW_KEY来决定，寄人篱下的既视感
-		//而新版的ImGui有了自己的布局意识，io.KeysData中的元素都稳定对应一个按键。这样的平台无关性，就需要一个中间的实践层来做转换ImGui_ImplGlfw_KeyToImGuiKey方法就是这么用的
-
-
-		//GLFWwindow* window = glfwGetCurrentContext();
-		//ImGui_ImplGlfw_InitForOpenGL(window, true);//创建ImGui平台后端
-		////该方法的第二个参数是是否让ImGui的后端是否接入事件系统（GLFW是C库，它只能放入一个回调，业界通解是，构成一个回调链）
-		////这里使用true就是表明我们已经加入过自己的回调，通过回调链的方式将ImGui也接入GLFW的事件系统中，如果为false则不会接入。（详情可阅读后端实现源码）
-		////我们也可以滞后接入，使用IMGUI_IMPL_API void     ImGui_ImplGlfw_InstallCallbacks(GLFWwindow* window);这样时机就相当随随意了。
-		////总之这么干可以一定程度上让ImGui_Impl_glfw成为我们的ImGuiLayer，因为事件处理被它实现，但这样会打乱Cherno的事件产生和执行顺序，PollEvent->App::OnEvent()->各层的处理
-		////不过我们还是尽可能贴近Cherno，这段注释会在本次提交后被删除
 
 		ImGui_ImplOpenGL3_Init("#version 410");
 
@@ -148,40 +134,20 @@ namespace Ayin {
 
 	bool ImGuiLayer::OnKeyPressedEvent(KeyPressedEvent& event)
 	{
-#pragma region 非ImGuiIO直接写入
 		ImGuiIO& io = ImGui::GetIO();
 		ImGuiKey key = ImGui_ImplGlfw_KeyToImGuiKey(event.GetKeyCode(), event.GetScanCode());
 
 		io.AddKeyEvent(key, true);
-#pragma endregion
-
-#pragma region IO直接写入
-		//ImGuiIO& io = ImGui::GetIO();
-		//ImGuiKey key = ImGui_ImplGlfw_KeyToImGuiKey(event.GetKeyCode(), event.GetScanCode());
-		//io.KeysData[key].Down = true;
-
-		//io.KeyCtrl = io.KeysData[ImGuiKey_LeftCtrl].Down || io.KeysData[ImGuiKey_RightCtrl].Down;
-		//io.KeyShift = io.KeysData[ImGuiKey_LeftShift].Down || io.KeysData[ImGuiKey_RightCtrl].Down;
-		//io.KeyAlt = io.KeysData[ImGuiKey_LeftAlt].Down || io.KeysData[ImGuiKey_RightAlt].Down;
-		//io.KeySuper = io.KeysData[ImGuiKey_LeftSuper].Down || io.KeysData[ImGuiKey_RightSuper].Down;
-#pragma endregion
 
 		return false;
 	}
 
 	bool ImGuiLayer::OnKeyReleasedEvent(KeyReleasedEvent& event)
 	{
-#pragma region 非ImGuiIO直接写入
 		ImGuiIO& io = ImGui::GetIO();
 		ImGuiKey key = ImGui_ImplGlfw_KeyToImGuiKey(event.GetKeyCode(), event.GetScanCode());
 
 		io.AddKeyEvent(key, false);
-#pragma endregion
-
-#pragma region IO直接写入
-		//ImGuiIO& io = ImGui::GetIO();
-		//io.KeysData[event.GetKeyCode()].Down = false;
-#pragma endregion
 
 		return false;
 	}
@@ -197,7 +163,6 @@ namespace Ayin {
 
 	bool ImGuiLayer::OnMouseButtonPressedEvent(MouseButtonPressedEvent& event)
 	{
-#pragma region 非ImGuiIO直接写入
 		ImGuiIO& io = ImGui::GetIO();
 
 		GLFWwindow* window = glfwGetCurrentContext();
@@ -207,61 +172,30 @@ namespace Ayin {
 		io.AddKeyEvent(ImGuiMod_Super, (glfwGetKey(window, GLFW_KEY_LEFT_SUPER) == GLFW_PRESS) || (glfwGetKey(window, GLFW_KEY_RIGHT_SUPER) == GLFW_PRESS));
 
 		io.AddMouseButtonEvent(event.GetMouseButton(), true);
-#pragma endregion
-
-#pragma region IO直接写入
-		//ImGuiIO& io = ImGui::GetIO();
-		//io.MouseDown[event.GetMouseButton()] = true;
-#pragma endregion
 
 		return false;
 	}
 
 	bool ImGuiLayer::OnMouseButtonReleasedEvent(MouseButtonReleasedEvent& event)
 	{
-#pragma region 非ImGuiIO直接写入
 		ImGuiIO& io = ImGui::GetIO();
 		io.AddMouseButtonEvent(event.GetMouseButton(), false);
-#pragma endregion
-
-#pragma region IO直接写入
-		//ImGuiIO& io = ImGui::GetIO();
-		//io.MouseDown[event.GetMouseButton()] = false;
-		//io.MouseSource = e->MouseButton.MouseSource;
-#pragma endregion
 
 		return false;
 	}
 
 	bool ImGuiLayer::OnMouseMovedEvent(MouseMovedEvent& event)
 	{
-#pragma region 非ImGuiIO直接写入
 		ImGuiIO& io = ImGui::GetIO();
 		io.AddMousePosEvent(event.GetMouseX(), event.GetMouseY());
-#pragma endregion
-
-#pragma region IO直接写入
-		//ImGuiIO& io = ImGui::GetIO();
-		//io.MousePos = ImVec2(event.GetMouseX(), event.GetMouseY());
-		//io.MouseSource = e->MousePos.MouseSource;
-#pragma endregion
 
 		return false;
 	}
 
 	bool ImGuiLayer::OnMouseSrolled(MouseSrolledEvent& event)
 	{
-#pragma region 非ImGuiIO直接写入
 		ImGuiIO& io = ImGui::GetIO();
 		io.AddMouseWheelEvent(event.GetXoffset(), event.GetYoffset());
-#pragma endregion
-
-#pragma region IO直接写入
-		//ImGuiIO& io = ImGui::GetIO();
-		//io.MouseWheelH += event.GetXoffset();
-		//io.MouseWheel += event.GetYoffset();
-		//io.MouseSource = e->MousePos.MouseSource;
-#pragma endregion
 
 		return false;
 	}
