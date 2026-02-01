@@ -43,7 +43,6 @@ namespace Ayin {
 		while (m_Running)
 		{
 			//测试窗口
-			//glClearColor(1, 0, 1, 1);
 			glClear(GL_COLOR_BUFFER_BIT);
 
 			//层更新

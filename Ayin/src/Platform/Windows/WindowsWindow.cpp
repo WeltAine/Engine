@@ -77,25 +77,35 @@ namespace Ayin {
 					case GLFW_PRESS: {
 						WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);//可以看一看glfwSetWindowUserPointer(m_Window, &m_Data)处的猜想
 
-						KeyPressedEvent event(key, 0);
+						KeyPressedEvent event(key, scancode, 0);
 						data.EventCallback(event);
 						break;
 					}
 					case GLFW_REPEAT: {
 						WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);//可以看一看glfwSetWindowUserPointer(m_Window, &m_Data)处的猜想
 
-						KeyPressedEvent event(key, 1);
+						KeyPressedEvent event(key, scancode, 1);
 						data.EventCallback(event);
 						break;
 					}
 					case GLFW_RELEASE: {
 						WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);//可以看一看glfwSetWindowUserPointer(m_Window, &m_Data)处的猜想
 
-						KeyReleasedEvent event(key);
+						KeyReleasedEvent event(key, scancode);
 						data.EventCallback(event);
 						break;
 					}
 				}
+			});
+
+		glfwSetCharCallback(m_Window, [](GLFWwindow* window, unsigned int codepoint)
+			{
+				WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+
+				int scancode = glfwGetKeyScancode(codepoint);
+				TextEvent event(codepoint, scancode);
+
+				data.EventCallback(event);
 			});
 
 
@@ -158,12 +168,6 @@ namespace Ayin {
 			});
 
 
-		//ImGui_ImplGlfw_InitForOpenGL(m_Window, true);//创建ImGui平台后端
-		////该方法的第二个参数是是否让ImGui的后端是否接入事件系统（GLFW是C库，它只能放入一个回调，业界通解是，构成一个回调链）
-		////这里使用true就是表明我们已经加入过自己的回调，通过回调链的方式将ImGui也接入GLFW的事件系统中，如果为false则不会接入。（详情可阅读后端实现源码）
-		////我们也可以滞后接入，使用IMGUI_IMPL_API void     ImGui_ImplGlfw_InstallCallbacks(GLFWwindow* window);这样时机就相当随随意了。
-
-
 	}
 
 
@@ -182,17 +186,6 @@ namespace Ayin {
 	WindowsWindow::~WindowsWindow() {
 		Shutdown();
 	}
-
-
-	//unsigned int WindowsWindow::GetWidth() const { return m_Data.Width; }
-
-	//unsigned int WindowsWindow::GetHeight() const { return m_Data.Height; }
-
-
-
-	//void WindowsWindow::SetEventCallback(const EventCallbackFn& callback) { m_Data.EventCallback = callback; }
-
-
 
 	void WindowsWindow::SetVSync(bool enabled) 
 	{ 

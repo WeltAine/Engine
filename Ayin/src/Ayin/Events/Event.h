@@ -14,14 +14,14 @@
 //我想我们目前还缺少一个管理事件的类
 namespace Ayin {
 
-#define BIND_EVENT_FUN(funcName) std::bind(&funcName, this, std::placeholders::_1)
+#define BIND_EVENT_FUN(funcName) std::bind(&funcName, this, std::placeholders::_1)//事件处理回调（不是事件发生回调OnEvent）的包装器
 
 	//事件枚举
 	enum class EventType
 	{
 		None = 0,
 		WindowClose, WindowResize, WindowFocus, WindowLostFocus, WindowMoved,	//窗口事件
-		KeyPressed, KeyReleased,												//键盘事件
+		KeyPressed, KeyReleased, Text,												//键盘事件
 		MouseButtonPressed, MouseButtonReleased, MouseMoved, MouseSrolled,		//鼠标事件
 		AppTick, AppUpdate, AppRender,											//应用事件
 
