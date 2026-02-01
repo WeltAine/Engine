@@ -16,15 +16,17 @@ namespace Ayin {
 		EVENT_CLASS_CATEGORY((int)EventCategory::EventCategoryKeyboard | (int)EventCategory::EventCategoryInput);
 
 		inline int GetKeyCode() const { return m_KeyCode; };
+		inline int GetScanCode() const { return m_ScanCode; };
 
 
 	protected:
 
-		KeyEvent(int keyCode)
-			:Event(), m_KeyCode(keyCode)
+		KeyEvent(int keyCode, int scanCode)
+			:Event(), m_KeyCode(keyCode), m_ScanCode(scanCode)
 		{}
 
 		int m_KeyCode;
+		int m_ScanCode;
 
 	};
 
@@ -33,8 +35,8 @@ namespace Ayin {
 
 	public:
 
-		KeyPressedEvent(int keyCode, int repeatCount)
-			:KeyEvent(keyCode), m_RepeatCount(repeatCount)
+		KeyPressedEvent(int keyCode, int scanCode, int repeatCount)
+			:KeyEvent(keyCode, scanCode), m_RepeatCount(repeatCount)
 		{}
 
 		EVENT_CLASS_TYPE(KeyPressed);
@@ -56,8 +58,8 @@ namespace Ayin {
 	class AYIN_API KeyReleasedEvent : public KeyEvent {
 
 	public:
-		KeyReleasedEvent(int keyCode)
-			:KeyEvent(keyCode)
+		KeyReleasedEvent(int keyCode, int scanCode)
+			:KeyEvent(keyCode, scanCode)
 		{}
 
 		EVENT_CLASS_TYPE(KeyReleased);
@@ -69,6 +71,25 @@ namespace Ayin {
 		}
 
 	private:
+
+	};
+
+
+	class AYIN_API TextEvent : public KeyEvent 
+	{
+
+	public:
+		TextEvent(int keyCode, int scanCode)
+			:KeyEvent(keyCode, scanCode)
+		{}
+
+		EVENT_CLASS_TYPE(Text);
+
+		std::string ToString() const override {
+			std::stringstream ss;
+			ss << "TextEvent: " << m_KeyCode;
+			return ss.str();
+		}
 
 	};
 }
