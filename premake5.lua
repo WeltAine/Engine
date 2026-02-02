@@ -1,5 +1,6 @@
 workspace "Ayin" --对应解决方案
     architecture "x64"
+    startproject "Sandbox" --默认启动项目
 
     configurations --对应vs中的配置
     {
@@ -23,10 +24,12 @@ include "Ayin/Dependency/GLFW" --引入该目录下的premake5.lua，和C++的in
 include "Ayin/Dependency/Glad"
 include "Ayin/Dependency/ImGui"
 
+
 project "Ayin"
     location "Ayin" --？？？默认目录么，可是后头的构建包含文件和头文件为什么用了更完整的路径？？
     kind "SharedLib" --生成动态库
     language "C++"
+    staticruntime "off" --动态连接库
     
     targetdir ("bin/" .. outputdir .. "/%{prj.name}") --输出路径
     objdir ("bin-int/" .. outputdir .. "/%{prj.name}") --中间文件路径
@@ -62,7 +65,6 @@ project "Ayin"
 
     filter "system:windows" --当在windows系统下构建该项目时
         cppdialect "C++20" --C++方言，哈哈哈哈
-        staticruntime "On" --静态连接库
         systemversion "latest" --WindowsSDK，我的vs里是类似10.0.x
 
         pchsource "Ayin/src/AyinPch.cpp" -- Creat Precompiled Header
@@ -84,18 +86,18 @@ project "Ayin"
 
     filter "configurations:Debug" --暂时没用，但先写着
         defines "AYIN_DEBUG"
+        runtime "Debug"
         symbols "On"
-        buildoptions "/MDd" --使用多线程调试DLL运行时库
 
     filter "configurations:Release"
         defines "AYIN_RELEASE"
+        runtime "Release"
         optimize "On"
-        buildoptions "/MD" --使用多线程DLL运行时库
 
     filter "configurations:Dist"
         defines "AYIN_DIST"
+        runtime "Release"
         optimize "On"
-        buildoptions "/MD" --使用多线程DLL运行时库
 
 --注意过滤器都是独立的，尽管它们可以多个同时生效，但不具备联合的与判定效果（可以使用filters）
 
@@ -104,6 +106,7 @@ project "SandBox"
     location "Sandbox" --？？？默认目录么，可是后头的构建包含文件和头文件为什么用了更完整的路径？？
     kind "ConsoleApp" --生成动态库
     language "C++"
+    staticruntime "off" --动态连接库
     
     targetdir ("bin/" .. outputdir .. "/%{prj.name}") --输出路径
     objdir ("bin-int/" .. outputdir .. "/%{prj.name}") --中间文件路径
@@ -145,15 +148,15 @@ project "SandBox"
 
     filter "configurations:Debug" --暂时没用，但先写着
         defines "AYIN_DEBUG"
+        runtime "Debug"
         symbols "On"
-        buildoptions "/MDd" --使用多线程调试DLL运行时库
 
     filter "configurations:Release"
         defines "AYIN_RELEASE"
+        runtime "Release"
         optimize "On"
-        buildoptions "/MD" --使用多线程DLL运行时库
         
     filter "configurations:Dist"
         defines "AYIN_DIST"
+        runtime "Release"
         optimize "On"
-        buildoptions "/MD" --使用多线程DLL运行时库
