@@ -31,6 +31,8 @@ namespace Ayin {
 
 		virtual void OnUpdate() = 0;
 
+		virtual void* GetNativeWindow() const = 0;//获取实现侧窗口指针（因为是void*，这个方法应该只对实现侧来说有意义）
+
 		virtual unsigned int GetWidth() const = 0;
 		virtual unsigned int GetHeight() const = 0;
 

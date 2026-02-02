@@ -11,17 +11,19 @@ namespace Ayin {
 		friend class Window;
 	public:
 		// 通过 Window 继承
-		void OnUpdate() override;
+		virtual void OnUpdate() override;
 
-		unsigned int GetWidth() const override { return m_Data.Width; };
-		unsigned int GetHeight() const override { return m_Data.Height; };
+		virtual void* GetNativeWindow() const { return m_Window; };
+
+		virtual unsigned int GetWidth() const override { return m_Data.Width; };
+		virtual unsigned int GetHeight() const override { return m_Data.Height; };
 
 		//设置观察者（回调），该观察者用于Event分发
-		void SetEventCallback(const EventCallbackFn& callback) override { m_Data.EventCallback = callback; };
+		virtual void SetEventCallback(const EventCallbackFn& callback) override { m_Data.EventCallback = callback; };
 
 		//垂直同步
-		void SetVSync(bool enabled) override;
-		bool IsVSync() const override;
+		virtual void SetVSync(bool enabled) override;
+		virtual bool IsVSync() const override;
 
 		virtual ~WindowsWindow();
 

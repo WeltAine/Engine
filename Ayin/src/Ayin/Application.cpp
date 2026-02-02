@@ -7,6 +7,8 @@
 #include "Ayin/Events/ApplicationEvent.h"
 #include "Ayin/Log.h"
 
+#include "Ayin/Input.h"
+
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
 
@@ -52,6 +54,9 @@ namespace Ayin {
 
 			//窗口更新
 			m_Window->OnUpdate();
+
+			auto [x, y] = Input::GetMousePosition();//轮询Input测试
+			AYIN_CORE_TRACE("{0}, {1}", x, y);
 		}
 	}
 

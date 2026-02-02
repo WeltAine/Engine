@@ -135,7 +135,6 @@ project "SandBox"
 
     filter "system:windows" --当在windows系统下构建该项目时
         cppdialect "C++20" --C++方言，哈哈哈哈
-        staticruntime "On" --静态连接库
         systemversion "latest" --WindowsSDK，我的vs里是类似10.0.x
 
 
