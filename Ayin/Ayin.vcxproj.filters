@@ -46,6 +46,12 @@
     <ClInclude Include="src\Ayin\ImGui\ImGuiLayer.h">
       <Filter>Ayin\ImGui</Filter>
     </ClInclude>
+    <ClInclude Include="src\Ayin\ImGui\imgui_impl_glfw.h">
+      <Filter>Ayin\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Ayin\Input.h">
+      <Filter>Ayin</Filter>
+    </ClInclude>
     <ClInclude Include="src\Ayin\Layer.h">
       <Filter>Ayin</Filter>
     </ClInclude>
@@ -62,6 +68,9 @@
     <ClInclude Include="src\Platform\OpenGL\imgui_impl_opengl3.h">
       <Filter>Platform\OpenGL</Filter>
     </ClInclude>
+    <ClInclude Include="src\Platform\Windows\WindowsInput.h">
+      <Filter>Platform\Windows</Filter>
+    </ClInclude>
     <ClInclude Include="src\Platform\Windows\WindowsWindow.h">
       <Filter>Platform\Windows</Filter>
     </ClInclude>
@@ -71,6 +80,9 @@
       <Filter>Ayin</Filter>
     </ClCompile>
     <ClCompile Include="src\Ayin\ImGui\ImGuiLayer.cpp">
+      <Filter>Ayin\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Ayin\ImGui\imgui_impl_glfw.cpp">
       <Filter>Ayin\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="src\Ayin\Layer.cpp">
@@ -85,6 +97,9 @@
     <ClCompile Include="src\AyinPch.cpp" />
     <ClCompile Include="src\Platform\OpenGL\imgui_impl_opengl3.cpp">
       <Filter>Platform\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\Windows\WindowsInput.cpp">
+      <Filter>Platform\Windows</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp">
       <Filter>Platform\Windows</Filter>

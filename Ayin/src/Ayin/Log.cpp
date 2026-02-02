@@ -21,20 +21,4 @@ namespace Ayin {
 
 	}
 
-
-	//能否在此定义呢？？
-	//std::shared_ptr<spdlog::logger>& Log::GetCoreLogger()
-	//{
-	//	// TODO: 在此处插入 return 语句
-	//	return s_CoreLogger;
-	//}
-
-	//std::shared_ptr<spdlog::logger>& Log::GetClientLogger()
-	//{
-	//	// TODO: 在此处插入 return 语句
-	//	return s_ClientLogger;
-	//}
-
-
-
 }
