@@ -10,7 +10,7 @@
 
 namespace Ayin {
 
-	
+	//负责更新循环，层管理（层的更新，层的如栈出栈），窗口管理，事件处理（接收，处理和向各层分发）
 	class AYIN_API Application
 	{
 
