@@ -12,3 +12,7 @@
 #include "Ayin/Layer.h"
 
 #include "Ayin/ImGui/ImGuiLayer.h"
+
+#include "Ayin/Input.h"
+#include "Ayin/KayCodes.h"
+#include "Ayin/MouseButtonCodes.h"
