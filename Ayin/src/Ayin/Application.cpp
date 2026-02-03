@@ -33,14 +33,7 @@ namespace Ayin {
 
 	void Application::Run() {
 
-		//测试事件
 		WindowResizeEvent e(1280, 720);
-		if (e.IsInCatagory(EventCategory::EventCategoryApplication)) {
-			AYIN_INFO(e);
-		}
-		if (e.IsInCatagory(EventCategory::EventCategoryInput)) {
-			AYIN_INFO(e);
-		}
 
 		while (m_Running)
 		{
@@ -55,8 +48,6 @@ namespace Ayin {
 			//窗口更新
 			m_Window->OnUpdate();
 
-			auto [x, y] = Input::GetMousePosition();//轮询Input测试
-			AYIN_CORE_TRACE("{0}, {1}", x, y);
 		}
 	}
 

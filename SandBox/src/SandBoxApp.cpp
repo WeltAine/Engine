@@ -10,12 +10,19 @@ public:
 
 
 	void OnUpdate() override {
-		AYIN_INFO("ExampleLayer::Update");
+		//AYIN_INFO("ExampleLayer::Update");
+		if (Ayin::Input::IsKeyPressed(AYIN_KEY_TAB)) {
+			AYIN_TRACE("Tab key is pressed!");
+		}
 	}
 
 	void OnEvent(Ayin::Event& event) override {
 
 		AYIN_TRACE("{0}", event);//输出接收到的日志
+
+		if (event.GetEventType() == Ayin::KeyPressedEvent::GetStaticEventType()) {
+			AYIN_INFO("{0}", (char)((Ayin::KeyEvent&)event).GetKeyCode());
+		}
 	}
 
 };
@@ -35,14 +42,6 @@ public:
 };
 
 
-
-//void main() {
-//
-//	SandBox* app = new SandBox();
-//	app->Run();
-//	delete app;
-//
-//}
 
 Ayin::Application* Ayin::CreatApplication() {
 
