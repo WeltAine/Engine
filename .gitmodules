@@ -10,3 +10,6 @@
 [submodule "Ayin/Dependency/ImGui"]
 	path = Ayin/Dependency/ImGui
 	url = git@github.com:WeltAine/ImGui.git
+[submodule "Ayin/Dependency/glm"]
+	path = Ayin/Dependency/glm
+	url = https://github.com/g-truc/glm

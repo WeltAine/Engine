@@ -19,6 +19,8 @@ IncludeDir = {}
 IncludeDir["GLFW"] = "Ayin/Dependency/GLFW/include" 
 IncludeDir["Glad"] = "Ayin/Dependency/glad/include"
 IncludeDir["ImGui"] = "Ayin/Dependency/ImGui"
+IncludeDir["glm"] = "Ayin/Dependency/glm"
+
 
 include "Ayin/Dependency/GLFW" --引入该目录下的premake5.lua，和C++的include一样
 include "Ayin/Dependency/Glad"
@@ -44,7 +46,8 @@ project "Ayin"
         "%{prj.name}/Dependency/spdlog/include",
         "%{IncludeDir.GLFW}",
         "%{IncludeDir.Glad}",
-        "%{IncludeDir.ImGui}"
+        "%{IncludeDir.ImGui}",
+        "%{IncludeDir.glm}"
     }
 
     -- 依赖项目
@@ -59,7 +62,9 @@ project "Ayin"
     files --构建时包含的文件
     {
         "%{prj.name}/src/**.h",
-        "%{prj.name}/src/**.cpp"
+        "%{prj.name}/src/**.cpp",
+        "%{prj.name}/Dependency/glm/glm/**.hpp",
+        "%{prj.name}/Dependency/glm/glm/**.inl"
     }
 
 
@@ -117,7 +122,9 @@ project "SandBox"
     includedirs --项目包含文件
     {
         "Ayin/Dependency/spdlog/include",
-        "Ayin/src"
+        "Ayin/src",
+        "%{IncludeDir.glm}"
+
     }
 
     links --连接.lib
