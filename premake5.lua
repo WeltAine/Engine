@@ -1,6 +1,6 @@
 workspace "Ayin" --对应解决方案
     architecture "x64"
-    startproject "Sandbox" --默认启动项目
+    startproject "SandBox" --默认启动项目
 
     configurations --对应vs中的配置
     {
@@ -108,7 +108,7 @@ project "Ayin"
 
 
 project "SandBox"
-    location "Sandbox" --？？？默认目录么，可是后头的构建包含文件和头文件为什么用了更完整的路径？？
+    location "SandBox" --？？？默认目录么，可是后头的构建包含文件和头文件为什么用了更完整的路径？？
     kind "ConsoleApp" --生成动态库
     language "C++"
     staticruntime "off" --动态连接库
@@ -127,6 +127,7 @@ project "SandBox"
 
     }
 
+    -- dependson "Ayin"
     links --连接.lib
     {
         "Ayin"
