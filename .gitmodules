@@ -4,9 +4,6 @@
 [submodule "Ayin/Dependency/GLFW"]
 	path = Ayin/Dependency/GLFW
 	url = https://github.com/WeltAine/glfw
-[submodule "Ayin/Dedenpency/ImGui"]
-	path = Ayin/Dedenpency/ImGui
-	url = git@github.com:WeltAine/ImGui.git
 [submodule "Ayin/Dependency/ImGui"]
 	path = Ayin/Dependency/ImGui
 	url = git@github.com:WeltAine/ImGui.git
