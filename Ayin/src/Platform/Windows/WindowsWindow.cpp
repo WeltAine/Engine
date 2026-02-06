@@ -8,7 +8,7 @@
 
 #include <glad/glad.h>
 
-#include "Ayin/ImGui/imgui_impl_glfw.h"
+//#include "Ayin/ImGui/imgui_impl_glfw.h"
 
 namespace Ayin {
 
@@ -41,7 +41,7 @@ namespace Ayin {
 		//GLWL初始化
 		if (!s_GLFWInitialized) {
 
-			int success = glfwInit();
+			int success = glfwInit();//？？？
 			AYIN_CORE_ASSERT(success, "Could not initialize GLFW!");//断言宏
 			glfwSetErrorCallback(GLFWErrorCallback);
 			s_GLFWInitialized = true;
@@ -56,7 +56,7 @@ namespace Ayin {
 		glfwMakeContextCurrent(m_Window);//将当前线程与窗口绑定，该线程所执行的gl执行都将由该窗口的OpenGL/Vulkan上下文处理
 
 		int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);//正如我们前面所说，glad的核心功能之一是记录所有的现代OpenGL驱动方法，以便我们使用（否则我们就需要自己用GLFW的辅助方法拉驱动，用驱动，应该也是有的，可能比较老？），但是查找驱动的方法由GLFW提供，因为窗口是GLFW创建的，它知道是什么操作系统，该如何访问驱动
-		AYIN_CORE_ASSERT(status, "Failed to, initialize GLAFD");
+		AYIN_CORE_ASSERT(status, "Failed to initialize GLAFD");
 
 		glfwSetWindowUserPointer(m_Window, &m_Data);
 		//猜测：上下文映射？？？

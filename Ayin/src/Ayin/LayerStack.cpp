@@ -5,8 +5,7 @@
 namespace Ayin {
 
 
-	LayerStack::LayerStack() {//这里可以使用初始化列表，只要你确保好变量的声明顺序，以确保它们之间的依赖顺序正常就行，比如说m_LayerInsert依赖于m_Layers，所以你要确保你的编译器会先初始化m_Layers
-		m_LayerInsert = m_Layers.begin();
+	LayerStack::LayerStack() {
 	}
 
 	LayerStack::~LayerStack() {
@@ -18,7 +17,8 @@ namespace Ayin {
 
 	void LayerStack::PushLayer(Layer* layer) {
 
-		 m_LayerInsert = m_Layers.emplace(m_LayerInsert, layer);
+		 m_Layers.emplace(m_Layers.begin() + m_LayerInsertIndex, layer);
+		 m_LayerInsertIndex++;
 		 layer->OnAttach();
 
 	}
@@ -38,8 +38,10 @@ namespace Ayin {
 		if (iterator != m_Layers.end()) {
 			//？？？感觉有风险
 			//我觉得应该改成shared_ptr,否则有泄露风险
+			//(*(iterator._Ptr))->OnDetach();//访问这么复杂么？
 			m_Layers.erase(iterator);
-			m_LayerInsert--;
+			layer->OnDetach();
+			m_LayerInsertIndex--;
 		}
 	}
 
@@ -48,7 +50,9 @@ namespace Ayin {
 		auto iterator = std::find(m_Layers.begin(), m_Layers.end(), overLayer);
 
 		if (iterator == m_Layers.end()) {
+			//(*(iterator._Ptr))->OnDetach();
 			m_Layers.erase(iterator);
+			overLayer->OnDetach();
 		}
 
 

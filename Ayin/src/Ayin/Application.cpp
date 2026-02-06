@@ -9,6 +9,7 @@
 
 #include "Ayin/Input.h"
 
+
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
 
@@ -16,6 +17,9 @@ namespace Ayin {
 
 	Application* Application::s_Instance = nullptr;
 
+	/// <summary>
+	/// 创建窗口，单例，层栈以及为窗口的人造闭包配置事件函指
+	/// </summary>
 	Application::Application() 
 	{
 		AYIN_ASSERT(!s_Instance, "Application already exists!");//断言，防止破坏单例
@@ -27,6 +31,8 @@ namespace Ayin {
 		m_Window->SetEventCallback(BIND_EVENT_FUN(Application::OnEvent));//通过
 
 		//栈层使用默认构造
+		m_ImGuiLayer = new ImGuiLayer();
+		PushOverlay(m_ImGuiLayer);//暂时没有空间清理的过程，可能泄露（在拆出层时）,感觉该层的所有权有写模糊啊
 	};
 
 	Application::~Application() {};
@@ -45,6 +51,14 @@ namespace Ayin {
 				layer->OnUpdate();
 			}
 
+			//渲染ImGui（之后会单独放到渲染线程上，所以不会在Layer的OnUpdate中执行）
+			//m_ImGuiLauer的Begin和End别的层也能用么？？？
+			m_ImGuiLayer->Begin();
+			for (Layer* layer : m_LayerStack) {
+				layer->OnImGuiRender();
+			}
+			m_ImGuiLayer->End();
+			
 			//窗口更新
 			m_Window->OnUpdate();
 

@@ -18,21 +18,10 @@ namespace Ayin {
 
 		virtual void OnAttach() override;//加入层栈
 		virtual void OnDetach() override;//退出层栈
-		virtual void OnUpdate() override;//层更新
-		virtual void OnEvent(Event& event) override;
+		virtual void OnImGuiRender() override;//ImGui渲染
 
-	private:
-		bool OnKeyPressedEvent(KeyPressedEvent& event);
-		bool OnKeyReleasedEvent(KeyReleasedEvent& event);
-		bool OnTextEvent(TextEvent& event);
-
-		bool OnMouseButtonPressedEvent(MouseButtonPressedEvent& event);
-		bool OnMouseButtonReleasedEvent(MouseButtonReleasedEvent& event);
-		bool OnMouseMovedEvent(MouseMovedEvent& event);
-		bool OnMouseSrolled(MouseSrolledEvent& event);
-
-		bool OnWindowResizeEvent(WindowResizeEvent& event);
-
+		void Begin();
+		void End();
 
 	private:
 		float m_Time = 0.0f;

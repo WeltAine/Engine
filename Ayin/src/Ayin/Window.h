@@ -24,10 +24,15 @@ namespace Ayin {
 	class AYIN_API Window {
 
 	public:
-		using EventCallbackFn = std::function<void(Event&)>; //？？？这个别名也受域影响么，我记得是的
+		using EventCallbackFn = std::function<void(Event&)>;
 
-		//全局创建方法
-		static Window* Create(const WindowProps& props = WindowProps());//？？？默认参数将亡值了，晚点查查
+		/// <summary>
+		/// 创建窗口（抽象侧）
+		/// </summary>
+		/// <param name="props">窗口参数（有默认值）</param>
+		/// <returns>抽象窗口指针</returns>
+		static Window* Create(const WindowProps& props = WindowProps());
+		//必须要用const，参数赋值是一个{}外阶段，根据C++的生命周期控制，这里的WindowProps()构造语句结束之后该对象消亡，也就是在进入{}之前会消亡，所以是一个将亡值
 
 		virtual void OnUpdate() = 0;
 

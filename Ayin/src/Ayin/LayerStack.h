@@ -29,7 +29,7 @@ namespace Ayin {
 	private:
 		//？？？不用指针，cherno解释是跟什么所有权相关，晚点再看一遍
 		std::vector<Layer*> m_Layers;//层“栈”，因为我们的更新和事件在层间的走向是不同的，所以不会使用真正的栈
-		std::vector<Layer*>::iterator m_LayerInsert;//插入迭代器（不了解？，那就当作指向集合中元素的指针封装），一直记录非覆盖层可以插入的位置
+		unsigned int m_LayerInsertIndex = 0;
 
 	};
 

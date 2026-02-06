@@ -34,7 +34,7 @@ public:
 	SandBox() {
 
 		PushLayer(new ExampleLayer());
-		PushOverlay(new Ayin::ImGuiLayer());
+		//PushOverlay(new Ayin::ImGuiLayer());//覆盖层应该完全由核心控制
 	};
 
 	~SandBox() {};

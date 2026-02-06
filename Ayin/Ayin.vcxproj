@@ -586,7 +586,6 @@ copy /B /Y ..\bin\Dist-windows-x86_64\Ayin\Ayin.dll ..\bin\Dist-windows-x86_64\S
     <ClInclude Include="src\Ayin\Events\KeyEvent.h" />
     <ClInclude Include="src\Ayin\Events\MouseEvent.h" />
     <ClInclude Include="src\Ayin\ImGui\ImGuiLayer.h" />
-    <ClInclude Include="src\Ayin\ImGui\imgui_impl_glfw.h" />
     <ClInclude Include="src\Ayin\Input.h" />
     <ClInclude Include="src\Ayin\KayCodes.h" />
     <ClInclude Include="src\Ayin\Layer.h" />
@@ -595,21 +594,19 @@ copy /B /Y ..\bin\Dist-windows-x86_64\Ayin\Ayin.dll ..\bin\Dist-windows-x86_64\S
     <ClInclude Include="src\Ayin\MouseButtonCodes.h" />
     <ClInclude Include="src\Ayin\Window.h" />
     <ClInclude Include="src\AyinPch.h" />
-    <ClInclude Include="src\Platform\OpenGL\imgui_impl_opengl3.h" />
     <ClInclude Include="src\Platform\Windows\WindowsInput.h" />
     <ClInclude Include="src\Platform\Windows\WindowsWindow.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Ayin\Application.cpp" />
+    <ClCompile Include="src\Ayin\ImGui\ImGuiBuild.cpp" />
     <ClCompile Include="src\Ayin\ImGui\ImGuiLayer.cpp" />
-    <ClCompile Include="src\Ayin\ImGui\imgui_impl_glfw.cpp" />
     <ClCompile Include="src\Ayin\Layer.cpp" />
     <ClCompile Include="src\Ayin\LayerStack.cpp" />
     <ClCompile Include="src\Ayin\Log.cpp" />
     <ClCompile Include="src\AyinPch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="src\Platform\OpenGL\imgui_impl_opengl3.cpp" />
     <ClCompile Include="src\Platform\Windows\WindowsInput.cpp" />
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp" />
   </ItemGroup>

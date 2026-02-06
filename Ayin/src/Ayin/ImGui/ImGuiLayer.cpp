@@ -5,10 +5,13 @@
 #include <GLFW/glfw3.h>
 
 #include "imgui.h"
-#include "Platform/OpenGL/imgui_impl_opengl3.h"
 
-//#include "Ayin/ImGui/imgui_impl_glfw.h"
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_opengl3.h>
 #include <glad/glad.h>
+
+//#include "Platform/OpenGL/imgui_impl_opengl3.h"
+//#include "Ayin/ImGui/imgui_impl_glfw.h"
 
 #pragma region 追加ImGui_GLFW平台后端方法
 
@@ -31,43 +34,60 @@ namespace Ayin {
 		//我对Imgui的感受就是一个UI框架，平台后端和渲染后端组成，它是一套基于实际平台和渲染的图形框架
 		//就是我们现在在做的引擎一样，但是它只负责自己的UI，利用具体的事件系统，利用具体的图形API
 		
-
 		ImGui::CreateContext();//创建ImGuiContext
 		ImGui::StyleColorsDark();//设置风格
 
 		ImGuiIO& io = ImGui::GetIO();//通过io向ImGui提供数据
-
-		//设定特定窗口系统（这里为 GLFW）具备哪些功能
-		io.BackendFlags								
-			|= ImGuiBackendFlags_HasMouseCursors//鼠标光标
-			| ImGuiBackendFlags_HasSetMousePos;//设置鼠标位置
+		//???
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard
+			| ImGuiConfigFlags_NavEnableGamepad
+			| ImGuiConfigFlags_DockingEnable
+			| ImGuiConfigFlags_ViewportsEnable
+			//| ImGuiConfigFlags_ViewportsNoTaskBarIcons
+			//| ImGuiConfigFlags_ViewportsNoMerge
+			;
+		//cherno旧版本的最后两个ConfigFlags枚举在新版本中的这个位置
+		io.ConfigViewportsNoAutoMerge = true;               // 替代原ImGuiConfigFlags_ViewportsNoMerge
+		io.ConfigViewportsNoTaskBarIcon = true;				// 替换原ImGuiConfigFlags_ViewportsNoTaskBarIcons
 		
+		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {//???
+			ImGuiStyle& style = ImGui::GetStyle();
+			style.WindowRounding = 0.0f;
+			style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+		}
+
+		GLFWwindow* windos = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
+		ImGui_ImplGlfw_InitForOpenGL(windos, true);//该方法主要配置ImGui中的后端上下文，简单来说就是接入（取得）GLFW的数据（大概，哈哈哈）
+		////设定特定窗口系统（这里为 GLFW）具备哪些功能
+		//io.BackendFlags								
+		//	|= ImGuiBackendFlags_HasMouseCursors//鼠标光标
+		//	| ImGuiBackendFlags_HasSetMousePos;//设置鼠标位置
+		//由ImGui_ImplGlfw_InitForOpenGL
 
 		ImGui_ImplOpenGL3_Init("#version 410");
-
 	}
 
-	void ImGuiLayer::OnDetach() {}
+	void ImGuiLayer::OnDetach() {
+		//???
+		ImGui_ImplOpenGL3_Shutdown();
+		ImGui_ImplGlfw_Shutdown();
+		ImGui::DestroyContext();
+	}
 
-	void ImGuiLayer::OnUpdate()
-	{
+
+	void ImGuiLayer::OnImGuiRender() {
 		ImGuiIO& io = ImGui::GetIO();
 
-		Application& app = Application::Get();
+		//我记得是交由某个NewFrame中完成吧
+		//Application& app = Application::Get();
+		//io.DisplaySize = ImVec2(app.GetWindow().GetWidth(), app.GetWindow().GetHeight());
+		//float time = (float)glfwGetTime();
+		//io.DeltaTime = m_Time > 0.0f ? (time - m_Time) : (1.0f / 60.0f);
+		//m_Time = time;
 
-		io.DisplaySize = ImVec2(app.GetWindow().GetWidth(), app.GetWindow().GetHeight());
-
-		float time = (float)glfwGetTime();
-
-		io.DeltaTime = m_Time > 0.0f ? (time - m_Time) : (1.0f / 60.0f);
-		m_Time = time;
-
-		ImGui_ImplOpenGL3_NewFrame();//？？？
-		//ImGui_ImplGlfw_NewFrame();//？？？
-		ImGui::NewFrame();//？？？
 
 		static bool show = true;
-		if(show)
+		if (show)
 			ImGui::ShowDemoWindow(&show);
 
 
@@ -105,110 +125,38 @@ namespace Ayin {
 				ImGui::End();
 			}
 
+			glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
 		}
 
+		//ImGui::Render();
+		//ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+
+	}
+
+	void ImGuiLayer::Begin() {
+		//???
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+	}
+
+	void ImGuiLayer::End() {
+		//???
+		ImGuiIO& io = ImGui::GetIO();
+		Application& app = Application::Get();
+		io.DisplaySize = ImVec2(app.GetWindow().GetWidth(), app.GetWindow().GetWidth());
+
+		//渲染
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-		glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
-
-	}
-
-
-	void ImGuiLayer::OnEvent(Event& event) {
-
-		//构造事件调度器
-		EventDispatcher dispatcher(event);
-
-		//将事件发送给本层的每一个事件处理方法
-		dispatcher.Dispatch<KeyPressedEvent>(BIND_EVENT_FUN(ImGuiLayer::OnKeyPressedEvent));
-		dispatcher.Dispatch<KeyReleasedEvent>(BIND_EVENT_FUN(ImGuiLayer::OnKeyReleasedEvent));
-		dispatcher.Dispatch<TextEvent>(BIND_EVENT_FUN(ImGuiLayer::OnTextEvent));
-
-		dispatcher.Dispatch<MouseButtonPressedEvent>(BIND_EVENT_FUN(ImGuiLayer::OnMouseButtonPressedEvent));
-		dispatcher.Dispatch<MouseButtonReleasedEvent>(BIND_EVENT_FUN(ImGuiLayer::OnMouseButtonReleasedEvent));
-		dispatcher.Dispatch<MouseMovedEvent>(BIND_EVENT_FUN(ImGuiLayer::OnMouseMovedEvent));
-
-		dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FUN(ImGuiLayer::OnWindowResizeEvent));
-	}
-
-	bool ImGuiLayer::OnKeyPressedEvent(KeyPressedEvent& event)
-	{
-		ImGuiIO& io = ImGui::GetIO();
-		ImGuiKey key = ImGui_ImplGlfw_KeyToImGuiKey(event.GetKeyCode(), event.GetScanCode());
-
-		io.AddKeyEvent(key, true);
-
-		return false;
-	}
-
-	bool ImGuiLayer::OnKeyReleasedEvent(KeyReleasedEvent& event)
-	{
-		ImGuiIO& io = ImGui::GetIO();
-		ImGuiKey key = ImGui_ImplGlfw_KeyToImGuiKey(event.GetKeyCode(), event.GetScanCode());
-
-		io.AddKeyEvent(key, false);
-
-		return false;
-	}
-
-	bool ImGuiLayer::OnTextEvent(TextEvent& event) {
-
-		ImGuiIO& io = ImGui::GetIO();
-
-		io.AddInputCharacter(event.GetKeyCode());
-
-		return false;
-	}
-
-	bool ImGuiLayer::OnMouseButtonPressedEvent(MouseButtonPressedEvent& event)
-	{
-		ImGuiIO& io = ImGui::GetIO();
-
-		GLFWwindow* window = glfwGetCurrentContext();
-		io.AddKeyEvent(ImGuiMod_Ctrl, (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) || (glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS));
-		io.AddKeyEvent(ImGuiMod_Shift, (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) || (glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS));
-		io.AddKeyEvent(ImGuiMod_Alt, (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS) || (glfwGetKey(window, GLFW_KEY_RIGHT_ALT) == GLFW_PRESS));
-		io.AddKeyEvent(ImGuiMod_Super, (glfwGetKey(window, GLFW_KEY_LEFT_SUPER) == GLFW_PRESS) || (glfwGetKey(window, GLFW_KEY_RIGHT_SUPER) == GLFW_PRESS));
-
-		io.AddMouseButtonEvent(event.GetMouseButton(), true);
-
-		return false;
-	}
-
-	bool ImGuiLayer::OnMouseButtonReleasedEvent(MouseButtonReleasedEvent& event)
-	{
-		ImGuiIO& io = ImGui::GetIO();
-		io.AddMouseButtonEvent(event.GetMouseButton(), false);
-
-		return false;
-	}
-
-	bool ImGuiLayer::OnMouseMovedEvent(MouseMovedEvent& event)
-	{
-		ImGuiIO& io = ImGui::GetIO();
-		io.AddMousePosEvent(event.GetMouseX(), event.GetMouseY());
-
-		return false;
-	}
-
-	bool ImGuiLayer::OnMouseSrolled(MouseSrolledEvent& event)
-	{
-		ImGuiIO& io = ImGui::GetIO();
-		io.AddMouseWheelEvent(event.GetXoffset(), event.GetYoffset());
-
-		return false;
-	}
-
-	bool ImGuiLayer::OnWindowResizeEvent(WindowResizeEvent& event)
-	{
-		ImGuiIO& io = ImGui::GetIO();
-		Application& app = Application::Get();
-		io.DisplaySize = ImVec2(app.GetWindow().GetWidth(), app.GetWindow().GetHeight());
-		io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
-		glViewport(0, 0, event.GetWidth(), event.GetHeight());
-
-		return false;
+		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+			GLFWwindow* backup_current_context = glfwGetCurrentContext();
+			ImGui::UpdatePlatformWindows();
+			ImGui::RenderPlatformWindowsDefault();
+			glfwMakeContextCurrent(backup_current_context);
+		}
 	}
 
 
