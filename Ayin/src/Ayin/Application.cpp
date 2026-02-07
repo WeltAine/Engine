@@ -9,9 +9,9 @@
 
 #include "Ayin/Input.h"
 
-
-#include <GLFW/glfw3.h>
+#define GLFW_INCLUDE_NONE
 #include <glad/glad.h>
+#include <GLFW/glfw3.h>
 
 namespace Ayin {
 
