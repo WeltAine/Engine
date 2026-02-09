@@ -8,6 +8,9 @@
 #include "Ayin/Events/KeyEvent.h"
 #include "Ayin/Events/MouseEvent.h"
 
+//#include <imgui.h>
+extern struct ImGuiContext;
+
 namespace Ayin {
 
 	class AYIN_API ImGuiLayer : public Layer {
@@ -23,8 +26,11 @@ namespace Ayin {
 		void Begin();
 		void End();
 
+		static ImGuiContext* GetImGuiCurrentContext() { return s_UiContext; };
+
 	private:
 		float m_Time = 0.0f;
+		static ImGuiContext* s_UiContext;
 	};
 
 }

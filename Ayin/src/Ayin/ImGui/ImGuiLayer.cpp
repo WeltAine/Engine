@@ -6,7 +6,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#include "imgui.h"
+#include <imgui.h>
 
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
@@ -22,6 +22,8 @@ ImGuiKey ImGui_ImplGlfw_KeyToImGuiKey(int keycode, int scancode);//引入声明
 
 namespace Ayin {
 
+	ImGuiContext* ImGuiLayer::s_UiContext = nullptr;
+
 	ImGuiLayer::ImGuiLayer() 
 		:Layer("ImGuiLayer")
 	{}
@@ -35,7 +37,7 @@ namespace Ayin {
 		//我对Imgui的感受就是一个UI框架，平台后端和渲染后端组成，它是一套基于实际平台和渲染的图形框架
 		//就是我们现在在做的引擎一样，但是它只负责自己的UI，利用具体的事件系统，利用具体的图形API
 		
-		ImGui::CreateContext();//创建ImGuiContext
+		s_UiContext = ImGui::CreateContext();//创建ImGuiContext
 		ImGui::StyleColorsDark();//设置风格
 
 		ImGuiIO& io = ImGui::GetIO();//通过io向ImGui提供数据

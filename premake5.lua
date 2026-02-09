@@ -123,6 +123,7 @@ project "SandBox"
     {
         "Ayin/Dependency/spdlog/include",
         "Ayin/src",
+        "Ayin/Dependency",
         "%{IncludeDir.glm}"
 
     }
@@ -130,7 +131,8 @@ project "SandBox"
     -- dependson "Ayin"
     links --连接.lib
     {
-        "Ayin"
+        "Ayin",
+        "ImGui"
     }
 
 
