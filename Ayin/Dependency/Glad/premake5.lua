@@ -1,5 +1,5 @@
 project "Glad"
-    location "Ayin/Dependency/Glad"
+    location "Glad"
     kind "StaticLib"
     language "C"
     staticruntime "on"
