@@ -91,12 +91,12 @@ project "Ayin"
 
     filter "configurations:Debug" --暂时没用，但先写着
         defines "AYIN_DEBUG"
-        runtime "Debug"
-        symbols "On"
+        runtime "Debug" --使用调试版本的运行时库（比如msvcrtd.lib），以便在调试时能够获得更详细的错误信息和调试支持
+        symbols "On" 
 
     filter "configurations:Release"
         defines "AYIN_RELEASE"
-        runtime "Release"
+        runtime "Release" --使用发布版本的运行时库（比如msvcrt.lib），以获得更好的性能和较小的二进制文件
         optimize "On"
 
     filter "configurations:Dist"

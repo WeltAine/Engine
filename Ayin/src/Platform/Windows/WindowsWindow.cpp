@@ -53,7 +53,7 @@ namespace Ayin {
 
 			// OpenGL上下文版本，与配置文件
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 		}
 		#pragma endregion
@@ -194,7 +194,7 @@ namespace Ayin {
 
 	void WindowsWindow::OnUpdate()
 	{
-		glfwPollEvents();
+		glfwPollEvents();//在代码运行过程中（甚至是在 glfwPollEvents 期间），GLFW 都会触发回调函数。（异步机制）！！？？？
 		// 为了接收事件并证明程序未陷入死锁，GLFW 需要定期与窗口系统进行通信。只要窗口处于可见状态，就必须定期处理事件，通常在每一帧完成缓冲区交换后进行。
 		// 处理待处理事件有两种方式：轮询和等待。这里采用事件轮询（Polling）机制，它仅处理当前已收到的事件并立即返回。
 		// 对于像大多数游戏那样需要持续渲染的场景，这是最佳选择。

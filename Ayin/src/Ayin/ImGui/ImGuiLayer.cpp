@@ -57,6 +57,7 @@ namespace Ayin {
 
 		GLFWwindow* windos = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
 		ImGui_ImplGlfw_InitForOpenGL(windos, true);//该方法主要配置ImGui中的后端上下文，简单来说就是接入（取得）GLFW的数据（大概，哈哈哈）
+		// 负责编译 ImGui 用于自身渲染的着色器。告知 GPU 如何绘制构成窗口和按钮的三角形。
 		ImGui_ImplOpenGL3_Init("#version 410");
 	}
 
