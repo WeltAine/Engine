@@ -2,7 +2,7 @@
 #include "ImGuiLayer.h"
 #include "Ayin/Application.h"
 
-#define GLFW_INCLUDE_NONE
+//#define GLFW_INCLUDE_NONE //premake5中已经定义
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
