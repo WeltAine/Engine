@@ -1,8 +1,7 @@
 #include "AyinPch.h"
 
-//#define GLFW_INCLUDE_NONE //premake5中已经定义
-#include <glad/glad.h>
 #include "WindowsWindow.h"
+#include "Platform/OpenGL/OpenGLContext.h"
 
 #include "Ayin/Events/KeyEvent.h"
 #include "Ayin/Events/MouseEvent.h"
@@ -66,14 +65,11 @@ namespace Ayin {
 		// 另一件重要的事情是，操作系统只有在创建了窗口（准确的来说是窗口的设备上下文）后才会给与访问显卡驱动的可能（这些驱动由硬件厂商编写，遵循特定规范，比如OpenGL就是一种规范）
 		// 而我们的Glad库核心是加载器和一堆函数指针（加载器用于将驱动中的方法记录到函数指针中，而查找驱动方法的手段有GLFW提供，可能是因为窗口是它创建的，它知道如何访问驱动）
 
-		// 将 OpenGL 上下文设置为当前上下文
-		// 在使用 OpenGL API 之前，必须先创建一个当前的 OpenGL 上下文（Context）。该上下文将一直保持当前状态，直到你切换到另一个上下文，或者该上下文所属的窗口被销毁。
-		glfwMakeContextCurrent(m_Window);//将当前线程与窗口绑定，该线程所执行的gl执行都将由该窗口的OpenGL/Vulkan上下文处理。
 
-		int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);//正如我们前面所说，glad的核心功能之一是记录所有的现代OpenGL驱动方法，以便我们使用（否则我们就需要自己用GLFW的辅助方法拉驱动，用驱动，应该也是有的，可能比较老？），但是查找驱动的方法由GLFW提供，因为窗口是GLFW创建的，它知道是什么操作系统，该如何访问驱动
-		// 加载器需要绑定当前上下文（Current Context）才能工作。
+		// 创建渲染上下文并初始化
+		m_GraphicsContext = new OpenGLContext(m_Window);
+		m_GraphicsContext->Init();
 
-		AYIN_CORE_ASSERT(status, "Failed to initialize GLAFD");
 
 		glfwSetWindowUserPointer(m_Window, &m_Data);
 		// 猜测：上下文映射？？？
@@ -201,8 +197,7 @@ namespace Ayin {
 		// 相反，如果你只需要在接收到新输入时才更新画面，那么使用 glfwWaitEvents 会更好。
 		// 它会阻塞并使线程进入休眠状态，直到至少接收到一个事件后才开始处理。这能节省大量的 CPU 资源，非常适合诸如各类编辑工具之类的应用。
 
-		glfwSwapBuffers(m_Window);//交换前后台缓冲（可能是双缓冲方案）
-		// 前台缓冲区用于显示当前图像，而后台缓冲区则用于执行渲染操作。
+		m_GraphicsContext->SwapBuffer();
 	}
 
 	void WindowsWindow::Shutdown() {
@@ -211,7 +206,7 @@ namespace Ayin {
 	}
 
 	WindowsWindow::~WindowsWindow() {
-		Shutdown();
+		Shutdown();//不会导致重复触发么？？？
 	}
 
 	void WindowsWindow::SetVSync(bool enabled) 

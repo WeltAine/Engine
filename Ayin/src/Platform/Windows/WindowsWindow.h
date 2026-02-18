@@ -2,6 +2,7 @@
 
 #include "Ayin/Window.h"
 
+#include "Ayin/Renderer/GraphicsContext.h"
 #include <GLFW/glfw3.h>
 
 namespace Ayin {
@@ -38,9 +39,10 @@ namespace Ayin {
 
 	private:
 		GLFWwindow* m_Window;
+		GraphicsContext* m_GraphicsContext;
 
 
-		//？？？猜测——窗口与GLFW之间的上下文文本类型
+		//交给GLFW的数据（以void*形式），主要用在系统事件的回调中，类似于闭包
 		struct WindowData {
 			std::string Title;
 			unsigned int Width, Height;
