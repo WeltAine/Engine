@@ -29,9 +29,10 @@ include "Ayin/Dependency/ImGui"
 
 project "Ayin"
     location "Ayin" --？？？默认目录么，可是后头的构建包含文件和头文件为什么用了更完整的路径？？
-    kind "SharedLib" --生成动态库
+    kind "StaticLib" --生成静态库
     language "C++"
-    staticruntime "off" --动态连接库
+    cppdialect "C++20"
+    staticruntime "On" --???
     
     targetdir ("bin/" .. outputdir .. "/%{prj.name}") --输出路径
     objdir ("bin-int/" .. outputdir .. "/%{prj.name}") --中间文件路径
@@ -69,17 +70,16 @@ project "Ayin"
 
 
     filter "system:windows" --当在windows系统下构建该项目时
-        cppdialect "C++20" --C++方言，哈哈哈哈
         systemversion "latest" --WindowsSDK，我的vs里是类似10.0.x
-
         pchsource "Ayin/src/AyinPch.cpp" -- Creat Precompiled Header
 
 
         defines --宏
         {
             "AYIN_PLATFORM_WINDOWS",
-            "AYIN_BUILD_DLL",
-            "GLFW_INCLUDE_NONE" --让glfw不包含OpenGL头文件，因为我们用的是Glad来加载OpenGL函数，而且由glfw引入头文件会报错（不理解为什么要这么处理）
+            "AYIN_BUILD_DLL", --这个宏是为了区分是构建Ayin库还是使用Ayin库，虽然现在Ayin是静态库，但以后可能会改成动态库，所以先写着
+            "GLFW_INCLUDE_NONE", --让glfw不包含OpenGL头文件，因为我们用的是Glad来加载OpenGL函数，而且由glfw引入头文件会报错（不理解为什么要这么处理）
+            "_CRT_SECURE_NO_WARNINGS"
         }
 
 
@@ -109,9 +109,10 @@ project "Ayin"
 
 project "SandBox"
     location "SandBox" --？？？默认目录么，可是后头的构建包含文件和头文件为什么用了更完整的路径？？
-    kind "ConsoleApp" --生成动态库
+    kind "ConsoleApp"
     language "C++"
-    staticruntime "off" --动态连接库
+    cppdialect "C++20" 
+    staticruntime "On" --???
     
     targetdir ("bin/" .. outputdir .. "/%{prj.name}") --输出路径
     objdir ("bin-int/" .. outputdir .. "/%{prj.name}") --中间文件路径
@@ -142,7 +143,6 @@ project "SandBox"
 
 
     filter "system:windows" --当在windows系统下构建该项目时
-        cppdialect "C++20" --C++方言，哈哈哈哈
         systemversion "latest" --WindowsSDK，我的vs里是类似10.0.x
 
 

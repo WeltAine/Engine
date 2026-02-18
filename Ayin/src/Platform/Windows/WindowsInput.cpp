@@ -35,7 +35,7 @@ namespace Ayin {
 		double x, y;
 		glfwGetCursorPos(window, &x, &y);
 
-		return std::pair<float, float>{x, y};
+		return std::pair<float, float>{(float)x, (float)y};
 	}
 
 	float WindowsInput::GetMouseXImpl() const

@@ -5,10 +5,14 @@
 //（只需要引入头文件就可以完成自动化处理，对于核心侧需要确保引入Core.h，对于客户端侧本质也是如此，不过我们会引入Ayin.h来供客户端侧使用）
 
 #ifdef AYIN_PLATFORM_WINDOWS
-	#ifdef AYIN_BUILD_DLL
-		#define AYIN_API __declspec(dllexport)
-	#else
-		#define AYIN_API __declspec(dllimport)
+	#if AYIN_DENAMIC_LINK							//是否使用动态链接，决定AYIN_API的宏会扩展成什么样子
+		#ifdef AYIN_BUILD_DLL						//当前位于核心侧还是客户端侧
+			#define AYIN_API __declspec(dllexport)	//核心侧用于导出方法
+		#else
+			#define AYIN_API __declspec(dllimport)	//客户端侧用于使用导出的方法
+		#endif
+	#else 
+		#define AYIN_API							//静态链接什么都不用做
 	#endif
 #else
 	#error AYIN ONLY SUPPORT WINDOWS PLATFORM
@@ -21,6 +25,10 @@
 //位移运算（可用作掩码）
 #define BIT(x) (1 << x) 
 
+
+#ifdef AYIN_DEBUG
+	#define AYIN_ENABLE_ASSERT
+#endif
 
 //断言宏（宏里套宏，我也成为了自己讨厌的样子，不过这至少是正经封装。微软！变量类型也分平台么？啊！回答我！）
 #ifdef AYIN_ENABLE_ASSERT

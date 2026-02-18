@@ -2,7 +2,7 @@ project "Glad"
     location "Glad"
     kind "StaticLib"
     language "C"
-    staticruntime "on"
+    staticruntime "On"
 
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
     objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -33,10 +33,3 @@ project "Glad"
     filter "configurations:Release"
         runtime "Release"
         optimize "On"
-
-    filter "configurations:Dist"
-        runtime "Release"
-        optimize "On"
-
-    filter {"system:windows", "configurations:Release"}
-        buildoptions "/MD"
