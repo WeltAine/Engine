@@ -27,7 +27,6 @@ namespace Ayin {
 
 		void OnEvent(Event& e);
 		
-		bool OnWindowClose(WindowCloseEvent& e);
 
 
 		void PushLayer(Layer* layer);
@@ -39,13 +38,19 @@ namespace Ayin {
 		Application();
 
 	private:
-		static Application* s_Instance;//应用单例实例
+		bool OnWindowClose(WindowCloseEvent& e);
 
 		std::unique_ptr<Window> m_Window;
 		bool m_Running = true;
 
 		LayerStack m_LayerStack;//栈层
 		ImGuiLayer* m_ImGuiLayer;
+
+		unsigned int m_VertexArray, m_VertexBuffer, m_IndexBuffer;//顶点数组，顶点缓冲，索引缓冲
+
+	private:
+		static Application* s_Instance;//应用单例实例
+
 	};
 
 

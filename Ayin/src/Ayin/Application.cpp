@@ -32,9 +32,51 @@ namespace Ayin {
 		//栈层使用默认构造
 		m_ImGuiLayer = new ImGuiLayer();
 		PushOverlay(m_ImGuiLayer);//暂时没有空间清理的过程，可能泄露（在拆出层时）,感觉该层的所有权有写模糊啊
+
+
+		#pragma region 基础渲染流程参考（之后会逐步抽象过程中所用到的部件）
+
+		//Gen方法与Create方法的区别？？？
+
+		// VAO
+		glGenVertexArrays(1, &m_VertexArray);
+		glBindVertexArray(m_VertexArray);
+
+		// VBO
+		glGenBuffers(1, &m_VertexBuffer);
+		glBindBuffer(GL_ARRAY_BUFFER, m_VertexBuffer);
+
+		float vertices[3 * 3] = {
+			0.0f, 0.5f, 0.0f,
+			-0.5f, -0.5f, 0.0f,
+			0.5f, -0.5f, 0.0f
+		};
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+		// EBO
+		glGenBuffers(1, &m_IndexBuffer);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IndexBuffer);
+
+		unsigned int indices[1 * 3] = {//不能用int
+			0, 1, 2
+		};
+
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+		#pragma endregion
 	};
 
-	Application::~Application() {};
+	Application::~Application() {
+		glDeleteVertexArrays(1, &m_VertexArray);
+		glDeleteBuffers(1, &m_VertexBuffer);
+		glDeleteBuffers(1, &m_IndexBuffer);
+	};
 
 	void Application::Run() {
 
@@ -42,8 +84,16 @@ namespace Ayin {
 
 		while (m_Running)
 		{
-			//测试窗口
 			glClear(GL_COLOR_BUFFER_BIT);
+
+			// 图形渲染
+			glBindVertexArray(m_VertexArray);
+			glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, (void*)0);//即使glClearColor在后面的ImGuilayer中，也不影响结果
+			// OpenGL 明确规定，glDrawElements 的第三个参数（索引类型）只能是以下三种：
+			//		GL_UNSIGNED_BYTE（对应 C 类型：unsigned char）
+			//		GL_UNSIGNED_SHORT（对应 C 类型：unsigned short）
+			//		GL_UNSIGNED_INT（对应 C 类型：unsigned int）
+			//		GL_INT 并不是合法的参数值，绝大多数 OpenGL 驱动会直接忽略这个绘制调用，或触发错误。
 
 			//层更新
 			for (Layer* layer : m_LayerStack) {//？？？只要有begin和end就可以foreack么，查查背后的语法糖
