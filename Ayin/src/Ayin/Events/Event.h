@@ -2,7 +2,6 @@
 #include "AyinPch.h"
 
 #include "Ayin/Core.h"
-//#include "spdlog/fmt/bundled/format.h"
 
 //#include <functional>
 //#include <string>
@@ -115,19 +114,36 @@ namespace Ayin {
 	};
 
 
-	//事件输出
+	// 事件输出
 	inline std::ostream& operator<< (std::ostream& os, const Event& e) {
 		return os << e.ToString();
 	}
 
-	//spdlog输出自定义类型所需
+	// spdlog输出自定义类型所需
 	template <EventDerived Event>
-	struct fmt::formatter<Event> : fmt::formatter<std::string> {
+	struct fmt::formatter<Event> : fmt::formatter<std::string> {//复用 fmt 库对 std::string 的已有格式化逻辑
 		template <typename FormatContext>
 		auto format(const Event& e, FormatContext& ctx) const {
-			return fmt::format_to(ctx.out(), "{}", e.ToString());
+			return fmt::format_to(ctx.out(), "{}", e.ToString());//复用 fmt::formatter<std::string> 的格式化逻辑输出
 		}
 	};
-
+	// spdlog 本身是基于 fmt 库（格式化库）实现日志输出的，而 fmt 库对要格式化输出的类型有严格要求：
+	// 而fmt 库只内置支持基础类型（int、char、std::string 等）和部分标准库类型（std::vector、std::map 等）的格式化逻辑
+	// fmt 库的设计支持自定义类型的格式化扩展，核心就是通过特化 fmt::formatter 模板，告诉 fmt 库：“遇到我的自定义类型时，该怎么把它转换成字符串”。
+	// AYIN_TRACE → spdlog → fmt::format → 查找 fmt::formatter<Event> → 调用你特化的 format 方法 → 执行 e.ToString() → 输出字符串
 
 }
+
+
+//// 关于模板，除了上述concept限制外，还可以直接特化fmt提供的fmt::formatter 模板，使得继承自该基类的派生类都可以使用
+//namespace fmt {
+//	template <>
+//	struct formatter<Ayin::Event> : formatter<std::string> {
+//		template <typename FormatContext>
+//		auto format(const Ayin::Event& e, FormatContext& ctx) const {
+//			return fmt::format_to(ctx.out(), "{}", e.ToString());
+//		}
+//	};
+//}
+//// 这需要ToString是多态
+//// 二，对于模板特化，C++有严格的语法规定，其中之一就是命名空间和原模板必须保持一致，所以我们要拉出Ayin来实现

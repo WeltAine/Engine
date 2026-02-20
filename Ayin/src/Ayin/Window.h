@@ -34,6 +34,9 @@ namespace Ayin {
 		static Window* Create(const WindowProps& props = WindowProps());
 		//必须要用const，参数赋值是一个{}外阶段，根据C++的生命周期控制，这里的WindowProps()构造语句结束之后该对象消亡，也就是在进入{}之前会消亡，所以是一个将亡值
 
+		/// <summary>
+		/// 处理窗口的系统事件，通过图形上下文接口交换帧缓冲
+		/// </summary>
 		virtual void OnUpdate() = 0;
 
 		virtual void* GetNativeWindow() const = 0;//获取实现侧窗口指针（因为是void*，这个方法应该只对实现侧来说有意义）
