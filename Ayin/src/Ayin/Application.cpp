@@ -9,6 +9,7 @@
 
 #include "Ayin/Input.h"
 
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
@@ -69,6 +70,33 @@ namespace Ayin {
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
+
+		// 着色器
+		std::string vertexShaderSrc = R"(
+		#version 460 core
+		layout(location = 0) in vec3 a_Position;
+		
+		out vec3 v_Position;
+		
+		void main(){
+			v_Position = a_Position;
+			gl_Position = vec4(a_Position, 1.0f);
+		}
+		)";
+
+		std::string fragmentShaderSrc = R"(
+		#version 460 core
+		in vec3 v_Position;
+		
+		out vec4 color;
+		
+		void main(){
+			color = vec4(v_Position * 0.5f + 0.5f, 1.0f);
+		}
+		)";
+
+		m_Shader.reset(new Shader(vertexShaderSrc, fragmentShaderSrc));
+
 		#pragma endregion
 	};
 
@@ -87,6 +115,8 @@ namespace Ayin {
 			glClear(GL_COLOR_BUFFER_BIT);
 
 			// 图形渲染
+			m_Shader->Bind();//在一些渲染API中，要求绑定VAO之前就必须有一个着色器，以保证布局相对应（OpenGL没有这个限制），所以我们写在开头位置
+
 			glBindVertexArray(m_VertexArray);
 			glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, (void*)0);//即使glClearColor在后面的ImGuilayer中，也不影响结果
 			// OpenGL 明确规定，glDrawElements 的第三个参数（索引类型）只能是以下三种：
@@ -95,20 +125,21 @@ namespace Ayin {
 			//		GL_UNSIGNED_INT（对应 C 类型：unsigned int）
 			//		GL_INT 并不是合法的参数值，绝大多数 OpenGL 驱动会直接忽略这个绘制调用，或触发错误。
 
-			//层更新
+			// 层更新
 			for (Layer* layer : m_LayerStack) {//？？？只要有begin和end就可以foreack么，查查背后的语法糖
 				layer->OnUpdate();
 			}
 
-			//渲染ImGui（之后会单独放到渲染线程上，所以不会在Layer的OnUpdate中执行）
-			//m_ImGuiLauer的Begin和End别的层也能用么？？？
+			// 渲染ImGui（之后会单独放到渲染线程上，所以不会在Layer的OnUpdate中执行）
+			// m_ImGuiLauer的Begin和End别的层也能用么？？？
+			// 这里应该接受的是上一帧的情况
 			m_ImGuiLayer->Begin();
 			for (Layer* layer : m_LayerStack) {
 				layer->OnImGuiRender();
 			}
 			m_ImGuiLayer->End();
 			
-			//窗口更新
+			// 窗口更新
 			m_Window->OnUpdate();
 
 		}

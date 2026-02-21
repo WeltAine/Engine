@@ -8,6 +8,8 @@
 #include "Ayin/Events/ApplicationEvent.h"
 #include "Ayin/LayerStack.h"
 #include "Ayin/ImGui/ImGuiLayer.h"
+#include "Ayin/Renderer/Shader.h"
+
 
 
 namespace Ayin {
@@ -47,6 +49,7 @@ namespace Ayin {
 		ImGuiLayer* m_ImGuiLayer;
 
 		unsigned int m_VertexArray, m_VertexBuffer, m_IndexBuffer;//顶点数组，顶点缓冲，索引缓冲
+		std::unique_ptr<Shader> m_Shader;
 
 	private:
 		static Application* s_Instance;//应用单例实例
