@@ -9,6 +9,7 @@
 #include "Ayin/LayerStack.h"
 #include "Ayin/ImGui/ImGuiLayer.h"
 #include "Ayin/Renderer/Shader.h"
+#include "Ayin/Renderer/Buffer.h"
 
 
 
@@ -48,8 +49,10 @@ namespace Ayin {
 		LayerStack m_LayerStack;//栈层
 		ImGuiLayer* m_ImGuiLayer;
 
-		unsigned int m_VertexArray, m_VertexBuffer, m_IndexBuffer;//顶点数组，顶点缓冲，索引缓冲
+		unsigned int m_VertexArray;//顶点数组
 		std::unique_ptr<Shader> m_Shader;
+		std::unique_ptr<VertexBuffer> m_VertexBuffer;//顶点缓冲
+		std::unique_ptr<IndexBuffer> m_IndexBuffer;//索引缓冲
 
 	private:
 		static Application* s_Instance;//应用单例实例

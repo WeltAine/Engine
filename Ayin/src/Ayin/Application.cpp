@@ -9,6 +9,8 @@
 
 #include "Ayin/Input.h"
 
+#include "Ayin/Renderer/Buffer.h"
+
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -44,27 +46,20 @@ namespace Ayin {
 		glBindVertexArray(m_VertexArray);
 
 		// VBO
-		glGenBuffers(1, &m_VertexBuffer);
-		glBindBuffer(GL_ARRAY_BUFFER, m_VertexBuffer);
-
 		float vertices[3 * 3] = {
 			0.0f, 0.5f, 0.0f,
 			-0.5f, -0.5f, 0.0f,
 			0.5f, -0.5f, 0.0f
 		};
+		m_VertexBuffer.reset(VertexBuffer::Create(vertices, sizeof(vertices)));
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 		glEnableVertexAttribArray(0);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
 		// EBO
-		glGenBuffers(1, &m_IndexBuffer);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IndexBuffer);
-
 		unsigned int indices[1 * 3] = {//不能用int
 			0, 1, 2
 		};
-
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+		m_IndexBuffer.reset(IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
 
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -95,6 +90,8 @@ namespace Ayin {
 		}
 		)";
 
+		std::vector<Shader> vs = { {vertexShaderSrc, fragmentShaderSrc} };
+
 		m_Shader.reset(new Shader(vertexShaderSrc, fragmentShaderSrc));
 
 		#pragma endregion
@@ -102,8 +99,6 @@ namespace Ayin {
 
 	Application::~Application() {
 		glDeleteVertexArrays(1, &m_VertexArray);
-		glDeleteBuffers(1, &m_VertexBuffer);
-		glDeleteBuffers(1, &m_IndexBuffer);
 	};
 
 	void Application::Run() {
@@ -118,7 +113,7 @@ namespace Ayin {
 			m_Shader->Bind();//在一些渲染API中，要求绑定VAO之前就必须有一个着色器，以保证布局相对应（OpenGL没有这个限制），所以我们写在开头位置
 
 			glBindVertexArray(m_VertexArray);
-			glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, (void*)0);//即使glClearColor在后面的ImGuilayer中，也不影响结果
+			glDrawElements(GL_TRIANGLES, m_IndexBuffer->GetCount(), GL_UNSIGNED_INT, (void*)0);//即使glClearColor在后面的ImGuilayer中，也不影响结果
 			// OpenGL 明确规定，glDrawElements 的第三个参数（索引类型）只能是以下三种：
 			//		GL_UNSIGNED_BYTE（对应 C 类型：unsigned char）
 			//		GL_UNSIGNED_SHORT（对应 C 类型：unsigned short）
