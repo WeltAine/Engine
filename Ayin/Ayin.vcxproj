@@ -577,7 +577,6 @@ copy /B /Y ..\bin\Dist-windows-x86_64\Ayin\Ayin.lib ..\bin\Dist-windows-x86_64\S
     <ClInclude Include="Dependency\glm\glm\vec3.hpp" />
     <ClInclude Include="Dependency\glm\glm\vec4.hpp" />
     <ClInclude Include="Dependency\glm\glm\vector_relational.hpp" />
-    <ClInclude Include="src\Platform\OpenGL\OpenGLContext.h" />
     <ClInclude Include="src\Ayin.h" />
     <ClInclude Include="src\Ayin\Application.h" />
     <ClInclude Include="src\Ayin\Core.h" />
@@ -593,23 +592,32 @@ copy /B /Y ..\bin\Dist-windows-x86_64\Ayin\Ayin.lib ..\bin\Dist-windows-x86_64\S
     <ClInclude Include="src\Ayin\LayerStack.h" />
     <ClInclude Include="src\Ayin\Log.h" />
     <ClInclude Include="src\Ayin\MouseButtonCodes.h" />
+    <ClInclude Include="src\Ayin\Renderer\Buffer.h" />
     <ClInclude Include="src\Ayin\Renderer\GraphicsContext.h" />
+    <ClInclude Include="src\Ayin\Renderer\Renderer.h" />
+    <ClInclude Include="src\Ayin\Renderer\Shader.h" />
     <ClInclude Include="src\Ayin\Window.h" />
     <ClInclude Include="src\AyinPch.h" />
+    <ClInclude Include="src\Platform\OpenGL\Buffer\OpenGLBuffer.h" />
+    <ClInclude Include="src\Platform\OpenGL\OpenGLContext.h" />
     <ClInclude Include="src\Platform\Windows\WindowsInput.h" />
     <ClInclude Include="src\Platform\Windows\WindowsWindow.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Platform\OpenGL\OpenGLContext.cpp" />
     <ClCompile Include="src\Ayin\Application.cpp" />
     <ClCompile Include="src\Ayin\ImGui\ImGuiBuild.cpp" />
     <ClCompile Include="src\Ayin\ImGui\ImGuiLayer.cpp" />
     <ClCompile Include="src\Ayin\Layer.cpp" />
     <ClCompile Include="src\Ayin\LayerStack.cpp" />
     <ClCompile Include="src\Ayin\Log.cpp" />
+    <ClCompile Include="src\Ayin\Renderer\Buffer.cpp" />
+    <ClCompile Include="src\Ayin\Renderer\Renderer.cpp" />
+    <ClCompile Include="src\Ayin\Renderer\Shader.cpp" />
     <ClCompile Include="src\AyinPch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="src\Platform\OpenGL\Buffer\OpenGLBuffer.cpp" />
+    <ClCompile Include="src\Platform\OpenGL\OpenGLContext.cpp" />
     <ClCompile Include="src\Platform\Windows\WindowsInput.cpp" />
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp" />
   </ItemGroup>

@@ -19,6 +19,33 @@ namespace Ayin {
 
 	Application* Application::s_Instance = nullptr;
 
+
+	//之后会移除（先应急一下，做个测试）
+	static GLenum ShaderDataTypeToBaseType(ShaderDataType type) {
+
+		switch (type) {
+
+			case ShaderDataType::Float:    return GL_FLOAT;
+			case ShaderDataType::Float2:   return GL_FLOAT;
+			case ShaderDataType::Float3:   return GL_FLOAT;
+			case ShaderDataType::Float4:   return GL_FLOAT;
+			case ShaderDataType::Int:      return GL_INT;
+			case ShaderDataType::Int2:     return GL_INT;
+			case ShaderDataType::Int3:     return GL_INT;
+			case ShaderDataType::Int4:     return GL_INT;
+			case ShaderDataType::Bool:     return GL_BOOL;
+			case ShaderDataType::Mat3:     return GL_FLOAT;
+			case ShaderDataType::Mat4:     return GL_FLOAT;
+
+		}
+
+		AYIN_CORE_ASSERT(false, "Unknown ShaderDataType!");
+		return 0;
+
+
+	}
+
+
 	/// <summary>
 	/// 创建窗口，单例，层栈以及为窗口的人造闭包配置事件函指
 	/// </summary>
@@ -52,8 +79,25 @@ namespace Ayin {
 			0.5f, -0.5f, 0.0f
 		};
 		m_VertexBuffer.reset(VertexBuffer::Create(vertices, sizeof(vertices)));
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-		glEnableVertexAttribArray(0);
+
+		BufferLayout layout{ { {ShaderDataType::Float3, "a_Position"} } };
+		m_VertexBuffer->SetLayout(layout);
+
+		int index = 0;
+		for (const auto& element : m_VertexBuffer->GetLayout()) {
+
+			glVertexAttribPointer(
+				index, 
+				element.GetComponentCount(), 
+				ShaderDataTypeToBaseType(element.Type), 
+				element.Normalized, 
+				m_VertexBuffer->GetLayout().GetStride(), 
+				(const void*)element.Offset
+			);
+			glEnableVertexAttribArray(index);
+			index++;
+		}
+
 
 		// EBO
 		unsigned int indices[1 * 3] = {//不能用int
@@ -90,7 +134,15 @@ namespace Ayin {
 		}
 		)";
 
-		std::vector<Shader> vs = { {vertexShaderSrc, fragmentShaderSrc} };
+		//std::vector<Shader> vs = { {vertexShaderSrc, fragmentShaderSrc} };
+		//Shader shader = { vertexShaderSrc, fragmentShaderSrc };
+		// 这是一个很有意思的Bug，表现：当解除第一个注释时画面会闪过一个白色三角，然后就只显示背景；解除第二个注释却不会有任何影响
+		// Bug稳定复现，大概率是一个逻辑问题
+		// 两个注释的整个过程中都要经历构造和析构，那为何结果会如此不同，而且对窗口现象也逆向推理不出什么，经验太少了
+		// 直接问AI
+		// 注释一中产生了一个临时右值，在本行结束时被提前释放了（右值Shader触发析构，释放了上下文中的资源），但vs中是浅拷贝来的，还记录着ID（m_ProgramID）
+		// 后面的m_Shader也占了这个ID对应的资源（因为vs产生的ID已经丢失了，所以此时m_Shader会再次被分配此ID）
+		// 在本方法结尾vs被析构，其中元素（左值Shader）也触发析构，上下文里的ID对应的资源被释放（而该ID和m_Shader中的ID一致）
 
 		m_Shader.reset(new Shader(vertexShaderSrc, fragmentShaderSrc));
 

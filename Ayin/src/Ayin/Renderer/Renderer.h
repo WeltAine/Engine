@@ -1,6 +1,6 @@
 #pragma once
 
-#include <AyinPch.h>
+//#include <AyinPch.h>
 
 // 渲染器Renderer的部分实现（还没到实现它的时候）
 

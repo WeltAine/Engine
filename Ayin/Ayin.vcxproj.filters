@@ -34,8 +34,17 @@
     <Filter Include="src\Ayin\ImGui">
       <UniqueIdentifier>{379FC3EF-236D-B7F5-0C01-281CF86D935A}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Ayin\Renderer">
+      <UniqueIdentifier>{934E7514-FF64-73AA-48DC-FECBB4314432}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\Platform">
       <UniqueIdentifier>{21CA02E5-0D2D-9289-B6B2-CA3FA2F45D0C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Platform\OpenGL">
+      <UniqueIdentifier>{35A49437-A105-7245-2A73-B8F796D3A804}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Platform\OpenGL\Buffer">
+      <UniqueIdentifier>{7EB87943-6AC8-2514-D381-8A32BFB014AD}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\Platform\Windows">
       <UniqueIdentifier>{5B054582-4794-CE4B-F0B2-E246DC20DFF1}</UniqueIdentifier>
@@ -1344,11 +1353,29 @@
     <ClInclude Include="src\Ayin\MouseButtonCodes.h">
       <Filter>src\Ayin</Filter>
     </ClInclude>
+    <ClInclude Include="src\Ayin\Renderer\Buffer.h">
+      <Filter>src\Ayin\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Ayin\Renderer\GraphicsContext.h">
+      <Filter>src\Ayin\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Ayin\Renderer\Renderer.h">
+      <Filter>src\Ayin\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Ayin\Renderer\Shader.h">
+      <Filter>src\Ayin\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\Ayin\Window.h">
       <Filter>src\Ayin</Filter>
     </ClInclude>
     <ClInclude Include="src\AyinPch.h">
       <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\OpenGL\Buffer\OpenGLBuffer.h">
+      <Filter>src\Platform\OpenGL\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\OpenGL\OpenGLContext.h">
+      <Filter>src\Platform\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\Windows\WindowsInput.h">
       <Filter>src\Platform\Windows</Filter>
@@ -1356,8 +1383,6 @@
     <ClInclude Include="src\Platform\Windows\WindowsWindow.h">
       <Filter>src\Platform\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="src\Ayin\Renderer\GraphicsContext.h" />
-    <ClInclude Include="src\Platform\OpenGL\OpenGLContext.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Ayin\Application.cpp">
@@ -1378,8 +1403,23 @@
     <ClCompile Include="src\Ayin\Log.cpp">
       <Filter>src\Ayin</Filter>
     </ClCompile>
+    <ClCompile Include="src\Ayin\Renderer\Buffer.cpp">
+      <Filter>src\Ayin\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Ayin\Renderer\Renderer.cpp">
+      <Filter>src\Ayin\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Ayin\Renderer\Shader.cpp">
+      <Filter>src\Ayin\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="src\AyinPch.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\OpenGL\Buffer\OpenGLBuffer.cpp">
+      <Filter>src\Platform\OpenGL\Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\OpenGL\OpenGLContext.cpp">
+      <Filter>src\Platform\OpenGL</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\Windows\WindowsInput.cpp">
       <Filter>src\Platform\Windows</Filter>
@@ -1387,6 +1427,5 @@
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp">
       <Filter>src\Platform\Windows</Filter>
     </ClCompile>
-    <ClCompile Include="src\Platform\OpenGL\OpenGLContext.cpp" />
   </ItemGroup>
 </Project>

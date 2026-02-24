@@ -23,8 +23,13 @@ namespace Ayin {
 
 		virtual void UnBind() const override;
 
+		virtual void SetLayout(const BufferLayout& layout) override { m_Layout = layout; };
+
+		virtual const BufferLayout& GetLayout() const { return m_Layout; };
+
 	private:
 		uint32_t m_VertexBufferID;
+		BufferLayout m_Layout;
 	};
 
 
