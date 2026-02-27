@@ -20,31 +20,6 @@ namespace Ayin {
 	Application* Application::s_Instance = nullptr;
 
 
-	//之后会移除（先应急一下，做个测试）
-	static GLenum ShaderDataTypeToBaseType(ShaderDataType type) {
-
-		switch (type) {
-
-			case ShaderDataType::Float:    return GL_FLOAT;
-			case ShaderDataType::Float2:   return GL_FLOAT;
-			case ShaderDataType::Float3:   return GL_FLOAT;
-			case ShaderDataType::Float4:   return GL_FLOAT;
-			case ShaderDataType::Int:      return GL_INT;
-			case ShaderDataType::Int2:     return GL_INT;
-			case ShaderDataType::Int3:     return GL_INT;
-			case ShaderDataType::Int4:     return GL_INT;
-			case ShaderDataType::Bool:     return GL_BOOL;
-			case ShaderDataType::Mat3:     return GL_FLOAT;
-			case ShaderDataType::Mat4:     return GL_FLOAT;
-
-		}
-
-		AYIN_CORE_ASSERT(false, "Unknown ShaderDataType!");
-		return 0;
-
-
-	}
-
 
 	/// <summary>
 	/// 创建窗口，单例，层栈以及为窗口的人造闭包配置事件函指
@@ -69,8 +44,8 @@ namespace Ayin {
 		//Gen方法与Create方法的区别？？？
 
 		// VAO
-		glGenVertexArrays(1, &m_VertexArray);
-		glBindVertexArray(m_VertexArray);
+		//m_VertexArray = std::make_shared<VertexArray>(VertexArray::Create());//shared_ptr默认构造是啥都不敢，但是make方法会
+		m_VertexArray.reset(VertexArray::Create());
 
 		// VBO
 		float vertices[3 * 3] = {
@@ -83,20 +58,7 @@ namespace Ayin {
 		BufferLayout layout{ { {ShaderDataType::Float3, "a_Position"} } };
 		m_VertexBuffer->SetLayout(layout);
 
-		int index = 0;
-		for (const auto& element : m_VertexBuffer->GetLayout()) {
-
-			glVertexAttribPointer(
-				index, 
-				element.GetComponentCount(), 
-				ShaderDataTypeToBaseType(element.Type), 
-				element.Normalized, 
-				m_VertexBuffer->GetLayout().GetStride(), 
-				(const void*)element.Offset
-			);
-			glEnableVertexAttribArray(index);
-			index++;
-		}
+		m_VertexArray->AddVertexBuffer(m_VertexBuffer);
 
 
 		// EBO
@@ -105,9 +67,11 @@ namespace Ayin {
 		};
 		m_IndexBuffer.reset(IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
 
-		glBindVertexArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		m_VertexArray->SetIndexBuffer(m_IndexBuffer);
+
+		//glBindVertexArray(0);
+		//glBindBuffer(GL_ARRAY_BUFFER, 0);
+		//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 
 		// 着色器
@@ -149,9 +113,6 @@ namespace Ayin {
 		#pragma endregion
 	};
 
-	Application::~Application() {
-		glDeleteVertexArrays(1, &m_VertexArray);
-	};
 
 	void Application::Run() {
 
@@ -163,8 +124,7 @@ namespace Ayin {
 
 			// 图形渲染
 			m_Shader->Bind();//在一些渲染API中，要求绑定VAO之前就必须有一个着色器，以保证布局相对应（OpenGL没有这个限制），所以我们写在开头位置
-
-			glBindVertexArray(m_VertexArray);
+			m_VertexArray->Bind();
 			glDrawElements(GL_TRIANGLES, m_IndexBuffer->GetCount(), GL_UNSIGNED_INT, (void*)0);//即使glClearColor在后面的ImGuilayer中，也不影响结果
 			// OpenGL 明确规定，glDrawElements 的第三个参数（索引类型）只能是以下三种：
 			//		GL_UNSIGNED_BYTE（对应 C 类型：unsigned char）

@@ -152,7 +152,7 @@ namespace Ayin{
 	public:
 
 		/// <summary>
-		/// 根据Renderer中的当前API来创建顶点缓冲
+		/// 根据Renderer中的当前API来创建顶点缓冲，并且创建即绑定（工厂模式创建）
 		/// </summary>
 		/// <param name="vertices">顶点缓冲数据</param>
 		/// <param name="size">数据字节大小</param>
@@ -194,7 +194,7 @@ namespace Ayin{
 	public:
 
 		/// <summary>
-		/// 根据Renderer中的当前API来创建索引缓冲
+		/// 根据Renderer中的当前API来创建索引缓冲，并且创建即绑定（工厂模式创建）
 		/// </summary>
 		/// <param name="vertices">索引缓冲数据</param>
 		/// <param name="size">缓冲中的int数量</param>

@@ -27,7 +27,7 @@ namespace Ayin {
 		using EventCallbackFn = std::function<void(Event&)>;
 
 		/// <summary>
-		/// 创建窗口（抽象侧）
+		/// 创建窗口（抽象侧）（工厂模式创建）
 		/// </summary>
 		/// <param name="props">窗口参数（有默认值）</param>
 		/// <returns>抽象窗口指针</returns>

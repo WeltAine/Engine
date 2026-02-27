@@ -10,6 +10,7 @@
 #include "Ayin/ImGui/ImGuiLayer.h"
 #include "Ayin/Renderer/Shader.h"
 #include "Ayin/Renderer/Buffer.h"
+#include "Ayin/Renderer/VertexArray.h"
 
 
 
@@ -24,7 +25,7 @@ namespace Ayin {
 	public:
 		inline static Application& Get() { return *s_Instance; };
 
-		virtual ~Application();
+		inline virtual ~Application() = default;
 
 		void Run();
 
@@ -49,10 +50,10 @@ namespace Ayin {
 		LayerStack m_LayerStack;//栈层
 		ImGuiLayer* m_ImGuiLayer;
 
-		unsigned int m_VertexArray;//顶点数组
 		std::unique_ptr<Shader> m_Shader;
-		std::unique_ptr<VertexBuffer> m_VertexBuffer;//顶点缓冲
-		std::unique_ptr<IndexBuffer> m_IndexBuffer;//索引缓冲
+		std::shared_ptr<VertexArray> m_VertexArray;//顶点数组
+		std::shared_ptr<VertexBuffer> m_VertexBuffer;//顶点缓冲
+		std::shared_ptr<IndexBuffer> m_IndexBuffer;//索引缓冲
 
 	private:
 		static Application* s_Instance;//应用单例实例
