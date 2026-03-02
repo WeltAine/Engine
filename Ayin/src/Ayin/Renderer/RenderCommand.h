@@ -14,6 +14,9 @@ namespace Ayin {
 	class AYIN_API RenderCommand {
 
 	public:
+		// 工厂方法（我觉得这样更好就加了）
+		static void Init();
+
 		inline static void SetClearColor(const glm::vec4& color) { s_RendererAPI->SetClearColor(color); };
 
 		inline static void Clear() { s_RendererAPI->Clear(); };

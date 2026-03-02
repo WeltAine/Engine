@@ -41,6 +41,8 @@ namespace Ayin {
 
 		#pragma region 基础渲染流程参考（之后会逐步抽象过程中所用到的部件）
 
+		RenderCommand::Init();
+
 		//Gen方法与Create方法的区别？？？
 
 		// VAO

@@ -39,7 +39,7 @@ namespace Ayin {
 
 	private:
 		GLFWwindow* m_Window;
-		GraphicsContext* m_GraphicsContext;
+		std::unique_ptr<GraphicsContext> m_GraphicsContext;
 
 
 		//交给GLFW的数据（以void*形式），主要用在系统事件的回调中，类似于闭包

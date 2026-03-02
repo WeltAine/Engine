@@ -1,10 +1,25 @@
 #include <AyinPch.h>
 
+#include "Renderer.h"
 #include "RenderCommand.h"
 #include "Platform/OpenGL/OpenGLRendererAPI.h"
 
 namespace Ayin {
 
-	RendererAPI* RenderCommand::s_RendererAPI = new OpenGLRendererAPI;// 虽然之前一直没注意，这不会导致内存泄露么
+	RendererAPI* RenderCommand::s_RendererAPI = nullptr;
+
+	void RenderCommand::Init() {
+
+		switch (Renderer::GetAPI()) {
+
+			// 这里之后需要用宏来控制，防止去链接设备不支持的代码
+			case(RendererAPI::API::None):	AYIN_CORE_ASSERT(false, "RendererAPI::None is currently not supported!"); return;
+			case(RendererAPI::API::OpenGL):	s_RendererAPI = new OpenGLRendererAPI; return;
+
+		}
+
+		AYIN_CORE_ASSERT(false, "Unknown RendererAPI!");
+
+	}
 
 }

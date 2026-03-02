@@ -67,7 +67,7 @@ namespace Ayin {
 
 
 		// 创建渲染上下文并初始化
-		m_GraphicsContext = new OpenGLContext(m_Window);//！！！非多态，而且没有释放
+		m_GraphicsContext.reset(new OpenGLContext(m_Window));//！！！非多态
 		m_GraphicsContext->Init();
 
 
