@@ -13,7 +13,7 @@ namespace Ayin {
 			:m_DebugName(LayerName) 
 		{}
 
-		virtual ~Layer() {};
+		virtual ~Layer() = default;
 
 		virtual void OnAttach() {};//加入层栈
 		virtual void OnDetach() {};//退出层栈

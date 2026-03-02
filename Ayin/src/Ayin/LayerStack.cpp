@@ -33,26 +33,28 @@ namespace Ayin {
 
 	void LayerStack::PopLayer(Layer* layer) {
 
-		auto iterator = std::find(m_Layers.begin(), m_Layers.end(), layer);
+		auto iterator = std::find(m_Layers.begin(), m_Layers.begin() + m_LayerInsertIndex, layer);
 
 		if (iterator != m_Layers.end()) {
 			//？？？感觉有风险
 			//我觉得应该改成shared_ptr,否则有泄露风险
 			//(*(iterator._Ptr))->OnDetach();//访问这么复杂么？
-			m_Layers.erase(iterator);
 			layer->OnDetach();
+			m_Layers.erase(iterator);
 			m_LayerInsertIndex--;
 		}
 	}
 
 	void LayerStack::PopOverlay(Layer* overLayer) {
 
-		auto iterator = std::find(m_Layers.begin(), m_Layers.end(), overLayer);
+		auto iterator = std::find(m_Layers.begin() + m_LayerInsertIndex, m_Layers.end(), overLayer);
 
 		if (iterator == m_Layers.end()) {
 			//(*(iterator._Ptr))->OnDetach();
-			m_Layers.erase(iterator);
 			overLayer->OnDetach();
+			m_Layers.erase(iterator);
+			// erase会触发元素析构，重新保证有效元素的空间连续；确保在析构前完成必要的处理
+			// 顺带一提，移动范围内的迭代器都会失效，再次使用它们是未定义行为，可能崩溃
 		}
 
 

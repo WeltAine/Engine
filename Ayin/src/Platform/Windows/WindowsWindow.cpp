@@ -67,7 +67,7 @@ namespace Ayin {
 
 
 		// 创建渲染上下文并初始化
-		m_GraphicsContext = new OpenGLContext(m_Window);
+		m_GraphicsContext = new OpenGLContext(m_Window);//！！！非多态，而且没有释放
 		m_GraphicsContext->Init();
 
 
@@ -196,6 +196,7 @@ namespace Ayin {
 		// 对于像大多数游戏那样需要持续渲染的场景，这是最佳选择。
 		// 相反，如果你只需要在接收到新输入时才更新画面，那么使用 glfwWaitEvents 会更好。
 		// 它会阻塞并使线程进入休眠状态，直到至少接收到一个事件后才开始处理。这能节省大量的 CPU 资源，非常适合诸如各类编辑工具之类的应用。
+		// 所以只是在PollEvents时才会开始处理时间，而在此之外则是记录事件，之前遇到的持续接受现象（拉动窗口时Applicatioin没有更新循环），可能就是这样，队列一直在被处理，而队列却又同时在被填充，进一步猜测，窗口大小的拖动可能是一个阻塞的实现
 
 		m_GraphicsContext->SwapBuffer();
 	}

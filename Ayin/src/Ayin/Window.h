@@ -39,6 +39,10 @@ namespace Ayin {
 		/// </summary>
 		virtual void OnUpdate() = 0;
 
+		/// <summary>
+		/// 获取实现侧窗口句柄（指针）
+		/// </summary>
+		/// <returns></returns>
 		virtual void* GetNativeWindow() const = 0;//获取实现侧窗口指针（因为是void*，这个方法应该只对实现侧来说有意义）
 
 		virtual unsigned int GetWidth() const = 0;
@@ -52,7 +56,7 @@ namespace Ayin {
 		virtual bool IsVSync() const = 0;
 
 
-		virtual ~Window() {};
+		virtual ~Window() = default;
 	};
 
 

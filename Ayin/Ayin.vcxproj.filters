@@ -1385,6 +1385,9 @@
     </ClInclude>
     <ClInclude Include="src\Ayin\Renderer\VertexArray.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLVertexArray.h" />
+    <ClInclude Include="src\Ayin\Renderer\RendererAPI.h" />
+    <ClInclude Include="src\Ayin\Renderer\RenderCommand.h" />
+    <ClInclude Include="src\Platform\OpenGL\OpenGLRendererAPI.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Ayin\Application.cpp">
@@ -1431,5 +1434,8 @@
     </ClCompile>
     <ClCompile Include="src\Ayin\Renderer\VertexArray.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLVertexArray.cpp" />
+    <ClCompile Include="src\Ayin\Renderer\RendererAPI.cpp" />
+    <ClCompile Include="src\Ayin\Renderer\RenderCommand.cpp" />
+    <ClCompile Include="src\Platform\OpenGL\OpenGLRendererAPI.cpp" />
   </ItemGroup>
 </Project>

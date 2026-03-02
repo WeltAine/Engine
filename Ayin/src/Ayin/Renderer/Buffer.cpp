@@ -8,11 +8,11 @@ namespace Ayin {
 
 	VertexBuffer* VertexBuffer::Create(float* vertices, size_t size) {
 
-		switch (Renderer::GetRendererAPI()) {
+		switch (Renderer::GetAPI()) {
 
 			// 这里之后需要用宏来控制，防止去链接设备不支持的代码
-			case(RendererAPI::None):	AYIN_CORE_ASSERT(false, "RendererAPI::None is currently not supported!"); return nullptr;	
-			case(RendererAPI::OpenGL):	return new OpenGLVertexBuffer(vertices, size);
+			case(RendererAPI::API::None):	AYIN_CORE_ASSERT(false, "RendererAPI::None is currently not supported!"); return nullptr;	
+			case(RendererAPI::API::OpenGL):	return new OpenGLVertexBuffer(vertices, size);
 
 		}
 
@@ -25,11 +25,11 @@ namespace Ayin {
 
 	IndexBuffer* IndexBuffer::Create(uint32_t* indices, uint32_t count) {
 
-		switch (Renderer::GetRendererAPI()) {
+		switch (Renderer::GetAPI()) {
 
 			// 这里之后需要用宏来控制，防止去链接设备不支持的代码
-			case(RendererAPI::None):	AYIN_CORE_ASSERT(false, "RendererAPI::None is currently not supported!"); return nullptr;
-			case(RendererAPI::OpenGL):	return new OpenGLIndexBuffer(indices, count);
+			case(RendererAPI::API::None):	AYIN_CORE_ASSERT(false, "RendererAPI::None is currently not supported!"); return nullptr;
+			case(RendererAPI::API::OpenGL):	return new OpenGLIndexBuffer(indices, count);
 
 		}
 

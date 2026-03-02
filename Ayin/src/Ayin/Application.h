@@ -11,7 +11,7 @@
 #include "Ayin/Renderer/Shader.h"
 #include "Ayin/Renderer/Buffer.h"
 #include "Ayin/Renderer/VertexArray.h"
-
+#include "Ayin/Renderer/Renderer.h"
 
 
 namespace Ayin {
@@ -48,12 +48,10 @@ namespace Ayin {
 		bool m_Running = true;
 
 		LayerStack m_LayerStack;//栈层
-		ImGuiLayer* m_ImGuiLayer;
+		ImGuiLayer* m_ImGuiLayer;//！！！没有释放
 
 		std::unique_ptr<Shader> m_Shader;
 		std::shared_ptr<VertexArray> m_VertexArray;//顶点数组
-		std::shared_ptr<VertexBuffer> m_VertexBuffer;//顶点缓冲
-		std::shared_ptr<IndexBuffer> m_IndexBuffer;//索引缓冲
 
 	private:
 		static Application* s_Instance;//应用单例实例

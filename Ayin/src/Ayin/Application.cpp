@@ -53,25 +53,22 @@ namespace Ayin {
 			-0.5f, -0.5f, 0.0f,
 			0.5f, -0.5f, 0.0f
 		};
-		m_VertexBuffer.reset(VertexBuffer::Create(vertices, sizeof(vertices)));
+		std::shared_ptr<VertexBuffer> vertexBuffer(VertexBuffer::Create(vertices, sizeof(vertices)));
 
 		BufferLayout layout{ { {ShaderDataType::Float3, "a_Position"} } };
-		m_VertexBuffer->SetLayout(layout);
+		vertexBuffer->SetLayout(layout);
 
-		m_VertexArray->AddVertexBuffer(m_VertexBuffer);
+		m_VertexArray->AddVertexBuffer(vertexBuffer);
 
 
 		// EBO
 		unsigned int indices[1 * 3] = {//不能用int
 			0, 1, 2
 		};
-		m_IndexBuffer.reset(IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
+		std::shared_ptr<IndexBuffer> indexBuffer(IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
+		indexBuffer.reset(IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
 
-		m_VertexArray->SetIndexBuffer(m_IndexBuffer);
-
-		//glBindVertexArray(0);
-		//glBindBuffer(GL_ARRAY_BUFFER, 0);
-		//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		m_VertexArray->SetIndexBuffer(indexBuffer);
 
 
 		// 着色器
@@ -120,17 +117,17 @@ namespace Ayin {
 
 		while (m_Running)
 		{
-			glClear(GL_COLOR_BUFFER_BIT);
+
+			RenderCommand::Clear();
 
 			// 图形渲染
-			m_Shader->Bind();//在一些渲染API中，要求绑定VAO之前就必须有一个着色器，以保证布局相对应（OpenGL没有这个限制），所以我们写在开头位置
-			m_VertexArray->Bind();
-			glDrawElements(GL_TRIANGLES, m_IndexBuffer->GetCount(), GL_UNSIGNED_INT, (void*)0);//即使glClearColor在后面的ImGuilayer中，也不影响结果
-			// OpenGL 明确规定，glDrawElements 的第三个参数（索引类型）只能是以下三种：
-			//		GL_UNSIGNED_BYTE（对应 C 类型：unsigned char）
-			//		GL_UNSIGNED_SHORT（对应 C 类型：unsigned short）
-			//		GL_UNSIGNED_INT（对应 C 类型：unsigned int）
-			//		GL_INT 并不是合法的参数值，绝大多数 OpenGL 驱动会直接忽略这个绘制调用，或触发错误。
+			Renderer::BeginScene();
+			{
+				m_Shader->Bind();//在一些渲染API中，要求绑定VAO之前就必须有一个着色器，以保证布局相对应（OpenGL没有这个限制），所以我们写在开头位置
+				Renderer::Submit(m_VertexArray);//绑定并绘制VAO
+			}
+			Renderer::EndScene();
+
 
 			// 层更新
 			for (Layer* layer : m_LayerStack) {//？？？只要有begin和end就可以foreack么，查查背后的语法糖
@@ -139,7 +136,7 @@ namespace Ayin {
 
 			// 渲染ImGui（之后会单独放到渲染线程上，所以不会在Layer的OnUpdate中执行）
 			// m_ImGuiLauer的Begin和End别的层也能用么？？？
-			// 这里应该接受的是上一帧的情况
+			// 这里应该接收的是上一帧的情况（因为事件本帧事件会在Window的OnUpdate中触发）
 			m_ImGuiLayer->Begin();
 			for (Layer* layer : m_LayerStack) {
 				layer->OnImGuiRender();

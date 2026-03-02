@@ -26,9 +26,6 @@ namespace Ayin {
 	{}
 
 
-	ImGuiLayer::~ImGuiLayer() {}
-
-
 	void ImGuiLayer::OnAttach()
 	{
 		//我对Imgui的感受就是一个UI框架，平台后端和渲染后端组成，它是一套基于实际平台和渲染的图形框架
@@ -109,7 +106,7 @@ namespace Ayin {
 				ImGui::End();
 			}
 
-			glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
+			RenderCommand::SetClearColor({ clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w });
 		}
 
 	}
