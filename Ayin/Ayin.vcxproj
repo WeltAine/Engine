@@ -593,6 +593,7 @@ copy /B /Y ..\bin\Dist-windows-x86_64\Ayin\Ayin.lib ..\bin\Dist-windows-x86_64\S
     <ClInclude Include="src\Ayin\Log.h" />
     <ClInclude Include="src\Ayin\MouseButtonCodes.h" />
     <ClInclude Include="src\Ayin\Renderer\Buffer.h" />
+    <ClInclude Include="src\Ayin\Renderer\Camera.h" />
     <ClInclude Include="src\Ayin\Renderer\GraphicsContext.h" />
     <ClInclude Include="src\Ayin\Renderer\RenderCommand.h" />
     <ClInclude Include="src\Ayin\Renderer\Renderer.h" />
@@ -616,6 +617,7 @@ copy /B /Y ..\bin\Dist-windows-x86_64\Ayin\Ayin.lib ..\bin\Dist-windows-x86_64\S
     <ClCompile Include="src\Ayin\LayerStack.cpp" />
     <ClCompile Include="src\Ayin\Log.cpp" />
     <ClCompile Include="src\Ayin\Renderer\Buffer.cpp" />
+    <ClCompile Include="src\Ayin\Renderer\Camera.cpp" />
     <ClCompile Include="src\Ayin\Renderer\RenderCommand.cpp" />
     <ClCompile Include="src\Ayin\Renderer\Renderer.cpp" />
     <ClCompile Include="src\Ayin\Renderer\RendererAPI.cpp" />

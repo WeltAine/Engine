@@ -2,6 +2,7 @@
 
 #include "Shader.h"
 #include <GLad/glad.h>
+#include <glm/gtc/type_ptr.hpp>
 
 // 目前直接作为OpenGL侧的实现（之后会拆出，如果有时间接入其它API）
 namespace Ayin {
@@ -107,6 +108,23 @@ namespace Ayin {
 
 		if(currentProgram == m_ProgramID)
 			glUseProgram(0);
+	}
+
+	void Shader::SetUniformMat4(const std::string& name, const glm::mat4& matrix)
+	{
+		int lastProgram = 0;
+		glGetIntegerv(GL_CURRENT_PROGRAM, &lastProgram);
+
+		if (lastProgram != m_ProgramID)
+			glUseProgram(m_ProgramID);
+
+		// 之后可以试着将location变量作为成员
+		int location = glGetUniformLocation(m_ProgramID, name.c_str());
+		glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
+
+		if (lastProgram != m_ProgramID)
+			glUseProgram(lastProgram);
+
 	}
 
 }

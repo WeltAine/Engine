@@ -12,6 +12,7 @@
 #include "Ayin/Renderer/Buffer.h"
 #include "Ayin/Renderer/VertexArray.h"
 #include "Ayin/Renderer/Renderer.h"
+#include "Ayin/Renderer/Camera.h"
 
 
 namespace Ayin {
@@ -47,14 +48,16 @@ namespace Ayin {
 		std::unique_ptr<Window> m_Window;
 		bool m_Running = true;
 
-		LayerStack m_LayerStack;//栈层
+		LayerStack m_LayerStack;					//栈层
 		ImGuiLayer* m_ImGuiLayer;//！！！没有释放
 
-		std::unique_ptr<Shader> m_Shader;
-		std::shared_ptr<VertexArray> m_VertexArray;//顶点数组
+		std::shared_ptr<Shader> m_Shader;			//着色器程序
+		std::shared_ptr<VertexArray> m_VertexArray;	//顶点数组
+
+		Camera m_SceneCamera;						//场景相机
 
 	private:
-		static Application* s_Instance;//应用单例实例
+		static Application* s_Instance;				//应用单例实例
 
 	};
 

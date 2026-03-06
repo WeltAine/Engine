@@ -24,7 +24,9 @@ namespace Ayin {
 	/// <summary>
 	/// 创建窗口，单例，层栈以及为窗口的人造闭包配置事件函指
 	/// </summary>
-	Application::Application() 
+	Application::Application()
+		:m_SceneCamera{ Camera::CameraType::Perspective, {.perspectiveProp = {.NearPlaneDistance = 0.1f, .FarPlaneDistance = 100.0f, .FOV = 60.0f, .AspectRatio = 16.0f / 9}} }
+		//:m_SceneCamera{ Camera::CameraType::Orthogonal, {.orthogonalProp = { .NearPlaneDistance = 0.0f, .FarPlaneDistance = 100.0f, .Height = 2.0f, .AspectRatio = 16.0f / 9}} }
 	{
 		AYIN_ASSERT(!s_Instance, "Application already exists!");//断言，防止破坏单例
 		s_Instance = this;
@@ -79,10 +81,12 @@ namespace Ayin {
 		layout(location = 0) in vec3 a_Position;
 		
 		out vec3 v_Position;
+
+		uniform mat4 u_ProjectionViewMatrix;
 		
 		void main(){
 			v_Position = a_Position;
-			gl_Position = vec4(a_Position, 1.0f);
+			gl_Position = u_ProjectionViewMatrix * vec4(a_Position, 1.0f);
 		}
 		)";
 
@@ -115,7 +119,8 @@ namespace Ayin {
 
 	void Application::Run() {
 
-		WindowResizeEvent e(1280, 720);
+		m_SceneCamera.SetPosition({0.5f, 0.0f, 1.0f});
+		m_SceneCamera.SetRotation({0.0f, 30.0f, 0.0f});
 
 		while (m_Running)
 		{
@@ -123,10 +128,9 @@ namespace Ayin {
 			RenderCommand::Clear();
 
 			// 图形渲染
-			Renderer::BeginScene();
+			Renderer::BeginScene(m_SceneCamera);
 			{
-				m_Shader->Bind();//在一些渲染API中，要求绑定VAO之前就必须有一个着色器，以保证布局相对应（OpenGL没有这个限制），所以我们写在开头位置
-				Renderer::Submit(m_VertexArray);//绑定并绘制VAO
+				Renderer::Submit(m_Shader , m_VertexArray);//绑定shader并绘制VAO
 			}
 			Renderer::EndScene();
 

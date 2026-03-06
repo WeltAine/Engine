@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Ayin/Core.h"
+#include <glm/glm.hpp>
 
 
 namespace Ayin {
@@ -26,6 +27,13 @@ namespace Ayin {
 		/// 从当前上下文中关闭着色器程序
 		/// </summary>
 		virtual void UnBind();
+
+		/// <summary>
+		/// 设置Shader程序中的矩阵统一变量
+		/// </summary>
+		/// <param name="name">Uniform矩阵名称</param>
+		/// <param name="data">矩阵</param>
+		virtual void SetUniformMat4(const std::string& name, const glm::mat4& matrix);
 
 	private:
 		uint32_t m_ProgramID;
