@@ -8,6 +8,7 @@ namespace Ayin {
 
 	//轮询Input接口（抽象侧），目前设计为一个全局单例（Cherno曾有一个很精辟的总结，单例其实就是一些里方法的集合，当然这不意味着所有方法都是static）
 	//意在用于访问交互状态，实现更复杂的互动，比如特别的快捷键
+	//! 单例加外观
 	class AYIN_API Input {
 
 	public:

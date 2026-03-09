@@ -25,8 +25,6 @@ namespace Ayin {
 	/// 创建窗口，单例，层栈以及为窗口的人造闭包配置事件函指
 	/// </summary>
 	Application::Application()
-		:m_SceneCamera{ Camera::CameraType::Perspective, {.perspectiveProp = {.NearPlaneDistance = 0.1f, .FarPlaneDistance = 100.0f, .FOV = 60.0f, .AspectRatio = 16.0f / 9}} }
-		//:m_SceneCamera{ Camera::CameraType::Orthogonal, {.orthogonalProp = { .NearPlaneDistance = 0.0f, .FarPlaneDistance = 100.0f, .Height = 2.0f, .AspectRatio = 16.0f / 9}} }
 	{
 		AYIN_ASSERT(!s_Instance, "Application already exists!");//断言，防止破坏单例
 		s_Instance = this;
@@ -34,114 +32,26 @@ namespace Ayin {
 		m_Window = std::unique_ptr<Window>(Window::Create());
 
 		//当窗口发生事件时（通过GLFW），窗口类会调用OnEvent回调，由我们来处理，Application成了中介者，而窗口成为了组件，这道函指则是组件与中介之间的沟通桥梁
-		m_Window->SetEventCallback(BIND_EVENT_FUN(Application::OnEvent));//通过
+		m_Window->SetEventCallback(BIND_EVENT_FUN(Application::OnEvent));
 
 		//栈层使用默认构造
 		m_ImGuiLayer = new ImGuiLayer();
 		PushOverlay(m_ImGuiLayer);//暂时没有空间清理的过程，可能泄露（在拆出层时）,感觉该层的所有权有写模糊啊
 
-
-		#pragma region 基础渲染流程参考（之后会逐步抽象过程中所用到的部件）
-
-		RenderCommand::Init();
-
-		//Gen方法与Create方法的区别？？？
-
-		// VAO
-		//m_VertexArray = std::make_shared<VertexArray>(VertexArray::Create());//shared_ptr默认构造是啥都不敢，但是make方法会
-		m_VertexArray.reset(VertexArray::Create());
-
-		// VBO
-		float vertices[3 * 3] = {
-			0.0f, 0.5f, 0.0f,
-			-0.5f, -0.5f, 0.0f,
-			0.5f, -0.5f, 0.0f
-		};
-		std::shared_ptr<VertexBuffer> vertexBuffer(VertexBuffer::Create(vertices, sizeof(vertices)));
-
-		BufferLayout layout{ { {ShaderDataType::Float3, "a_Position"} } };
-		vertexBuffer->SetLayout(layout);
-
-		m_VertexArray->AddVertexBuffer(vertexBuffer);
-
-
-		// EBO
-		unsigned int indices[1 * 3] = {//不能用int
-			0, 1, 2
-		};
-		std::shared_ptr<IndexBuffer> indexBuffer(IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
-		indexBuffer.reset(IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
-
-		m_VertexArray->SetIndexBuffer(indexBuffer);
-
-
-		// 着色器
-		std::string vertexShaderSrc = R"(
-		#version 460 core
-		layout(location = 0) in vec3 a_Position;
-		
-		out vec3 v_Position;
-
-		uniform mat4 u_ProjectionViewMatrix;
-		
-		void main(){
-			v_Position = a_Position;
-			gl_Position = u_ProjectionViewMatrix * vec4(a_Position, 1.0f);
-		}
-		)";
-
-		std::string fragmentShaderSrc = R"(
-		#version 460 core
-		in vec3 v_Position;
-		
-		out vec4 color;
-		
-		void main(){
-			color = vec4(v_Position * 0.5f + 0.5f, 1.0f);
-		}
-		)";
-
-		//std::vector<Shader> vs = { {vertexShaderSrc, fragmentShaderSrc} };
-		//Shader shader = { vertexShaderSrc, fragmentShaderSrc };
-		// 这是一个很有意思的Bug，表现：当解除第一个注释时画面会闪过一个白色三角，然后就只显示背景；解除第二个注释却不会有任何影响
-		// Bug稳定复现，大概率是一个逻辑问题
-		// 两个注释的整个过程中都要经历构造和析构，那为何结果会如此不同，而且对窗口现象也逆向推理不出什么，经验太少了
-		// 直接问AI
-		// 注释一中产生了一个临时右值，在本行结束时被提前释放了（右值Shader触发析构，释放了上下文中的资源），但vs中是浅拷贝来的，还记录着ID（m_ProgramID）
-		// 后面的m_Shader也占了这个ID对应的资源（因为vs产生的ID已经丢失了，所以此时m_Shader会再次被分配此ID）
-		// 在本方法结尾vs被析构，其中元素（左值Shader）也触发析构，上下文里的ID对应的资源被释放（而该ID和m_Shader中的ID一致）
-
-		m_Shader.reset(new Shader(vertexShaderSrc, fragmentShaderSrc));
-
-		#pragma endregion
 	};
 
 
 	void Application::Run() {
 
-		m_SceneCamera.SetPosition({0.5f, 0.0f, 1.0f});
-		m_SceneCamera.SetRotation({0.0f, 30.0f, 0.0f});
-
 		while (m_Running)
 		{
-
-			RenderCommand::Clear();
-
-			// 图形渲染
-			Renderer::BeginScene(m_SceneCamera);
-			{
-				Renderer::Submit(m_Shader , m_VertexArray);//绑定shader并绘制VAO
-			}
-			Renderer::EndScene();
-
-
 			// 层更新
-			for (Layer* layer : m_LayerStack) {//？？？只要有begin和end就可以foreack么，查查背后的语法糖
+			for (Layer* layer : m_LayerStack) {
 				layer->OnUpdate();
 			}
 
 			// 渲染ImGui（之后会单独放到渲染线程上，所以不会在Layer的OnUpdate中执行）
-			// m_ImGuiLauer的Begin和End别的层也能用么？？？
+			// m_ImGuiLauer的Begin和End中为ImGui上下文的相关设置，详情可查看函数
 			// 这里应该接收的是上一帧的情况（因为事件本帧事件会在Window的OnUpdate中触发）
 			m_ImGuiLayer->Begin();
 			for (Layer* layer : m_LayerStack) {

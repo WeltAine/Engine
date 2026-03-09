@@ -51,11 +51,6 @@ namespace Ayin {
 		LayerStack m_LayerStack;					//栈层
 		ImGuiLayer* m_ImGuiLayer;//！！！没有释放
 
-		std::shared_ptr<Shader> m_Shader;			//着色器程序
-		std::shared_ptr<VertexArray> m_VertexArray;	//顶点数组
-
-		Camera m_SceneCamera;						//场景相机
-
 	private:
 		static Application* s_Instance;				//应用单例实例
 

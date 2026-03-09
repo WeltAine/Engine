@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Ayin/Window.h"
 #include "Ayin/Renderer/GraphicsContext.h"
 #include <GLFW/glfw3.h>
 
@@ -11,7 +12,7 @@ namespace Ayin {
 	class OpenGLContext : public GraphicsContext
 	{
 	public:
-		OpenGLContext(GLFWwindow* windowHandle);
+		OpenGLContext(Window* windowHandle);
 
 		// 通过 GraphicsContext 继承
 		
@@ -27,7 +28,8 @@ namespace Ayin {
 
 
 	private:
-		GLFWwindow* m_WindowHandle;
+		//GLFWwindow* m_WindowHandle;
+		Window* m_WindowHandle;
 	};
 
 }
