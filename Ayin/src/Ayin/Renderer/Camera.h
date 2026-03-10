@@ -76,6 +76,15 @@ namespace Ayin {
 
 		inline const glm::mat4& GetProjecttionViewMatrix() const { return m_ProjecttionViewMatrix; };
 
+		inline const glm::mat4& GetRotationMatrix() const {
+			glm::mat4 pitch = glm::rotate(glm::identity<glm::mat4>(), glm::radians(m_Rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+			glm::mat4 yaw = glm::rotate(glm::identity<glm::mat4>(), glm::radians(m_Rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+			glm::mat4 roll = glm::rotate(glm::identity<glm::mat4>(), glm::radians(m_Rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+
+			return pitch * yaw * roll;
+
+		};
+
 	private:
 
 		/// <summary>

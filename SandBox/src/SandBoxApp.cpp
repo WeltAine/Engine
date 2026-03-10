@@ -100,7 +100,8 @@ public:
 
 
 	void OnAxisKeyPressed( Ayin::Timestep deltaTime ) {
-		
+		//原点-》平移量 -》逆矩阵
+
 		glm::vec3 distance{ 0.0f };
 
 		//! 因为OpenGL对相机的可是朝向是z的负半轴，所以，这里的加减关系和直觉上是相反的
@@ -111,9 +112,18 @@ public:
 
 		if (glm::length(distance) > 0.0f) {
 
+			//! 原点 -> 平移量 -> 逆矩阵
+			//让移动基于相机的本地坐标，当然GetRotationMatrix()是我临时加的，之后可能会移动到Transform中
+			distance = m_SceneCamera.GetRotationMatrix() * glm::translate(glm::identity<glm::mat4>(), distance) * glm::vec4{0.0f, 0.0f, 0.0f, 1.0f};
+
 			m_CameraPosition += glm::normalize(distance);
+			AYIN_ERROR("direction:{0}, {1}, {2}", distance.x, distance.y, distance.z);
+
 
 			m_SceneCamera.SetPosition(m_CameraPosition);
+
+			//AYIN_ERROR("Move");
+			//AYIN_ERROR("{0}, {1}, {2}", m_CameraRotation.x, m_CameraRotation.y, m_CameraRotation.z);
 
 		}
 
@@ -136,16 +146,15 @@ public:
 		if (glm::length(rotation) > 30.0f) {
 
 			m_CameraRotation -= glm::normalize(rotation) * m_RotationSpeed  * float(deltaTime);
+
+			m_SceneCamera.SetRotation(m_CameraRotation);
+
+			lastRotation = { y, x, 0.0f };
+
+			AYIN_ERROR("Rotate");
+			AYIN_ERROR("{0}, {1}, {2}", m_CameraRotation.x, m_CameraRotation.y, m_CameraRotation.z);
+
 		}
-
-		m_SceneCamera.SetRotation(m_CameraRotation);
-
-		lastRotation = { y, x, 0.0f };
-
-		AYIN_ERROR("Rotate");
-
-
-		AYIN_ERROR("{0}, {1}, {2}", m_CameraRotation.x, m_CameraRotation.y, m_CameraRotation.z);
 
 
 	}

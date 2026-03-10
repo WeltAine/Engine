@@ -60,7 +60,7 @@ project "Ayin"
     }
 
 
-    files --构建时包含的文件
+    files --project构建时包含的文件
     {
         "%{prj.name}/src/**.h",
         "%{prj.name}/src/**.cpp",
