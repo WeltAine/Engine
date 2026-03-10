@@ -70,15 +70,6 @@ public:
 		}
 		)";
 
-		//x std::vector<Shader> vs = { {vertexShaderSrc, fragmentShaderSrc} };
-		//x Shader shader = { vertexShaderSrc, fragmentShaderSrc };
-		//? 这是一个很有意思的Bug，表现：当解除第一个注释时画面会闪过一个白色三角，然后就只显示背景；解除第二个注释却不会有任何影响
-		// Bug稳定复现，大概率是一个逻辑问题
-		// 两个注释的整个过程中都要经历构造和析构，那为何结果会如此不同，而且对窗口现象也逆向推理不出什么，经验太少了
-		// 直接问AI
-		//! 首行代码中产生了一个临时右值，在本行结束时被提前释放了（右值Shader触发析构，释放了上下文中的资源），但vs中是浅拷贝来的，还记录着ID（m_ProgramID）
-		//! 后面的m_Shader也占了这个ID对应的资源（因为vs产生的ID已经丢失了，所以此时m_Shader会再次被分配此ID）
-		//! 在本方法结尾vs被析构，其中元素（左值Shader）也触发析构，上下文里的ID对应的资源被释放（而该ID和m_Shader中的ID一致）
 
 		m_Shader.reset(new Ayin::Shader(vertexShaderSrc, fragmentShaderSrc));
 
@@ -91,7 +82,10 @@ public:
 	}
 
 
-	void OnUpdate() override {
+	void OnUpdate( Ayin::Timestep deltaTime ) override {
+
+		OnAxisKeyPressed(deltaTime);
+		OnMouseMoved(deltaTime);
 
 		Ayin::RenderCommand::Clear();
 
@@ -104,23 +98,16 @@ public:
 
 	}
 
-	void OnEvent(Ayin::Event& event) override {
 
-		Ayin::EventDispatcher dispatcher(event);
-
-		dispatcher.Dispatch<Ayin::KeyPressedEvent>(BIND_EVENT_FUN(ExampleLayer::OnAxisKeyPressed));
-		dispatcher.Dispatch<Ayin::MouseMovedEvent>(BIND_EVENT_FUN(ExampleLayer::OnMouseMiddlePressed));
-	}
-
-	bool OnAxisKeyPressed(Ayin::KeyPressedEvent& event) {
+	void OnAxisKeyPressed( Ayin::Timestep deltaTime ) {
 		
 		glm::vec3 distance{ 0.0f };
 
 		//! 因为OpenGL对相机的可是朝向是z的负半轴，所以，这里的加减关系和直觉上是相反的
-		if (Ayin::Input::IsKeyPressed(AYIN_KEY_LEFT)) { distance.x -= m_MoveSpeed; };
-		if (Ayin::Input::IsKeyPressed(AYIN_KEY_RIGHT)) { distance.x += m_MoveSpeed; };
-		if (Ayin::Input::IsKeyPressed(AYIN_KEY_UP)) { distance.z -= m_MoveSpeed; };
-		if (Ayin::Input::IsKeyPressed(AYIN_KEY_DOWN)) { distance.z += m_MoveSpeed; };
+		if (Ayin::Input::IsKeyPressed(AYIN_KEY_LEFT)) { distance.x -= m_MoveSpeed * deltaTime; };
+		if (Ayin::Input::IsKeyPressed(AYIN_KEY_RIGHT)) { distance.x += m_MoveSpeed * deltaTime; };
+		if (Ayin::Input::IsKeyPressed(AYIN_KEY_UP)) { distance.z -= m_MoveSpeed * deltaTime; };
+		if (Ayin::Input::IsKeyPressed(AYIN_KEY_DOWN)) { distance.z += m_MoveSpeed * deltaTime; };
 
 		if (glm::length(distance) > 0.0f) {
 
@@ -128,35 +115,38 @@ public:
 
 			m_SceneCamera.SetPosition(m_CameraPosition);
 
-			AYIN_ERROR("Move");
-
 		}
 
-		AYIN_ERROR("{0}, {1}, {2}", m_CameraPosition.x, m_CameraPosition.y, m_CameraPosition.z);
-
-		return false;
 	}
 
-	bool OnMouseMiddlePressed(Ayin::MouseMovedEvent& event) {
+	void OnMouseMoved( Ayin::Timestep deltaTime ) {
 
 		auto [x, y] = Ayin::Input::GetMousePosition();
 
-		x = (x - 640) / 16;
-		y = (y - 360) / 16;
+		x = (x - 640);
+		y = (y - 360);
 
 		static glm::vec3 lastRotation{ y, x, 0.0f };
 		glm::vec3 rotation{ 0.0f };
 
 
-		rotation = lastRotation - glm::vec3{ y, x, 0.0f };
+		rotation = glm::vec3{ y, x, 0.0f };
 
-		m_CameraRotation += rotation;
+
+		if (glm::length(rotation) > 30.0f) {
+
+			m_CameraRotation -= glm::normalize(rotation) * m_RotationSpeed  * float(deltaTime);
+		}
 
 		m_SceneCamera.SetRotation(m_CameraRotation);
 
 		lastRotation = { y, x, 0.0f };
 
-		return false;
+		AYIN_ERROR("Rotate");
+
+
+		AYIN_ERROR("{0}, {1}, {2}", m_CameraRotation.x, m_CameraRotation.y, m_CameraRotation.z);
+
 
 	}
 
@@ -171,7 +161,7 @@ private:
 	float m_MoveSpeed = 0.1f;							//移动速度
 
 	glm::vec3 m_CameraRotation{0.0f};					//相机度数
-	float m_RotationSpeed = 1.0f;						//转动速度
+	float m_RotationSpeed = 30.0f;						//转动速度
 
 };
 

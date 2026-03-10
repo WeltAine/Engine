@@ -12,9 +12,9 @@ namespace Ayin {
 
 	}
 
-	void Renderer::EndScene()
-	{
-	}
+
+	void Renderer::EndScene() {}
+
 
 	void Renderer::Submit(const std::shared_ptr<Shader>& shader, const std::shared_ptr<VertexArray>& vertexArray) {
 

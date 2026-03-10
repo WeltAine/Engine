@@ -33,6 +33,11 @@ namespace Ayin {
 
 	private:
 		//为什么不写在上一层呢
+
+		/// <summary>
+		/// 初始化，默认开启垂直同步
+		/// </summary>
+		/// <param name="props"></param>
 		virtual void Init(const WindowProps& props);
 		virtual void Shutdown();
 

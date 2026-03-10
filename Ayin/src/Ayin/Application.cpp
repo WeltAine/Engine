@@ -11,6 +11,7 @@
 
 #include "Ayin/Renderer/Buffer.h"
 
+#include "Ayin/Core/Timestep.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -45,9 +46,17 @@ namespace Ayin {
 
 		while (m_Running)
 		{
+			// 时间更新
+			Timestep runTime = glfwGetTime();//已经运行的时间长度
+			Timestep frameInterval = runTime - m_LastFrameTime;
+			//? 这个过程我觉得应该单独设置一个Time外观来完成，甚至是单独弄一个为其弄一个计时层和ImGui一样，一起更新
+			//? glfwGetTime这类底层API应该封在一个Platform中，像Input和WindowsInput那样
+			AYIN_CORE_INFO("FrameInterval:{0}s  ({1}ms)", float(frameInterval), frameInterval.GetMilliseconds());
+
+
 			// 层更新
 			for (Layer* layer : m_LayerStack) {
-				layer->OnUpdate();
+				layer->OnUpdate(frameInterval);
 			}
 
 			// 渲染ImGui（之后会单独放到渲染线程上，所以不会在Layer的OnUpdate中执行）
@@ -61,6 +70,8 @@ namespace Ayin {
 			
 			// 窗口更新
 			m_Window->OnUpdate();
+
+			m_LastFrameTime = runTime;
 
 		}
 	}
