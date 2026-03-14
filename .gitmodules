@@ -1,13 +1,15 @@
 [submodule "Ayin/Dependency/spdlog"]
 	path = Ayin/Dependency/spdlog
 	url = https://github.com/gabime/spdlog
-[submodule "Ayin/Dependency/GLFW"]
-	path = Ayin/Dependency/GLFW
-	url = https://github.com/WeltAine/glfw
-[submodule "Ayin/Dependency/ImGui"]
-	path = Ayin/Dependency/ImGui
-	url = git@github.com:WeltAine/ImGui.git
-	branch = docking
 [submodule "Ayin/Dependency/glm"]
 	path = Ayin/Dependency/glm
-	url = https://github.com/g-truc/glm
+	url = https://github.com/WeltAine/glm.git
+	branch = master
+[submodule "Ayin/Dependency/GLFW"]
+	path = Ayin/Dependency/GLFW
+	url = https://github.com/WeltAine/glfw.git
+	branch = master
+[submodule "Ayin/Dependency/ImGui"]
+	path = Ayin/Dependency/ImGui
+	url = https://github.com/WeltAine/ImGui.git
+	branch = docking
