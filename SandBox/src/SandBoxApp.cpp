@@ -52,10 +52,14 @@ public:
 		out vec3 v_Position;
 
 		uniform mat4 u_ProjectionViewMatrix;
-		
+
+		layout(std140, binding = 1) uniform TransformBlock{
+			mat4 t_Position;
+		};
+
 		void main(){
 			v_Position = a_Position;
-			gl_Position = u_ProjectionViewMatrix * vec4(a_Position, 1.0f);
+			gl_Position = u_ProjectionViewMatrix * t_Position * vec4(a_Position, 1.0f);
 		}
 		)";
 
@@ -75,24 +79,35 @@ public:
 
 		#pragma endregion
 
+		glm::mat4 translate = glm::translate(glm::identity<glm::mat4>(), glm::vec3{0.0f});
+		m_UBO.reset(Ayin::UniformBuffer::Create(static_cast<void*>(glm::value_ptr(translate)), sizeof(translate)));
+		m_UBO->SetIndex(1);
+		m_UBO->SetLayout(Ayin::UniformLayout{ "TransformBlock", { Ayin::UniformElement{Ayin::ShaderDataType::Mat4, "t_Position"}} });
+
 		m_SceneCamera.SetPosition(m_CameraPosition);
 		m_SceneCamera.SetRotation(m_CameraRotation);
-
+		 
 	
 	}
 
 
 	void OnUpdate( Ayin::Timestep deltaTime ) override {
 
-		OnAxisKeyPressed(deltaTime);
-		OnMouseMoved(deltaTime);
+		//OnAxisKeyPressed(deltaTime);
+		//OnMouseMoved(deltaTime);
+
+		m_Transform = glm::translate(m_Transform, glm::vec3{ 0.1f * deltaTime, 0.0f, 0.0f });
+		m_UBO->Set(
+			"t_Position", 
+			static_cast<void*>( glm::value_ptr( m_Transform ) )
+		);
 
 		Ayin::RenderCommand::Clear();
 
 		// 图形渲染
 		Ayin::Renderer::BeginScene(m_SceneCamera);
 		{
-			Ayin::Renderer::Submit(m_Shader, m_VertexArray);//绑定shader并绘制VAO
+			Ayin::Renderer::Submit(m_Shader, m_VertexArray, m_UBO);//绑定shader并绘制VAO
 		}
 		Ayin::Renderer::EndScene();
 
@@ -162,6 +177,8 @@ public:
 private:
 
 	std::shared_ptr<Ayin::Shader> m_Shader;				//着色器程序
+	std::shared_ptr<Ayin::UniformBuffer> m_UBO;
+	glm::mat4 m_Transform{1.0f};
 	std::shared_ptr<Ayin::VertexArray> m_VertexArray;	//顶点数组
 
 	Ayin::Camera m_SceneCamera;							//场景相机

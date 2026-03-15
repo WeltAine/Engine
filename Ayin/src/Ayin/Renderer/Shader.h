@@ -33,7 +33,7 @@ namespace Ayin {
 		/// </summary>
 		/// <param name="name">Uniform矩阵名称</param>
 		/// <param name="data">矩阵</param>
-		virtual void SetUniformMat4(const std::string& name, const glm::mat4& matrix);
+		virtual void UploadUniformMat4(const std::string& name, const glm::mat4& matrix);
 
 	private:
 		uint32_t m_ProgramID;

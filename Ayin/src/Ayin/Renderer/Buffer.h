@@ -43,6 +43,11 @@ namespace Ayin{
 
 	}
 
+
+	//////////////////////////////////////////////////////////////////////////////////////////
+	/// VertexBuffer /////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////
+
 	struct AYIN_API BufferElement
 	{
 	
@@ -68,7 +73,7 @@ namespace Ayin{
 
 			}
 
-			AYIN_CORE_ASSERT(false, "Unknown ShaderDataType!");
+			AYIN_CORE_ASSERT(false, "Unknown ShaderDataType!"); 
 			return 0;
 
 		}
@@ -82,6 +87,9 @@ namespace Ayin{
 	
 	};
 
+	/// <summary>
+	/// VAO数据布局（BufferElement负责各自元素的信息），只负责步进
+	/// </summary>
 	class AYIN_API BufferLayout 
 	{
 
@@ -122,7 +130,7 @@ namespace Ayin{
 
 			for(auto& element : m_Elements) {
 				element.Offset = offset;
-				offset += element.Size;
+				offset += static_cast<uint32_t>(element.Size);
 				m_Stride += element.Size;
 			}
 
@@ -185,6 +193,11 @@ namespace Ayin{
 	};
 
 
+
+	//////////////////////////////////////////////////////////////////////////////////////////
+	/// IndexBuffer //////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////
+
 	/// <summary>
 	/// 索引缓冲抽象类
 	/// </summary>
@@ -218,6 +231,184 @@ namespace Ayin{
 		/// </summary>
 		/// <returns></returns>
 		virtual uint32_t GetCount() const = 0;
+	};
+
+
+
+	//////////////////////////////////////////////////////////////////////////////////////////
+	/// UniformBuffer ////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////
+
+	// 临时使用（之后会交给Shaderc这个库来完成）
+	static uint32_t ShaderDataTypeAlignas(ShaderDataType type) {
+
+		switch (type) {
+
+			case(ShaderDataType::Float):	return (BIT(2) - 1);
+			case(ShaderDataType::Float2):	return (BIT(3) - 1);
+			case(ShaderDataType::Float3):	return (BIT(4) - 1);
+			case(ShaderDataType::Float4):	return (BIT(4) - 1);
+			case(ShaderDataType::Int):		return (BIT(2) - 1);
+			case(ShaderDataType::Int2):		return (BIT(3) - 1);
+			case(ShaderDataType::Int3):		return (BIT(4) - 1);
+			case(ShaderDataType::Int4):		return (BIT(4) - 1);
+			case(ShaderDataType::Bool):		return (BIT(2) - 1);
+			case(ShaderDataType::Mat3):		return (BIT(4) - 1);
+			case(ShaderDataType::Mat4):		return (BIT(4) - 1);
+
+		}
+
+		AYIN_CORE_ASSERT(false, "Unknown ShaderDataType!");
+		return 0;
+
+
+	}
+
+
+	/// <summary>
+	/// Block中一个元素的类型，名称，偏移，大小
+	/// </summary>
+	struct AYIN_API UniformElement {
+
+		UniformElement(ShaderDataType type, const std::string& name)
+			:Type{ type }, Name{ name }, Size{ ShaderDataTypeSize(type) }
+		{
+		};
+
+		ShaderDataType Type;	// 变量类型
+		std::string Name;		// 变量名称
+		uint32_t Offset = 0;	// 起始偏移
+		size_t Size;			// 变量大小
+
+	};
+
+
+	//! 有时候一个Uniform不一定是一个变量，可能是一个结构体（一个binding槽），由一系列变量组成
+	/// <summary>
+	/// 仅仅是记录相关总大小数据
+	/// </summary>
+	class AYIN_API UniformLayout {
+
+	public:
+
+		/// <summary>
+		/// 该构造什么都不干
+		/// </summary>
+		UniformLayout() = default;
+
+		UniformLayout(const std::string& name, const std::initializer_list<UniformElement>& uniformElements)
+			:Name{ name }, m_UniformElements{ uniformElements }
+		{
+			CalculateOffsetAndTotalSize();
+		};
+
+		~UniformLayout() = default;
+
+		//计算总大小
+		inline void CalculateOffsetAndTotalSize() {
+
+			uint32_t offset = 0;
+			m_TotalSize = 0;
+
+			for (auto& element : m_UniformElements) {
+
+				uint32_t aligna = ShaderDataTypeAlignas(element.Type);
+
+				if ((offset & aligna) > uint32_t(0)) {
+					offset = offset & (~aligna);//尾部清零
+					offset += (aligna + 1);
+				}
+
+				element.Offset = offset;
+
+				offset += element.Size;
+
+			}
+
+			m_TotalSize = offset + m_UniformElements.back().Size;
+			if ((m_TotalSize & (BIT(4) - 1)) > uint32_t(0)) {
+				m_TotalSize = m_TotalSize & ~(BIT(4) - 1);//尾部清零
+				m_TotalSize += BIT(4);
+			}
+			
+
+		};
+
+
+		inline size_t GetSize() const { return m_TotalSize; };
+
+
+		inline std::vector<UniformElement>::iterator begin() { return m_UniformElements.begin(); }
+		inline std::vector<UniformElement>::iterator end() { return m_UniformElements.end(); }
+		inline std::vector<UniformElement>::const_iterator begin() const { return m_UniformElements.begin(); }
+		inline std::vector<UniformElement>::const_iterator end() const { return m_UniformElements.end(); }
+
+	public:
+
+		std::string Name;
+
+	private:
+
+
+		std::vector<UniformElement> m_UniformElements;
+
+		size_t m_TotalSize = 0;
+
+	};
+
+
+	/// <summary>
+	/// 统一变量缓冲（仅支持单Block）
+	/// 开辟GPU空间，设置数据，绑定到对应binding槽中
+	/// </summary>
+	//! 不难发现其实这些buffer基本只是对指令的封装，不会干涉数据
+	class AYIN_API UniformBuffer {
+
+	public:
+
+		/// <summary>
+		/// 工厂方法
+		/// </summary>
+		/// <param name="data"></param>
+		/// <param name="layout"></param>
+		/// <returns></returns>
+		static UniformBuffer* Create(void* data, size_t size);
+
+		virtual ~UniformBuffer() = default;
+
+		/// <summary>
+		/// 设置指定数据
+		/// </summary>
+		/// <param name="paramName"></param>
+		/// <param name="data"></param>
+		virtual void Set(const std::string& paramName, void* data) = 0;
+
+		/// <summary>
+		/// 全部数据设置
+		/// </summary>
+		/// <param name="data"></param>
+		virtual void Set(void* data) = 0;
+
+		/// <summary>
+		/// 布局配置（解释现有内存布局，现有意味着不会因为你告知布局改动而改变内存）
+		/// </summary>
+		/// <param name="layout"></param>
+		virtual void SetLayout(const UniformLayout& layout) = 0;
+
+		/// <summary>
+		/// 获取布局
+		/// </summary>
+		/// <returns></returns>
+		virtual const UniformLayout& GetLayout() const = 0;
+
+
+		virtual void SetIndex(int index) = 0;
+
+		virtual int GetIndex() const = 0;
+
+		virtual void Bind() const = 0;
+
+		virtual void UnBind() const = 0;
 	};
 
 }

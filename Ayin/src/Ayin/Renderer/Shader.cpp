@@ -110,7 +110,7 @@ namespace Ayin {
 			glUseProgram(0);
 	}
 
-	void Shader::SetUniformMat4(const std::string& name, const glm::mat4& matrix)
+	void Shader::UploadUniformMat4(const std::string& name, const glm::mat4& matrix)
 	{
 		int lastProgram = 0;
 		glGetIntegerv(GL_CURRENT_PROGRAM, &lastProgram);

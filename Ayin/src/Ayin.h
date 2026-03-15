@@ -14,7 +14,7 @@
 #include "Ayin/KayCodes.h"
 #include "Ayin/MouseButtonCodes.h"
 
-// ---渲染器------------------------
+// ---渲染器--------------------------
 #include "Ayin/Renderer/Renderer.h"
 #include "Ayin/Renderer/RenderCommand.h"
 
@@ -24,6 +24,10 @@
 #include "Ayin/Renderer/VertexArray.h"
 // -----------------------------------
 
-// ---入口点---------------------
+// ---入口点--------------------------
 #include "Ayin/EntryPoint.h"
+// -----------------------------------
+
+// ---数学----------------------------
+#include <glm/gtc/type_ptr.hpp>
 // -----------------------------------

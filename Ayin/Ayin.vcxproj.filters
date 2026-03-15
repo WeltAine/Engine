@@ -28,6 +28,9 @@
     <Filter Include="src\Ayin">
       <UniqueIdentifier>{4DE41BCF-39B1-76DA-62CA-64824EF6AB68}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Ayin\Core">
+      <UniqueIdentifier>{C5C04007-3181-BC3D-FABB-05BB663B011A}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\Ayin\Events">
       <UniqueIdentifier>{911796DF-FDA2-03A4-06B4-869872BE5FA4}</UniqueIdentifier>
     </Filter>
@@ -1317,6 +1320,9 @@
     <ClInclude Include="src\Ayin\Core.h">
       <Filter>src\Ayin</Filter>
     </ClInclude>
+    <ClInclude Include="src\Ayin\Core\Timestep.h">
+      <Filter>src\Ayin\Core</Filter>
+    </ClInclude>
     <ClInclude Include="src\Ayin\EntryPoint.h">
       <Filter>src\Ayin</Filter>
     </ClInclude>
@@ -1356,13 +1362,25 @@
     <ClInclude Include="src\Ayin\Renderer\Buffer.h">
       <Filter>src\Ayin\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\Ayin\Renderer\Camera.h">
+      <Filter>src\Ayin\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\Ayin\Renderer\GraphicsContext.h">
+      <Filter>src\Ayin\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Ayin\Renderer\RenderCommand.h">
       <Filter>src\Ayin\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\Ayin\Renderer\Renderer.h">
       <Filter>src\Ayin\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\Ayin\Renderer\RendererAPI.h">
+      <Filter>src\Ayin\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\Ayin\Renderer\Shader.h">
+      <Filter>src\Ayin\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Ayin\Renderer\VertexArray.h">
       <Filter>src\Ayin\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\Ayin\Window.h">
@@ -1377,19 +1395,18 @@
     <ClInclude Include="src\Platform\OpenGL\OpenGLContext.h">
       <Filter>src\Platform\OpenGL</Filter>
     </ClInclude>
+    <ClInclude Include="src\Platform\OpenGL\OpenGLRendererAPI.h">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\OpenGL\OpenGLVertexArray.h">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClInclude>
     <ClInclude Include="src\Platform\Windows\WindowsInput.h">
       <Filter>src\Platform\Windows</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\Windows\WindowsWindow.h">
       <Filter>src\Platform\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="src\Ayin\Renderer\VertexArray.h" />
-    <ClInclude Include="src\Platform\OpenGL\OpenGLVertexArray.h" />
-    <ClInclude Include="src\Ayin\Renderer\RendererAPI.h" />
-    <ClInclude Include="src\Ayin\Renderer\RenderCommand.h" />
-    <ClInclude Include="src\Platform\OpenGL\OpenGLRendererAPI.h" />
-    <ClInclude Include="src\Ayin\Renderer\Camera.h" />
-    <ClInclude Include="src\Ayin\Core\Timestep.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Ayin\Application.cpp">
@@ -1413,10 +1430,22 @@
     <ClCompile Include="src\Ayin\Renderer\Buffer.cpp">
       <Filter>src\Ayin\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="src\Ayin\Renderer\Camera.cpp">
+      <Filter>src\Ayin\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Ayin\Renderer\RenderCommand.cpp">
+      <Filter>src\Ayin\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="src\Ayin\Renderer\Renderer.cpp">
       <Filter>src\Ayin\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="src\Ayin\Renderer\RendererAPI.cpp">
+      <Filter>src\Ayin\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="src\Ayin\Renderer\Shader.cpp">
+      <Filter>src\Ayin\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Ayin\Renderer\VertexArray.cpp">
       <Filter>src\Ayin\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\AyinPch.cpp">
@@ -1428,17 +1457,17 @@
     <ClCompile Include="src\Platform\OpenGL\OpenGLContext.cpp">
       <Filter>src\Platform\OpenGL</Filter>
     </ClCompile>
+    <ClCompile Include="src\Platform\OpenGL\OpenGLRendererAPI.cpp">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\OpenGL\OpenGLVertexArray.cpp">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClCompile>
     <ClCompile Include="src\Platform\Windows\WindowsInput.cpp">
       <Filter>src\Platform\Windows</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp">
       <Filter>src\Platform\Windows</Filter>
     </ClCompile>
-    <ClCompile Include="src\Ayin\Renderer\VertexArray.cpp" />
-    <ClCompile Include="src\Platform\OpenGL\OpenGLVertexArray.cpp" />
-    <ClCompile Include="src\Ayin\Renderer\RendererAPI.cpp" />
-    <ClCompile Include="src\Ayin\Renderer\RenderCommand.cpp" />
-    <ClCompile Include="src\Platform\OpenGL\OpenGLRendererAPI.cpp" />
-    <ClCompile Include="src\Ayin\Renderer\Camera.cpp" />
   </ItemGroup>
 </Project>

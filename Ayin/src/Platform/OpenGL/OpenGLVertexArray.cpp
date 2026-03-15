@@ -81,12 +81,12 @@ namespace Ayin {
 		for (const auto& element : vertexBuffer->GetLayout()) {
 
 			glVertexAttribPointer(
-				index,
-				element.GetComponentCount(),
-				ShaderDataTypeToBaseType(element.Type),
-				element.Normalized,
-				vertexBuffer->GetLayout().GetStride(),
-				(const void*)element.Offset
+				index,									// location
+				element.GetComponentCount(),			// 基本类型的数量
+				ShaderDataTypeToBaseType(element.Type),	// 基本类型
+				element.Normalized,						// 是否归一化
+				vertexBuffer->GetLayout().GetStride(),	// 步进
+				(const void*)element.Offset				// GPU块中的起始偏移
 			);
 			glEnableVertexAttribArray(index);
 			index++;
