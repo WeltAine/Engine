@@ -1,6 +1,7 @@
 #include <AyinPch.h>
 
 #include "Renderer.h"
+#include <Platform/OpenGL/OpenGLShader.h>
 
 namespace Ayin {
 
@@ -23,7 +24,7 @@ namespace Ayin {
 	void Renderer::Submit(const std::shared_ptr<Shader>& shader, const std::shared_ptr<VertexArray>& vertexArray, const std::shared_ptr<UniformBuffer>& UBO) {
 
 		shader->Bind();//在一些渲染API中，要求绑定VAO之前就必须有一个着色器（在创建和设置VAO时也是如此），以保证布局相对应（OpenGL没有这个限制），所以我们写在开头位置
-		shader->UploadUniformMat4("u_ProjectionViewMatrix", s_SceneData->projectionViewMatrix);
+		std::dynamic_pointer_cast<OpenGLShader>(shader)->UploadUniformMat4("u_ProjectionViewMatrix", s_SceneData->projectionViewMatrix);
 
 		UBO->Bind();
 

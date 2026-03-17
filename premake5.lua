@@ -124,6 +124,7 @@ project "SandBox"
     {
         "Ayin/Dependency/spdlog/include",
         "Ayin/src",
+        "Ayin/Dependency",
         "%{IncludeDir.glm}"
 
     }

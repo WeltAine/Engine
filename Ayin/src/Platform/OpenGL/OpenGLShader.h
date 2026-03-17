@@ -1,0 +1,63 @@
+#pragma once
+
+#include <string>
+#include "Ayin/Renderer/Shader.h"
+
+namespace Ayin{
+
+	class AYIN_API OpenGLShader : public Shader {
+
+	public:
+		/// <summary>
+		/// 编译着色器并生成着色器程序
+		/// </summary>
+		/// <param name="vertexShaderSrc">顶点着色器源码</param>
+		/// <param name="fragmentShaderSrc">片元着色器源码</param>
+		OpenGLShader(const std::string& vertexShaderSrc, const std::string& fragmentShaderSrc);
+		virtual ~OpenGLShader() override;
+
+		/// <summary>
+		/// 将着色器程序绑定到当前渲染山下文中
+		/// </summary>
+		virtual void Bind() override;
+
+		/// <summary>
+		/// 从当前上下文中关闭着色器程序
+		/// </summary>
+		virtual void UnBind() override;
+
+
+		void UploadUniformBool(const std::string& name, bool value);
+
+
+		void UploadUniformInt(const std::string& name, int value);
+		void UploadUniformInt2(const std::string& name, const glm::ivec2& vector);
+		void UploadUniformInt3(const std::string& name, const glm::ivec3& vector);
+		void UploadUniformInt4(const std::string& name, const glm::ivec4& vector);
+
+
+		void UploadUniformFloat(const std::string& name, float value);
+		void UploadUniformFloat2(const std::string& name, const glm::vec2& vector);
+		void UploadUniformFloat3(const std::string& name, const glm::vec3& vector);
+		void UploadUniformFloat4(const std::string& name, const glm::vec4& vector);
+
+
+		void UploadUniformMat3(const std::string& name, const glm::mat3& matrix);
+		void UploadUniformMat4(const std::string& name, const glm::mat4& matrix);
+		//? 为什么整个API不暴露给Shader呢（Shader中没有这个接口）
+		//! 不同的API的机制是不同的，vulkan和D3D是数据驱动而非OpenGL的状态设置
+		//! 简单来说UploadUniformMat4(const std::string& name, const glm::mat4& matrix)这样的接口设计（参数）对OpenGL是容易实现的
+		//! 但是对于另外两者，它们以内存映射为主，不太“习惯”通过名称的查询；当然，我们也有手段来实现，让其模仿OpenGL那样就行，但这可能很低效
+		//! 所以运行机制上的不同导致很难设计出统一的方法，就更不可能上升到抽象层中了
+		//! 但是数据设置需求是存在的，“所谓解耦就是把耦合换个地方而已，因为该做的事情一件也不会减少”
+		//! 之后我们会将数据交由材质和渲染器管理（shader本身所需数据和场景数据），数据的传输也是如此，会根据API的不同来手动转换指针，并发起数据传输
+		//! 这些过程会被封装在核心内部，使用方不应干涉
+		//TODO 不过我仍旧认为shader中应该设计一个统一传输函数接口，毕竟我自己的构想里，shader会通过反射以感知布局信息，材质也将从布局中获得信息
+
+	private:
+
+		uint32_t m_ProgramID;
+
+	};
+
+}

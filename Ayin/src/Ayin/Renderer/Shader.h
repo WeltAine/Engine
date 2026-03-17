@@ -15,28 +15,21 @@ namespace Ayin {
 		/// </summary>
 		/// <param name="vertexShaderSrc">顶点着色器源码</param>
 		/// <param name="fragmentShaderSrc">片元着色器源码</param>
-		Shader(const std::string& vertexShaderSrc, const std::string& fragmentShaderSrc);
-		virtual ~Shader();
+		static Shader* Create(const std::string& vertexShaderSrc, const std::string& fragmentShaderSrc);
+		
+		virtual ~Shader() = default;
 
 		/// <summary>
 		/// 将着色器程序绑定到当前渲染山下文中
 		/// </summary>
-		virtual void Bind();
+		virtual void Bind() = 0;
 
 		/// <summary>
 		/// 从当前上下文中关闭着色器程序
 		/// </summary>
-		virtual void UnBind();
+		virtual void UnBind() = 0;
 
-		/// <summary>
-		/// 设置Shader程序中的矩阵统一变量
-		/// </summary>
-		/// <param name="name">Uniform矩阵名称</param>
-		/// <param name="data">矩阵</param>
-		virtual void UploadUniformMat4(const std::string& name, const glm::mat4& matrix);
 
-	private:
-		uint32_t m_ProgramID;
 	};
 
 }

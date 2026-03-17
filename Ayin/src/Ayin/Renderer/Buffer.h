@@ -3,6 +3,7 @@
 #include "Ayin/Core.h"
 
 // 包含各种Buffer抽象，集中管理，减少文件数量
+//! 不难发现，所有含Create工厂方法的类，都象征着一种资源（Buffer，shader），它们在GPU中占据一定内存
 
 namespace Ayin{
 

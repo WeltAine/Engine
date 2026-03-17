@@ -1,4 +1,6 @@
 #include <Ayin.h>
+#include <Platform/OpenGL/OpenGLShader.h>
+
 
 
 class ExampleLayer : public Ayin::Layer {
@@ -7,7 +9,6 @@ public:
 	ExampleLayer()
 		:Ayin::Layer("Example"), 
 		m_SceneCamera{ Ayin::Camera::CameraType::Perspective, {.perspectiveProp = {.NearPlaneDistance = 0.1f, .FarPlaneDistance = 100.0f, .FOV = 60.0f, .AspectRatio = 16.0f / 9}} }
-
 	{
 
 		#pragma region 基础渲染流程参考（这一部分也可以放到OnAttach中）
@@ -52,6 +53,7 @@ public:
 		out vec3 v_Position;
 
 		uniform mat4 u_ProjectionViewMatrix;
+		
 
 		layout(std140, binding = 1) uniform TransformBlock{
 			mat4 t_Position;
@@ -68,14 +70,16 @@ public:
 		in vec3 v_Position;
 		
 		out vec4 color;
+
+		uniform vec3 colorOffset;
 		
 		void main(){
-			color = vec4(v_Position * 0.5f + 0.5f, 1.0f);
+			color = vec4(v_Position * 0.5f + 0.5f, 1.0f) + vec4(colorOffset, 1.0f);
 		}
 		)";
 
 
-		m_Shader.reset(new Ayin::Shader(vertexShaderSrc, fragmentShaderSrc));
+		m_Shader.reset(Ayin::Shader::Create(vertexShaderSrc, fragmentShaderSrc));
 
 		#pragma endregion
 
@@ -91,25 +95,36 @@ public:
 	}
 
 
-	void OnUpdate( Ayin::Timestep deltaTime ) override {
+	virtual void OnUpdate( Ayin::Timestep deltaTime ) override {
 
 		//OnAxisKeyPressed(deltaTime);
 		//OnMouseMoved(deltaTime);
 
-		m_Transform = glm::translate(m_Transform, glm::vec3{ 0.1f * deltaTime, 0.0f, 0.0f });
-		m_UBO->Set(
-			"t_Position", 
-			static_cast<void*>( glm::value_ptr( m_Transform ) )
-		);
 
 		Ayin::RenderCommand::Clear();
 
 		// 图形渲染
 		Ayin::Renderer::BeginScene(m_SceneCamera);
 		{
+			m_Transform = glm::translate(m_Transform, glm::vec3{ 0.1f * deltaTime, 0.0f, 0.0f });
+			m_UBO->Set(
+				"t_Position",
+				static_cast<void*>(glm::value_ptr(m_Transform))
+			);
+
+
+			std::dynamic_pointer_cast<Ayin::OpenGLShader>(m_Shader)->UploadUniformFloat3("colorOffset", m_ColorOffset);
 			Ayin::Renderer::Submit(m_Shader, m_VertexArray, m_UBO);//绑定shader并绘制VAO
 		}
 		Ayin::Renderer::EndScene();
+
+	}
+
+	virtual void OnImGuiRender() override {
+
+		ImGui::Begin("Color Offset");
+			ImGui::ColorEdit3("color", glm::value_ptr(m_ColorOffset));
+		ImGui::End();
 
 	}
 
@@ -179,6 +194,7 @@ private:
 	std::shared_ptr<Ayin::Shader> m_Shader;				//着色器程序
 	std::shared_ptr<Ayin::UniformBuffer> m_UBO;
 	glm::mat4 m_Transform{1.0f};
+	glm::vec3 m_ColorOffset{ 0.0f };
 	std::shared_ptr<Ayin::VertexArray> m_VertexArray;	//顶点数组
 
 	Ayin::Camera m_SceneCamera;							//场景相机
