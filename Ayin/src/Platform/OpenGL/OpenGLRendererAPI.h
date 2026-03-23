@@ -15,7 +15,7 @@ namespace Ayin {
 
 		void Clear() const override;
 
-		void DrawIndexed(const std::shared_ptr<VertexArray>& vertexArray) const override;
+		void DrawIndexed(const Ref<VertexArray>& vertexArray) const override;
 
 	};
 

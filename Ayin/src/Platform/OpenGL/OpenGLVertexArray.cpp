@@ -64,7 +64,7 @@ namespace Ayin {
 	}
 
 
-	void OpenGLVertexArray::AddVertexBuffer(const std::shared_ptr<VertexBuffer>& vertexBuffer)
+	void OpenGLVertexArray::AddVertexBuffer(const Ref<VertexBuffer>& vertexBuffer)
 	{
 		AYIN_CORE_ASSERT(vertexBuffer->GetLayout().GetElements().size(), "Vertex Buffer has no layout!");
 
@@ -99,7 +99,7 @@ namespace Ayin {
 		glBindBuffer(GL_ARRAY_BUFFER, lastVertexBufferID);
 	}
 
-	void OpenGLVertexArray::SetIndexBuffer(const std::shared_ptr<IndexBuffer>& indexBuffer)
+	void OpenGLVertexArray::SetIndexBuffer(const Ref<IndexBuffer>& indexBuffer)
 	{
 		// 收集上下文环境（用于恢复）
 		int lastVertexArrayID = 0, lastIndexBufferID = 0;

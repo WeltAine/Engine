@@ -27,7 +27,7 @@ public:
 			-0.5f, -0.5f, 0.0f,
 			0.5f, -0.5f, 0.0f
 		};
-		std::shared_ptr<Ayin::VertexBuffer> vertexBuffer(Ayin::VertexBuffer::Create(vertices, sizeof(vertices)));
+		Ayin::Ref<Ayin::VertexBuffer> vertexBuffer(Ayin::VertexBuffer::Create(vertices, sizeof(vertices)));
 
 		Ayin::BufferLayout layout{ { {Ayin::ShaderDataType::Float3, "a_Position"} } };
 		vertexBuffer->SetLayout(layout);
@@ -39,7 +39,7 @@ public:
 		unsigned int indices[1 * 3] = {//不能用int
 			0, 1, 2
 		};
-		std::shared_ptr<Ayin::IndexBuffer> indexBuffer(Ayin::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
+		Ayin::Ref<Ayin::IndexBuffer> indexBuffer(Ayin::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
 		indexBuffer.reset(Ayin::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
 
 		m_VertexArray->SetIndexBuffer(indexBuffer);
@@ -191,11 +191,11 @@ public:
 
 private:
 
-	std::shared_ptr<Ayin::Shader> m_Shader;				//着色器程序
-	std::shared_ptr<Ayin::UniformBuffer> m_UBO;
+	Ayin::Ref<Ayin::Shader> m_Shader;					//着色器程序
+	Ayin::Ref<Ayin::UniformBuffer> m_UBO;
 	glm::mat4 m_Transform{1.0f};
 	glm::vec3 m_ColorOffset{ 0.0f };
-	std::shared_ptr<Ayin::VertexArray> m_VertexArray;	//顶点数组
+	Ayin::Ref<Ayin::VertexArray> m_VertexArray;			//顶点数组
 
 	Ayin::Camera m_SceneCamera;							//场景相机
 

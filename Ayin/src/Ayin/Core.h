@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 
 
 //通过宏来完成 _declspec(dllexport/dllimport)的自动化过程
@@ -39,3 +40,18 @@
 	#define AYIN_CORE_ASSERT(condition, ...)
 #endif 
 
+
+namespace Ayin {
+
+	//简易资产管理系统（其实就是自己的引用）
+	//TODO: 待完善
+	//! 收束整合，方便之后修改
+	//! 考虑到之后的渲染线程分离以及延迟渲染的实现，需要渲染线程对资源强引用，以避免在渲染时丢失资源
+
+	template<typename T>
+	using Ref = std::shared_ptr<T>;
+
+	template<typename T>
+	using Scope = std::unique_ptr<T>;
+
+}

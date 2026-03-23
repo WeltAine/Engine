@@ -35,7 +35,7 @@ namespace Ayin {
 		/// DrawCall
 		/// </summary>
 		/// <param name="vertexArray">被渲染的VAO</param>
-		virtual void DrawIndexed(const std::shared_ptr<VertexArray>& vertexArray) const = 0;
+		virtual void DrawIndexed(const Ref<VertexArray>& vertexArray) const = 0;
 
 
 		/// <summary>

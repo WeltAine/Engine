@@ -16,7 +16,7 @@ namespace Ayin{
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
-	void OpenGLRendererAPI::DrawIndexed(const std::shared_ptr<VertexArray>& vertexArray) const
+	void OpenGLRendererAPI::DrawIndexed(const Ref<VertexArray>& vertexArray) const
 	{
 		glDrawElements(GL_TRIANGLES, vertexArray->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, (void*)0);
 		// OpenGL 明确规定，glDrawElements 的第三个参数（索引类型）只能是以下三种：

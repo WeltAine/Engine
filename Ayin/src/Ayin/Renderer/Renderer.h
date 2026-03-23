@@ -20,7 +20,7 @@ namespace Ayin {
 		static void EndScene();
 
 
-		static void Submit(const std::shared_ptr<Shader>& shader, const std::shared_ptr<VertexArray>& vertexArray, const std::shared_ptr<UniformBuffer>& UBO);//之后这些参数会被并入网格和材质中，网格中包含材质
+		static void Submit(const Ref<Shader>& shader, const Ref<VertexArray>& vertexArray, const Ref<UniformBuffer>& UBO);//之后这些参数会被并入网格和材质中，网格中包含材质
 
 		inline static RendererAPI::API GetAPI() { return RendererAPI::GetAPI(); };
 
