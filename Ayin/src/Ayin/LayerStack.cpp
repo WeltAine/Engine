@@ -34,8 +34,13 @@ namespace Ayin {
 	void LayerStack::PopLayer(Layer* layer) {
 
 		auto iterator = std::find(m_Layers.begin(), m_Layers.begin() + m_LayerInsertIndex, layer);
+		//? find方法在查找失败时返回的是查找范围中的最后一个迭代器！
+		//! 如果有人该方法试图弹出覆盖层会导致m_Layers.begin() + m_LayerInsertIndex被find返回
+		//!     普通层	   |	覆盖层
+		//! [][][][被返回] | [想查找][][]
+		//!        ^^^^^  
 
-		if (iterator != m_Layers.end()) {
+		if (iterator != m_Layers.begin() + m_LayerInsertIndex) {
 			//？？？感觉有风险
 			//我觉得应该改成shared_ptr,否则有泄露风险
 			//(*(iterator._Ptr))->OnDetach();//访问这么复杂么？
@@ -49,7 +54,7 @@ namespace Ayin {
 
 		auto iterator = std::find(m_Layers.begin() + m_LayerInsertIndex, m_Layers.end(), overLayer);
 
-		if (iterator == m_Layers.end()) {
+		if (iterator != m_Layers.end()) {
 			//(*(iterator._Ptr))->OnDetach();
 			overLayer->OnDetach();
 			m_Layers.erase(iterator);

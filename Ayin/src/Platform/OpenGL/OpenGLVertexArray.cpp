@@ -82,11 +82,14 @@ namespace Ayin {
 
 			glVertexAttribPointer(
 				element.LocationIndex,									// location
-				element.GetComponentCount(),			// 基本类型的数量
-				ShaderDataTypeToBaseType(element.Type),	// 基本类型
-				element.Normalized,						// 是否归一化
-				vertexBuffer->GetLayout().GetStride(),	// 步进
-				(const void*)element.Offset				// GPU块中的起始偏移
+				element.GetComponentCount(),							// 基本类型的数量
+				ShaderDataTypeToBaseType(element.Type),					// 基本类型
+				element.Normalized,										// 是否归一化
+				vertexBuffer->GetLayout().GetStride(),					// 步进
+				(const void*)(long long int)element.Offset				// GPU块中的起始偏移
+				//! 在原类型大小小于系统的指针长度时不要直接转void
+				//! 在有存储相关优化的情况下32->64可能会给高32位填垃圾值
+				//! 所以我们先转long long int
 			);
 			glEnableVertexAttribArray(index);
 			index++;
