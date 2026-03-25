@@ -19,6 +19,14 @@ namespace Ayin {
 
 		};
 
+
+		virtual ~RendererAPI() = default;
+
+		/// <summary>
+		/// 初始化，可以设定一些渲染参数（比如混合，深度测试）
+		/// </summary>
+		virtual void Init() = 0;
+
 		/// <summary>
 		/// 设置清屏时的颜色缓冲
 		/// </summary>

@@ -20,10 +20,31 @@ namespace Ayin {
 		AYIN_CORE_ASSERT(data, "Failed to load image");
 		//! OpenGL对于图片数据的期望是从底到顶，而stb_image默认是从顶到底读取
 
+
+		GLenum internalformat = 0, dataformat = 0;
+
+		switch (m_Components) {
+
+			case(3): {
+				internalformat = GL_RGB8;
+				dataformat = GL_RGB;
+				break;
+			};
+			case(4): {
+				internalformat = GL_RGBA8;
+				dataformat = GL_RGBA;
+				break;
+			};
+			default: {
+				AYIN_CORE_ASSERT(internalformat & dataformat, "Format not supported");
+			}
+
+		}
+
 		//创建对象，开辟空间
 		//! 比旧API好用多了，旧API是靠当前激活槽位关注要设置的对象的，新API直接关注对象
 		glCreateTextures(GL_TEXTURE_2D, 1, &m_TextureID);
-		glTextureStorage2D(m_TextureID, 1, GL_RGB8, m_Width, m_Height);
+		glTextureStorage2D(m_TextureID, 1, internalformat, m_Width, m_Height);
 		//x 预留一块内存空间，确保每个像素的每个通道精确占用 8 位。
 		//x 这就是 OpenGL 4.2 引入的“不可变存储（Immutable Storage）”模型
 		//x 其目的是避免在后续更改纹理时，驱动程序因重新分配内存而产生开销。"
@@ -33,7 +54,7 @@ namespace Ayin {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 		//上传数据													 //每像素多少通道（格式）	//每通道的数据类型（类型）
-		glTextureSubImage2D(m_TextureID, 0, 0, 0, m_Width, m_Height, GL_RGB,					GL_UNSIGNED_BYTE, data);//x 一旦“形状”（glTextureStorage的固定式分配每一层的空间大小，但不只是考虑大小而是像4*4放不进你的3*3保险箱那样，就像）无法兼容，则报错
+		glTextureSubImage2D(m_TextureID, 0, 0, 0, m_Width, m_Height, dataformat,				GL_UNSIGNED_BYTE, data);//x 一旦“形状”（glTextureStorage的固定式分配每一层的空间大小，但不只是考虑大小而是像4*4放不进你的3*3保险箱那样，就像）无法兼容，则报错
 		//? 为什么GL_RBG8不行呢，它明明看上去更准确？
 		//! glTextureStorage2D中的internalFormat和glTextureSubImage2D中的Format作用是不一样的
 		//! glTextureStorage2D是描述GPU中的存储格式，而glTextureSubImage2D则是通过Format（不带位深度） + Type共同描述CPU中的存储格式

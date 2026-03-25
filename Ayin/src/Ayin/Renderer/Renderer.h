@@ -12,6 +12,8 @@ namespace Ayin {
 	{
 	public:
 
+		static void Init();
+
 		/// <summary>
 		/// 场景/环境设置（相机位置，光照。。。）
 		/// </summary>

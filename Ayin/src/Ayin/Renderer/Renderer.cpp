@@ -7,6 +7,11 @@ namespace Ayin {
 
 	Renderer::SceneData* Renderer::s_SceneData = new SceneData{ .projectionViewMatrix = {glm::identity<glm::mat4>()}};
 
+
+	void Renderer::Init() {
+		RenderCommand::Init();
+	};
+
 	void Renderer::BeginScene(const Camera& rendererCamera) {
 
 		s_SceneData->projectionViewMatrix = rendererCamera.GetProjecttionViewMatrix();

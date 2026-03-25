@@ -35,6 +35,9 @@ namespace Ayin {
 		//当窗口发生事件时（通过GLFW），窗口类会调用OnEvent回调，由我们来处理，Application成了中介者，而窗口成为了组件，这道函指则是组件与中介之间的沟通桥梁
 		m_Window->SetEventCallback(BIND_EVENT_FUN(Application::OnEvent));
 
+
+		Renderer::Init();
+
 		//栈层使用默认构造
 		m_ImGuiLayer = new ImGuiLayer();
 		PushOverlay(m_ImGuiLayer);//暂时没有空间清理的过程，可能泄露（在拆出层时）,感觉该层的所有权有写模糊啊

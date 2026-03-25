@@ -11,11 +11,13 @@ namespace Ayin {
 	public:
 		
 		// 通过 RendererAPI 继承
-		void SetClearColor(const glm::vec4& color) const override;
+		virtual void Init() override;
 
-		void Clear() const override;
+		virtual void SetClearColor(const glm::vec4& color) const override;
 
-		void DrawIndexed(const Ref<VertexArray>& vertexArray) const override;
+		virtual void Clear() const override;
+
+		virtual void DrawIndexed(const Ref<VertexArray>& vertexArray) const override;
 
 	};
 

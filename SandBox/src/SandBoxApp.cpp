@@ -13,8 +13,6 @@ public:
 
 		#pragma region 基础渲染流程参考（这一部分也可以放到OnAttach中）
 
-		Ayin::RenderCommand::Init();
-
 		//Gen方法与Create方法的区别？？？
 
 		// VAO
@@ -167,17 +165,29 @@ public:
 
 		//纹理
 		m_Texture = Ayin::Texture2D::Create("O:/CppProgram/Ayin/assets/textures/1758461056492.png");//不支持中文路径
+		m_BlendTexture = Ayin::Texture2D::Create("O:/CppProgram/Ayin/assets/textures/20260325231300.png");
 
 		#pragma endregion
 
-		glm::mat4 translate = glm::translate(glm::identity<glm::mat4>(), glm::vec3{0.0f});
-		m_UBO = (Ayin::UniformBuffer::Create(static_cast<void*>(glm::value_ptr(translate)), sizeof(translate)));
-		m_UBO->SetIndex(1);
-		m_UBO->SetLayout(Ayin::UniformLayout{ "TransformBlock", { Ayin::UniformElement{Ayin::ShaderDataType::Mat4, "t_Position"}} });
+		//Mode(使用统一缓冲)
+		{
+			glm::mat4 translate = glm::translate(glm::identity<glm::mat4>(), glm::vec3{ 0.0f });
+			m_UBO = (Ayin::UniformBuffer::Create(static_cast<void*>(glm::value_ptr(translate)), sizeof(translate)));
+			m_UBO->SetIndex(1);
+			m_UBO->SetLayout(Ayin::UniformLayout{ "TransformBlock", { Ayin::UniformElement{Ayin::ShaderDataType::Mat4, "t_Position"}} });
+		}
+
+		{
+			glm::mat4 translate = glm::translate(glm::identity<glm::mat4>(), glm::vec3{ 0.0f });
+			m_BlendUBO = (Ayin::UniformBuffer::Create(static_cast<void*>(glm::value_ptr(translate)), sizeof(translate)));
+			m_BlendUBO->SetIndex(1);
+			m_BlendUBO->SetLayout(Ayin::UniformLayout{ "TransformBlock", { Ayin::UniformElement{Ayin::ShaderDataType::Mat4, "t_Position"}} });
+		}
+
 
 		m_SceneCamera.SetPosition(m_CameraPosition);
 		m_SceneCamera.SetRotation(m_CameraRotation);
-		 
+		
 	
 	}
 
@@ -193,11 +203,16 @@ public:
 		// 图形渲染
 		Ayin::Renderer::BeginScene(m_SceneCamera);
 		{
-			m_Transform = glm::translate(m_Transform, glm::vec3{ 0.1f * deltaTime, 0.0f, 0.0f });
-			m_UBO->Set(
-				"t_Position",
-				static_cast<void*>(glm::value_ptr(m_Transform))
-			);
+			{
+				m_Transform = glm::translate(m_Transform, glm::vec3{ 0.1f * deltaTime, 0.0f, 0.0f });
+				m_UBO->Set("t_Position", static_cast<void*>(glm::value_ptr(m_Transform)));
+			}
+
+			{
+				m_Transform = glm::translate(m_Transform, glm::vec3{ 0.0f * deltaTime, 0.0f, 0.0f });
+				m_UBO->Set("t_Position", static_cast<void*>(glm::value_ptr(m_Transform)));
+			}
+
 
 
 			//std::dynamic_pointer_cast<Ayin::OpenGLShader>(m_Shader)->UploadUniformFloat3("colorOffset", m_ColorOffset);
@@ -209,6 +224,11 @@ public:
 			std::dynamic_pointer_cast<Ayin::OpenGLShader>(m_TextureShader)->UploadUniformInt("ourTexture", 0);
 			//! sampler2D本质是一个int对应纹理单元的槽位（你也可以在shader代码中用location来指定）
 			Ayin::Renderer::Submit(m_TextureShader, m_SquareVertexArray, m_UBO);
+
+
+			m_BlendTexture->Bind(0);
+			Ayin::Renderer::Submit(m_TextureShader, m_SquareVertexArray, m_BlendUBO);
+
 
 		}
 		Ayin::Renderer::EndScene();
@@ -287,8 +307,8 @@ public:
 private:
 
 	Ayin::Ref<Ayin::Shader> m_Shader, m_TextureShader;								//着色器程序
-	Ayin::Ref<Ayin::Texture2D> m_Texture;											//纹理
-	Ayin::Ref<Ayin::UniformBuffer> m_UBO;											//统一变量缓冲
+	Ayin::Ref<Ayin::Texture2D> m_Texture, m_BlendTexture;							//纹理
+	Ayin::Ref<Ayin::UniformBuffer> m_UBO, m_BlendUBO;								//统一变量缓冲
 	glm::mat4 m_Transform{1.0f};	// mode测试
 	glm::vec3 m_ColorOffset{ 0.0f };// 其余uniform参数设置
 	Ayin::Ref<Ayin::VertexArray> m_TriangleVertexArray, m_SquareVertexArray;		//顶点数组
