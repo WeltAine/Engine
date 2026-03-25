@@ -10,6 +10,12 @@
 
 namespace Ayin {
 
+	/// <summary>
+	/// ImGui逻辑层
+	/// </summary>
+	//! layer目前是我们结构中承载自定义逻辑的部分，而ImGuiLayer承载的则是UI相关逻辑（他需要处理事件分析布局之类的事情）
+	//! 尽管我们在Cpp中使用了OnImGuiRender方法，但实际上也可以不写，因为目前其核心功能不是这个
+	//! 而是保证每一帧中UI功能可以被正确触发
 	class AYIN_API ImGuiLayer : public Layer {
 
 	public:

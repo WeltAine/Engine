@@ -18,35 +18,72 @@ public:
 		//Gen方法与Create方法的区别？？？
 
 		// VAO
-		//m_VertexArray = std::make_shared<VertexArray>(VertexArray::Create());//shared_ptr默认构造是啥都不敢，但是make方法会
-		m_VertexArray.reset(Ayin::VertexArray::Create());
+		m_TriangleVertexArray = Ayin::VertexArray::Create();
+		m_SquareVertexArray = Ayin::VertexArray::Create();
 
 		// VBO
-		float vertices[3 * 3] = {
-			0.0f, 0.5f, 0.0f,
-			-0.5f, -0.5f, 0.0f,
-			0.5f, -0.5f, 0.0f
-		};
-		Ayin::Ref<Ayin::VertexBuffer> vertexBuffer(Ayin::VertexBuffer::Create(vertices, sizeof(vertices)));
+		{
+			float vertices[3 * 3] = {
+				0.0f, 0.5f, 0.0f,
+				-0.5f, -0.5f, 0.0f,
+				0.5f, -0.5f, 0.0f
+			};
+			Ayin::Ref<Ayin::VertexBuffer> vertexBuffer(Ayin::VertexBuffer::Create(vertices, sizeof(vertices)));
 
-		Ayin::BufferLayout layout{ { {Ayin::ShaderDataType::Float3, "a_Position"} } };
-		vertexBuffer->SetLayout(layout);
+			Ayin::BufferLayout layout{ { {0, Ayin::ShaderDataType::Float3, "a_Position"} } };
+			vertexBuffer->SetLayout(layout);
 
-		m_VertexArray->AddVertexBuffer(vertexBuffer);
+			m_TriangleVertexArray->AddVertexBuffer(vertexBuffer);
+
+		}
+
+		{
+			float vertices[4 * (3 + 2)] = {
+				-0.5f, -0.5f, 0.0f,		0.0f, 0.0f,
+				 0.5f, -0.5f, 0.0f,		1.0f, 0.0f,
+				-0.5f,  0.5f, 0.0f,		0.0f, 1.0f,
+				 0.5f,  0.5f, 0.0f,		1.0f, 1.0f
+			};
+			Ayin::Ref<Ayin::VertexBuffer> vertexBuffer(Ayin::VertexBuffer::Create(vertices, sizeof(vertices)));
+
+			Ayin::BufferLayout layout{ { Ayin::BufferElement{0, Ayin::ShaderDataType::Float3, "a_Position"}, 
+										 Ayin::BufferElement{1, Ayin::ShaderDataType::Float2, "a_UV"	  }}};
+			vertexBuffer->SetLayout(layout);
+
+			m_SquareVertexArray->AddVertexBuffer(vertexBuffer);
+
+		}
+
 
 
 		// EBO
-		unsigned int indices[1 * 3] = {//不能用int
-			0, 1, 2
-		};
-		Ayin::Ref<Ayin::IndexBuffer> indexBuffer(Ayin::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
-		indexBuffer.reset(Ayin::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
+		{
+			unsigned int indices[1 * 3] = {//不能用int
+				0, 1, 2
+			};
+			Ayin::Ref<Ayin::IndexBuffer> indexBuffer(Ayin::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
+			indexBuffer = (Ayin::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
 
-		m_VertexArray->SetIndexBuffer(indexBuffer);
+			m_TriangleVertexArray->SetIndexBuffer(indexBuffer);
 
+		}
+
+		{
+			unsigned int indices[2 * 3] = {//不能用int
+				0, 1, 3,
+				3, 2, 0
+			};
+			Ayin::Ref<Ayin::IndexBuffer> indexBuffer(Ayin::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
+			indexBuffer = (Ayin::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
+
+			m_SquareVertexArray->SetIndexBuffer(indexBuffer);
+
+		}
 
 		// 着色器
-		std::string vertexShaderSrc = R"(
+		{
+		
+			std::string vertexShaderSrc = R"(
 		#version 460 core
 		layout(location = 0) in vec3 a_Position;
 		
@@ -65,7 +102,7 @@ public:
 		}
 		)";
 
-		std::string fragmentShaderSrc = R"(
+			std::string fragmentShaderSrc = R"(
 		#version 460 core
 		in vec3 v_Position;
 		
@@ -79,12 +116,62 @@ public:
 		)";
 
 
-		m_Shader.reset(Ayin::Shader::Create(vertexShaderSrc, fragmentShaderSrc));
+			m_Shader = Ayin::Shader::Create(vertexShaderSrc, fragmentShaderSrc);
+
+		}
+
+		{
+
+			std::string vertexShaderSrc = R"(
+		#version 460 core
+		layout(location = 0) in vec3 a_Position;
+		layout(location = 1) in vec2 a_UV;
+		
+		out vec3 v_Position;
+		out vec2 v_UV;
+
+		uniform mat4 u_ProjectionViewMatrix;
+		
+
+		layout(std140, binding = 1) uniform TransformBlock{
+			mat4 t_Position;
+		};
+
+		void main(){
+			v_Position = a_Position;
+			gl_Position = u_ProjectionViewMatrix * t_Position * vec4(a_Position, 1.0f);
+
+			v_UV = a_UV;
+		}
+		)";
+
+			std::string fragmentShaderSrc = R"(
+		#version 460 core
+		in vec3 v_Position;
+		in vec2 v_UV;
+		
+		out vec4 color;
+
+		uniform vec3 colorOffset;
+		uniform sampler2D ourTexture;
+		
+		void main(){
+			color = texture(ourTexture, v_UV);
+		}
+		)";
+
+
+			m_TextureShader = Ayin::Shader::Create(vertexShaderSrc, fragmentShaderSrc);
+
+		}
+
+		//纹理
+		m_Texture = Ayin::Texture2D::Create("O:/CppProgram/Ayin/assets/textures/1758461056492.png");//不支持中文路径
 
 		#pragma endregion
 
 		glm::mat4 translate = glm::translate(glm::identity<glm::mat4>(), glm::vec3{0.0f});
-		m_UBO.reset(Ayin::UniformBuffer::Create(static_cast<void*>(glm::value_ptr(translate)), sizeof(translate)));
+		m_UBO = (Ayin::UniformBuffer::Create(static_cast<void*>(glm::value_ptr(translate)), sizeof(translate)));
 		m_UBO->SetIndex(1);
 		m_UBO->SetLayout(Ayin::UniformLayout{ "TransformBlock", { Ayin::UniformElement{Ayin::ShaderDataType::Mat4, "t_Position"}} });
 
@@ -113,8 +200,16 @@ public:
 			);
 
 
-			std::dynamic_pointer_cast<Ayin::OpenGLShader>(m_Shader)->UploadUniformFloat3("colorOffset", m_ColorOffset);
-			Ayin::Renderer::Submit(m_Shader, m_VertexArray, m_UBO);//绑定shader并绘制VAO
+			//std::dynamic_pointer_cast<Ayin::OpenGLShader>(m_Shader)->UploadUniformFloat3("colorOffset", m_ColorOffset);
+			//Ayin::Renderer::Submit(m_Shader, m_TriangleVertexArray, m_UBO);//绑定shader并绘制VAO
+
+			m_Texture->Bind(0);
+
+			std::dynamic_pointer_cast<Ayin::OpenGLShader>(m_TextureShader)->UploadUniformFloat3("colorOffset", m_ColorOffset);
+			std::dynamic_pointer_cast<Ayin::OpenGLShader>(m_TextureShader)->UploadUniformInt("ourTexture", 0);
+			//! sampler2D本质是一个int对应纹理单元的槽位（你也可以在shader代码中用location来指定）
+			Ayin::Renderer::Submit(m_TextureShader, m_SquareVertexArray, m_UBO);
+
 		}
 		Ayin::Renderer::EndScene();
 
@@ -191,19 +286,20 @@ public:
 
 private:
 
-	Ayin::Ref<Ayin::Shader> m_Shader;					//着色器程序
-	Ayin::Ref<Ayin::UniformBuffer> m_UBO;
-	glm::mat4 m_Transform{1.0f};
-	glm::vec3 m_ColorOffset{ 0.0f };
-	Ayin::Ref<Ayin::VertexArray> m_VertexArray;			//顶点数组
+	Ayin::Ref<Ayin::Shader> m_Shader, m_TextureShader;								//着色器程序
+	Ayin::Ref<Ayin::Texture2D> m_Texture;											//纹理
+	Ayin::Ref<Ayin::UniformBuffer> m_UBO;											//统一变量缓冲
+	glm::mat4 m_Transform{1.0f};	// mode测试
+	glm::vec3 m_ColorOffset{ 0.0f };// 其余uniform参数设置
+	Ayin::Ref<Ayin::VertexArray> m_TriangleVertexArray, m_SquareVertexArray;		//顶点数组
 
-	Ayin::Camera m_SceneCamera;							//场景相机
+	Ayin::Camera m_SceneCamera;														//场景相机
 
-	glm::vec3 m_CameraPosition{0.0f, 0.0f, 3.0f};		//相机位置
-	float m_MoveSpeed = 0.1f;							//移动速度
+	glm::vec3 m_CameraPosition{0.0f, 0.0f, 3.0f};									//相机位置
+	float m_MoveSpeed = 0.1f;														//移动速度
 
-	glm::vec3 m_CameraRotation{0.0f};					//相机度数
-	float m_RotationSpeed = 30.0f;						//转动速度
+	glm::vec3 m_CameraRotation{0.0f};												//相机度数
+	float m_RotationSpeed = 30.0f;													//转动速度
 
 };
 

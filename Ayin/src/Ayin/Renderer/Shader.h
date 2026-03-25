@@ -15,7 +15,7 @@ namespace Ayin {
 		/// </summary>
 		/// <param name="vertexShaderSrc">顶点着色器源码</param>
 		/// <param name="fragmentShaderSrc">片元着色器源码</param>
-		static Shader* Create(const std::string& vertexShaderSrc, const std::string& fragmentShaderSrc);
+		static Ref<Shader> Create(const std::string& vertexShaderSrc, const std::string& fragmentShaderSrc);
 		
 		virtual ~Shader() = default;
 

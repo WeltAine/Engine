@@ -7,7 +7,6 @@ namespace Ayin {
 
 	/// <summary>
 	/// 渲染API抽象（就是渲染效果时的指令，比如glElement这些）
-	/// 外观模式
 	/// 觉得添加一个工厂方法比较合适，然后RenderCommand中设置一个Init方法来配置其s_RendererAPI
 	/// </summary>
 	class RendererAPI {

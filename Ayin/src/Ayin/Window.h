@@ -7,8 +7,10 @@
 
 
 namespace Ayin {
-
-	//窗口参数结构体，名称，长，宽
+	
+	/// <summary>
+	/// 窗口参数结构体，名称，长，宽，默认1280 * 720
+	/// </summary>
 	struct WindowProps {
 		std::string Title;
 		unsigned int Width, Height;

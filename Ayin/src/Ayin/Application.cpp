@@ -86,6 +86,8 @@ namespace Ayin {
 		//关闭事件
 		dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FUN(Application::OnWindowClose));
 
+		//窗口尺寸事件
+		dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FUN(Application::OnWindowResize));
 
 		//从后往前逐层通知事件
 		for (auto iterator = m_LayerStack.end(); iterator != m_LayerStack.begin(); ) {
@@ -98,10 +100,23 @@ namespace Ayin {
 
 	}
 
-	bool Application::OnWindowClose(WindowCloseEvent& e) {
+	bool Application::OnWindowClose(const WindowCloseEvent& e) {
 
-		m_Running = false;
+		m_Running = false;//设置application运行状态
 		return true;
+
+	}
+
+	bool Application::OnWindowResize(const WindowResizeEvent& e) {
+
+		glViewport(0, 0, e.GetWidth(), e.GetHeight());
+		//x 现在窗口只会显示相机能看到的东西
+		//x 这意味着单纯的拉伸窗口只会放大相机的照片而已，不会扩展视野，我们还需要调整相机的参数
+
+		
+
+		return true;
+
 	}
 
 

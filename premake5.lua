@@ -20,6 +20,7 @@ IncludeDir["GLFW"] = "Ayin/Dependency/GLFW/include"
 IncludeDir["Glad"] = "Ayin/Dependency/glad/include"
 IncludeDir["ImGui"] = "Ayin/Dependency/ImGui"
 IncludeDir["glm"] = "Ayin/Dependency/glm"
+IncludeDir["stb_image"] = "Ayin/Dependency/stb_image"
 
 
 include "Ayin/Dependency/GLFW" --引入该目录下的premake5.lua，和C++的include一样
@@ -48,7 +49,8 @@ project "Ayin"
         "%{IncludeDir.GLFW}",
         "%{IncludeDir.Glad}",
         "%{IncludeDir.ImGui}",
-        "%{IncludeDir.glm}"
+        "%{IncludeDir.glm}",
+        "%{IncludeDir.stb_image}"
     }
 
     -- 依赖项目
@@ -65,7 +67,10 @@ project "Ayin"
         "%{prj.name}/src/**.h",
         "%{prj.name}/src/**.cpp",
         "%{prj.name}/Dependency/glm/glm/**.hpp",
-        "%{prj.name}/Dependency/glm/glm/**.inl"
+        "%{prj.name}/Dependency/glm/glm/**.inl",
+        "%{prj.name}/Dependency/stb_image/**.h",
+        "%{prj.name}/Dependency/stb_image/**.cpp"
+
     }
 
 

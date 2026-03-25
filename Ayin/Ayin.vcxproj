@@ -77,7 +77,7 @@
       <PrecompiledHeaderFile>AyinPch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>AYIN_PLATFORM_WINDOWS;AYIN_BUILD_DLL;GLFW_INCLUDE_NONE;_CRT_SECURE_NO_WARNINGS;AYIN_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;Dependency\spdlog\include;Dependency\GLFW\include;Dependency\glad\include;Dependency\ImGui;Dependency\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;Dependency\spdlog\include;Dependency\GLFW\include;Dependency\glad\include;Dependency\ImGui;Dependency\glm;Dependency\stb_image;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -103,7 +103,7 @@ copy /B /Y ..\bin\Debug-windows-x86_64\Ayin\Ayin.lib ..\bin\Debug-windows-x86_64
       <PrecompiledHeaderFile>AyinPch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>AYIN_PLATFORM_WINDOWS;AYIN_BUILD_DLL;GLFW_INCLUDE_NONE;_CRT_SECURE_NO_WARNINGS;AYIN_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;Dependency\spdlog\include;Dependency\GLFW\include;Dependency\glad\include;Dependency\ImGui;Dependency\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;Dependency\spdlog\include;Dependency\GLFW\include;Dependency\glad\include;Dependency\ImGui;Dependency\glm;Dependency\stb_image;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -133,7 +133,7 @@ copy /B /Y ..\bin\Release-windows-x86_64\Ayin\Ayin.lib ..\bin\Release-windows-x8
       <PrecompiledHeaderFile>AyinPch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>AYIN_PLATFORM_WINDOWS;AYIN_BUILD_DLL;GLFW_INCLUDE_NONE;_CRT_SECURE_NO_WARNINGS;AYIN_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;Dependency\spdlog\include;Dependency\GLFW\include;Dependency\glad\include;Dependency\ImGui;Dependency\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;Dependency\spdlog\include;Dependency\GLFW\include;Dependency\glad\include;Dependency\ImGui;Dependency\glm;Dependency\stb_image;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -577,6 +577,7 @@ copy /B /Y ..\bin\Dist-windows-x86_64\Ayin\Ayin.lib ..\bin\Dist-windows-x86_64\S
     <ClInclude Include="Dependency\glm\glm\vec3.hpp" />
     <ClInclude Include="Dependency\glm\glm\vec4.hpp" />
     <ClInclude Include="Dependency\glm\glm\vector_relational.hpp" />
+    <ClInclude Include="Dependency\stb_image\stb_image.h" />
     <ClInclude Include="src\Ayin.h" />
     <ClInclude Include="src\Ayin\Application.h" />
     <ClInclude Include="src\Ayin\Core.h" />
@@ -600,6 +601,7 @@ copy /B /Y ..\bin\Dist-windows-x86_64\Ayin\Ayin.lib ..\bin\Dist-windows-x86_64\S
     <ClInclude Include="src\Ayin\Renderer\Renderer.h" />
     <ClInclude Include="src\Ayin\Renderer\RendererAPI.h" />
     <ClInclude Include="src\Ayin\Renderer\Shader.h" />
+    <ClInclude Include="src\Ayin\Renderer\Texture.h" />
     <ClInclude Include="src\Ayin\Renderer\VertexArray.h" />
     <ClInclude Include="src\Ayin\Window.h" />
     <ClInclude Include="src\AyinPch.h" />
@@ -607,11 +609,13 @@ copy /B /Y ..\bin\Dist-windows-x86_64\Ayin\Ayin.lib ..\bin\Dist-windows-x86_64\S
     <ClInclude Include="src\Platform\OpenGL\OpenGLContext.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLRendererAPI.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLShader.h" />
+    <ClInclude Include="src\Platform\OpenGL\OpenGLTexture.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLVertexArray.h" />
     <ClInclude Include="src\Platform\Windows\WindowsInput.h" />
     <ClInclude Include="src\Platform\Windows\WindowsWindow.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Dependency\stb_image\stb_image.cpp" />
     <ClCompile Include="src\Ayin\Application.cpp" />
     <ClCompile Include="src\Ayin\ImGui\ImGuiBuild.cpp" />
     <ClCompile Include="src\Ayin\ImGui\ImGuiLayer.cpp" />
@@ -624,6 +628,7 @@ copy /B /Y ..\bin\Dist-windows-x86_64\Ayin\Ayin.lib ..\bin\Dist-windows-x86_64\S
     <ClCompile Include="src\Ayin\Renderer\Renderer.cpp" />
     <ClCompile Include="src\Ayin\Renderer\RendererAPI.cpp" />
     <ClCompile Include="src\Ayin\Renderer\Shader.cpp" />
+    <ClCompile Include="src\Ayin\Renderer\Texture.cpp" />
     <ClCompile Include="src\Ayin\Renderer\VertexArray.cpp" />
     <ClCompile Include="src\AyinPch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
@@ -632,6 +637,7 @@ copy /B /Y ..\bin\Dist-windows-x86_64\Ayin\Ayin.lib ..\bin\Dist-windows-x86_64\S
     <ClCompile Include="src\Platform\OpenGL\OpenGLContext.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLRendererAPI.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLShader.cpp" />
+    <ClCompile Include="src\Platform\OpenGL\OpenGLTexture.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLVertexArray.cpp" />
     <ClCompile Include="src\Platform\Windows\WindowsInput.cpp" />
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp" />

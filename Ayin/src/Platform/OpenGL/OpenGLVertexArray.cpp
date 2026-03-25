@@ -63,7 +63,7 @@ namespace Ayin {
 			glBindVertexArray(0);
 	}
 
-
+	//? 有严重缺陷，如果vertexbuffer分开给的话，原先的方法会导致index冲突，我们先在BufferElement中添加一个locationIndex
 	void OpenGLVertexArray::AddVertexBuffer(const Ref<VertexBuffer>& vertexBuffer)
 	{
 		AYIN_CORE_ASSERT(vertexBuffer->GetLayout().GetElements().size(), "Vertex Buffer has no layout!");
@@ -81,7 +81,7 @@ namespace Ayin {
 		for (const auto& element : vertexBuffer->GetLayout()) {
 
 			glVertexAttribPointer(
-				index,									// location
+				element.LocationIndex,									// location
 				element.GetComponentCount(),			// 基本类型的数量
 				ShaderDataTypeToBaseType(element.Type),	// 基本类型
 				element.Normalized,						// 是否归一化

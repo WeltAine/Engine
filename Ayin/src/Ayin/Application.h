@@ -37,13 +37,14 @@ namespace Ayin {
 		void PushLayer(Layer* layer);
 		void PushOverlay(Layer* overLayer);
 
-		inline Window& GetWindow() { return *m_Window; }
+		inline const Window& GetWindow() { return *m_Window; }
 
 	protected:
 		Application();
 
 	private:
-		bool OnWindowClose(WindowCloseEvent& e);
+		bool OnWindowClose(const WindowCloseEvent& e);
+		bool OnWindowResize(const WindowResizeEvent& e);
 
 		std::unique_ptr<Window> m_Window;
 		bool m_Running = true;

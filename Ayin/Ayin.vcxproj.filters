@@ -22,6 +22,9 @@
     <Filter Include="Dependency\glm\glm\gtx">
       <UniqueIdentifier>{841B3B37-7015-6489-5982-FA99451BCAF5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Dependency\stb_image">
+      <UniqueIdentifier>{9EAC98B5-8A3B-227F-335A-367A1FC83225}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src">
       <UniqueIdentifier>{2DAB880B-99B4-887C-2230-9F7C8E38947C}</UniqueIdentifier>
     </Filter>
@@ -1311,6 +1314,9 @@
     <ClInclude Include="Dependency\glm\glm\vector_relational.hpp">
       <Filter>Dependency\glm\glm</Filter>
     </ClInclude>
+    <ClInclude Include="Dependency\stb_image\stb_image.h">
+      <Filter>Dependency\stb_image</Filter>
+    </ClInclude>
     <ClInclude Include="src\Ayin.h">
       <Filter>src</Filter>
     </ClInclude>
@@ -1380,6 +1386,9 @@
     <ClInclude Include="src\Ayin\Renderer\Shader.h">
       <Filter>src\Ayin\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\Ayin\Renderer\Texture.h">
+      <Filter>src\Ayin\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\Ayin\Renderer\VertexArray.h">
       <Filter>src\Ayin\Renderer</Filter>
     </ClInclude>
@@ -1398,6 +1407,12 @@
     <ClInclude Include="src\Platform\OpenGL\OpenGLRendererAPI.h">
       <Filter>src\Platform\OpenGL</Filter>
     </ClInclude>
+    <ClInclude Include="src\Platform\OpenGL\OpenGLShader.h">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\OpenGL\OpenGLTexture.h">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClInclude>
     <ClInclude Include="src\Platform\OpenGL\OpenGLVertexArray.h">
       <Filter>src\Platform\OpenGL</Filter>
     </ClInclude>
@@ -1407,9 +1422,11 @@
     <ClInclude Include="src\Platform\Windows\WindowsWindow.h">
       <Filter>src\Platform\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="src\Platform\OpenGL\OpenGLShader.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Dependency\stb_image\stb_image.cpp">
+      <Filter>Dependency\stb_image</Filter>
+    </ClCompile>
     <ClCompile Include="src\Ayin\Application.cpp">
       <Filter>src\Ayin</Filter>
     </ClCompile>
@@ -1446,6 +1463,9 @@
     <ClCompile Include="src\Ayin\Renderer\Shader.cpp">
       <Filter>src\Ayin\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="src\Ayin\Renderer\Texture.cpp">
+      <Filter>src\Ayin\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="src\Ayin\Renderer\VertexArray.cpp">
       <Filter>src\Ayin\Renderer</Filter>
     </ClCompile>
@@ -1461,6 +1481,12 @@
     <ClCompile Include="src\Platform\OpenGL\OpenGLRendererAPI.cpp">
       <Filter>src\Platform\OpenGL</Filter>
     </ClCompile>
+    <ClCompile Include="src\Platform\OpenGL\OpenGLShader.cpp">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\OpenGL\OpenGLTexture.cpp">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClCompile>
     <ClCompile Include="src\Platform\OpenGL\OpenGLVertexArray.cpp">
       <Filter>src\Platform\OpenGL</Filter>
     </ClCompile>
@@ -1470,6 +1496,5 @@
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp">
       <Filter>src\Platform\Windows</Filter>
     </ClCompile>
-    <ClCompile Include="src\Platform\OpenGL\OpenGLShader.cpp" />
   </ItemGroup>
 </Project>

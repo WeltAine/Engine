@@ -21,7 +21,7 @@ namespace Ayin{
 		/// 创建顶线数组，是顶点缓冲，索引缓冲（工厂模式创建）
 		/// </summary>
 		/// <returns></returns>
-		static VertexArray* Create();
+		static Ref<VertexArray> Create();
 
 		virtual ~VertexArray() = default;
 

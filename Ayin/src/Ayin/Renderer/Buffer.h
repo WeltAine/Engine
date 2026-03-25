@@ -52,8 +52,8 @@ namespace Ayin{
 	struct AYIN_API BufferElement
 	{
 	
-		BufferElement(ShaderDataType type, const std::string& name, bool normalized = false)
-			:Type(type), Name(name), Size(ShaderDataTypeSize(type)), Offset(0), Normalized(normalized)
+		BufferElement(uint32_t locationIndex, ShaderDataType type, const std::string& name, bool normalized = false)
+			:LocationIndex(locationIndex), Type(type), Name(name), Size(ShaderDataTypeSize(type)), Offset(0), Normalized(normalized)
 		{}
 
 		uint32_t GetComponentCount() const {
@@ -79,7 +79,7 @@ namespace Ayin{
 
 		}
 
-
+		uint32_t LocationIndex;
 		ShaderDataType Type;
 		std::string Name;
 		size_t Size;
@@ -166,7 +166,7 @@ namespace Ayin{
 		/// <param name="vertices">顶点缓冲数据</param>
 		/// <param name="size">数据字节大小</param>
 		/// <returns></returns>
-		static VertexBuffer* Create(float* vertices, size_t size);
+		static Ref<VertexBuffer> Create(float* vertices, size_t size);
 
 		virtual ~VertexBuffer() = default;
 
@@ -213,7 +213,7 @@ namespace Ayin{
 		/// <param name="vertices">索引缓冲数据</param>
 		/// <param name="size">缓冲中的int数量</param>
 		/// <returns></returns>
-		static IndexBuffer* Create(uint32_t* indices, uint32_t count);
+		static Ref<IndexBuffer> Create(uint32_t* indices, uint32_t count);
 
 		virtual ~IndexBuffer() = default;
 
@@ -373,7 +373,7 @@ namespace Ayin{
 		/// <param name="data"></param>
 		/// <param name="layout"></param>
 		/// <returns></returns>
-		static UniformBuffer* Create(void* data, size_t size);
+		static Ref<UniformBuffer> Create(void* data, size_t size);
 
 		virtual ~UniformBuffer() = default;
 

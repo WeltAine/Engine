@@ -19,6 +19,7 @@
 #include "Ayin/Renderer/RenderCommand.h"
 
 #include "Ayin/Renderer/Shader.h"
+#include "Ayin/Renderer/Texture.h"
 
 #include "Ayin/Renderer/Buffer.h"
 #include "Ayin/Renderer/VertexArray.h"

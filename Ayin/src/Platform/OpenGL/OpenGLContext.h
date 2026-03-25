@@ -7,6 +7,7 @@
 namespace Ayin {
 
 	/// <summary>
+	/// OpenGL上下文，使用OpenGL相关驱动来进行绘制，通过glad加载函数指针给glfw，是程序能够在窗口上绘制的关键
 	/// 记录上下文与其对应的输出窗口
 	/// </summary>
 	class OpenGLContext : public GraphicsContext

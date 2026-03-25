@@ -10,13 +10,13 @@ namespace Ayin {
 	/// VertexBuffer /////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////////////////////
 
-	VertexBuffer* VertexBuffer::Create(float* vertices, size_t size) {
+	Ref<VertexBuffer> VertexBuffer::Create(float* vertices, size_t size) {
 
 		switch (Renderer::GetAPI()) {
 
 			// 这里之后需要用宏来控制，防止去链接设备不支持的代码
 			case(RendererAPI::API::None):	AYIN_CORE_ASSERT(false, "RendererAPI::None is currently not supported!"); return nullptr;	
-			case(RendererAPI::API::OpenGL):	return new OpenGLVertexBuffer(vertices, size);
+			case(RendererAPI::API::OpenGL):	return std::make_shared<OpenGLVertexBuffer>(vertices, size);
 
 		}
 
@@ -30,13 +30,13 @@ namespace Ayin {
 	/// IndexBuffer //////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////////////////////
 
-	IndexBuffer* IndexBuffer::Create(uint32_t* indices, uint32_t count) {
+	Ref<IndexBuffer> IndexBuffer::Create(uint32_t* indices, uint32_t count) {
 
 		switch (Renderer::GetAPI()) {
 
 			// 这里之后需要用宏来控制，防止去链接设备不支持的代码
 			case(RendererAPI::API::None):	AYIN_CORE_ASSERT(false, "RendererAPI::None is currently not supported!"); return nullptr;
-			case(RendererAPI::API::OpenGL):	return new OpenGLIndexBuffer(indices, count);
+			case(RendererAPI::API::OpenGL):	return std::make_shared<OpenGLIndexBuffer>(indices, count);
 
 		}
 
@@ -48,12 +48,12 @@ namespace Ayin {
 	//////////////////////////////////////////////////////////////////////////////////////////
 	/// UniformBuffer ////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////////////////////
-	UniformBuffer* UniformBuffer::Create(void* data, size_t size) {
+	Ref<UniformBuffer> UniformBuffer::Create(void* data, size_t size) {
 
 		switch (Renderer::GetAPI()) {
 
-		case(RendererAPI::API::None):	AYIN_CORE_ASSERT(false, "RendererAPI::None is currently not supported!"); return nullptr;
-		case(RendererAPI::API::OpenGL): return new OpenGLUniformBuffer(data, size);
+			case(RendererAPI::API::None):	AYIN_CORE_ASSERT(false, "RendererAPI::None is currently not supported!"); return nullptr;
+			case(RendererAPI::API::OpenGL): return std::make_shared<OpenGLUniformBuffer>(data, size);
 
 		}
 
