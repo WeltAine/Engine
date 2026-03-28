@@ -79,93 +79,13 @@ public:
 		}
 
 		// 着色器
-		{
-		
-			std::string vertexShaderSrc = R"(
-		#version 460 core
-		layout(location = 0) in vec3 a_Position;
-		
-		out vec3 v_Position;
+		m_Shader = Ayin::Shader::Create("O:/CppProgram/Ayin/assets/shader/shader.glsl");
+		m_TextureShader = Ayin::Shader::Create("O:/CppProgram/Ayin/assets/shader/TextureShader.glsl");
 
-		uniform mat4 u_ProjectionViewMatrix;
-		
-
-		layout(std140, binding = 1) uniform TransformBlock{
-			mat4 t_Position;
-		};
-
-		void main(){
-			v_Position = a_Position;
-			gl_Position = u_ProjectionViewMatrix * t_Position * vec4(a_Position, 1.0f);
-		}
-		)";
-
-			std::string fragmentShaderSrc = R"(
-		#version 460 core
-		in vec3 v_Position;
-		
-		out vec4 color;
-
-		uniform vec3 colorOffset;
-		
-		void main(){
-			color = vec4(v_Position * 0.5f + 0.5f, 1.0f) + vec4(colorOffset, 1.0f);
-		}
-		)";
-
-
-			m_Shader = Ayin::Shader::Create(vertexShaderSrc, fragmentShaderSrc);
-
-		}
-
-		{
-
-			std::string vertexShaderSrc = R"(
-		#version 460 core
-		layout(location = 0) in vec3 a_Position;
-		layout(location = 1) in vec2 a_UV;
-		
-		out vec3 v_Position;
-		out vec2 v_UV;
-
-		uniform mat4 u_ProjectionViewMatrix;
-		
-
-		layout(std140, binding = 1) uniform TransformBlock{
-			mat4 t_Position;
-		};
-
-		void main(){
-			v_Position = a_Position;
-			gl_Position = u_ProjectionViewMatrix * t_Position * vec4(a_Position, 1.0f);
-
-			v_UV = a_UV;
-		}
-		)";
-
-			std::string fragmentShaderSrc = R"(
-		#version 460 core
-		in vec3 v_Position;
-		in vec2 v_UV;
-		
-		out vec4 color;
-
-		uniform vec3 colorOffset;
-		uniform sampler2D ourTexture;
-		
-		void main(){
-			color = texture(ourTexture, v_UV);
-		}
-		)";
-
-
-			m_TextureShader = Ayin::Shader::Create(vertexShaderSrc, fragmentShaderSrc);
-
-		}
 
 		//纹理
-		m_Texture = Ayin::Texture2D::Create("O:/CppProgram/Ayin/assets/textures/1758461056492.png");//不支持中文路径
-		m_BlendTexture = Ayin::Texture2D::Create("O:/CppProgram/Ayin/assets/textures/20260325231300.png");
+		m_Texture = Ayin::Texture2D::Create("O:/CppProgram/Ayin/assets/textures/texture.png");//不支持中文路径
+		m_BlendTexture = Ayin::Texture2D::Create("O:/CppProgram/Ayin/assets/textures/blendTexture.png");
 
 		#pragma endregion
 

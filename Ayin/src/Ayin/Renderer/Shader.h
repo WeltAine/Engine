@@ -11,7 +11,13 @@ namespace Ayin {
 	public:
 
 		/// <summary>
-		/// 编译着色器并生成着色器程序
+		/// 生成可运行的着色器对象
+		/// </summary>
+		/// <param name="vertexShaderSrc">着色器源码</param>
+		static Ref<Shader> Create(const std::string& filePath);
+
+		/// <summary>
+		/// 生成可运行的着色器对象
 		/// </summary>
 		/// <param name="vertexShaderSrc">顶点着色器源码</param>
 		/// <param name="fragmentShaderSrc">片元着色器源码</param>

@@ -1,19 +1,33 @@
 #pragma once
 
+
 #include <string>
 #include "Ayin/Renderer/Shader.h"
+
+// TODO: REMOVE!
+typedef unsigned int GLenum;
+
 
 namespace Ayin{
 
 	class AYIN_API OpenGLShader : public Shader {
 
 	public:
+
+		/// <summary>
+		/// 编译着色器并生成着色器程序
+		/// </summary>
+		/// <param name="vertexShaderSrc">顶点着色器源码</param>
+		/// <param name="fragmentShaderSrc">片元着色器源码</param>
+		OpenGLShader(const std::string& filePath);
+
 		/// <summary>
 		/// 编译着色器并生成着色器程序
 		/// </summary>
 		/// <param name="vertexShaderSrc">顶点着色器源码</param>
 		/// <param name="fragmentShaderSrc">片元着色器源码</param>
 		OpenGLShader(const std::string& vertexShaderSrc, const std::string& fragmentShaderSrc);
+
 		virtual ~OpenGLShader() override;
 
 		/// <summary>
@@ -56,7 +70,13 @@ namespace Ayin{
 
 	private:
 
-		uint32_t m_ProgramID;
+		std::string ReadFile(const std::string& filePath);
+		std::unordered_map<GLenum, std::string> PreProcess(const std::string& source);
+		void Compile(const std::unordered_map<GLenum, std::string>& shaderSource);
+
+	private:
+
+		uint32_t m_ProgramID = 0;
 
 	};
 
