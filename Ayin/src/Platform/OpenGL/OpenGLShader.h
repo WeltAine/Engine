@@ -6,6 +6,8 @@
 
 // TODO: REMOVE!
 typedef unsigned int GLenum;
+//原因详见SandBox中#include <Platform/OpenGL/OpenGLShader.h>下的注释
+
 
 
 namespace Ayin{
@@ -58,7 +60,7 @@ namespace Ayin{
 
 		void UploadUniformMat3(const std::string& name, const glm::mat3& matrix);
 		void UploadUniformMat4(const std::string& name, const glm::mat4& matrix);
-		//? 为什么整个API不暴露给Shader呢（Shader中没有这个接口）
+		//? 为什么作个API不暴露给Shader呢（Shader中没有这个接口）
 		//! 不同的API的机制是不同的，vulkan和D3D是数据驱动而非OpenGL的状态设置
 		//! 简单来说UploadUniformMat4(const std::string& name, const glm::mat4& matrix)这样的接口设计（参数）对OpenGL是容易实现的
 		//! 但是对于另外两者，它们以内存映射为主，不太“习惯”通过名称的查询；当然，我们也有手段来实现，让其模仿OpenGL那样就行，但这可能很低效
