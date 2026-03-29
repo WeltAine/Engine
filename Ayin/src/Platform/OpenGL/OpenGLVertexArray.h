@@ -2,6 +2,11 @@
 
 #include "Ayin/Renderer/VertexArray.h"
 
+//! 因为OpenGL的状态模式，对于OpenGL相关API的实现，需要注意
+//! 只有Bind()以及其它具备状态设置含义的方法（如VAO的SetVBO）可以修改全局状态；
+//! 其余API不可以对现有全局状态中有意义的部分造成影响（你可以进行无影响的操作）
+
+
 namespace Ayin {
 
 	class OpenGLVertexArray : public VertexArray {

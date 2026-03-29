@@ -38,11 +38,7 @@ namespace Ayin {
 
 	OpenGLVertexArray::~OpenGLVertexArray() {
 
-		int currentVertexArrayID = 0;
-		glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &currentVertexArrayID);
-
-		if (currentVertexArrayID == m_VertexArrayID)
-			glBindVertexArray(0);
+		UnBind();
 
 		glDeleteVertexArrays(1, &m_VertexArrayID);
 	}
