@@ -72,16 +72,20 @@ namespace Ayin {
 	private:
 	};
 
-	//约束
+	#pragma region 约束 
+
+	/// <summary>
+	/// 必须继承自Event
+	/// </summary>
 	template <typename T>
 	concept EventDerived = std::is_base_of_v<Ayin::Event, T>;
+
+	#pragma endregion
+	
 
 	//事件派发类
 	//用于将事件
 	class EventDispatcher {//看来不需要导出，外部不会使用是么，那就先这样
-
-		template<EventDerived T>
-		using EventFunc = std::function<bool(T&)>;
 
 	public:
 		EventDispatcher(Event& event)
@@ -94,8 +98,10 @@ namespace Ayin {
 		/// <typeparam name="T"></typeparam>
 		/// <param name="func"></param>
 		/// <returns></returns>
-		template<typename T>
-		bool Dispatch(EventFunc<T> func) {
+		template<typename T, typename F>
+			requires std::invocable<F, T&> && std::convertible_to< std::invoke_result_t<F, T&>, bool >
+			//可以使用一般函数指针，而不需要总是发生function包装，感觉没什么必要
+		bool Dispatch(const F& func) {
 
 			if (m_Event.GetEventType() == T::GetStaticEventType()) {//对比派发起所接受的是事件的原本类型（引用的底层是指针，所以当然能触发多态了）和观察者期望的类型是否一致
 
@@ -103,7 +109,6 @@ namespace Ayin {
 				return true;
 
 			}
-
 
 			return false;
 		}

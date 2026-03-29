@@ -9,6 +9,9 @@ workspace "Ayin" --对应解决方案
         "Dist" --真正的发行（不会有任何日志），这个以后会用上
     }
 
+    flags{
+        "MultiProcessorCompile" --多线程编译，提升编译速度
+    }
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}" --比如Debug-Windows-x64，为不同平台做准备，虽然我没这个打算就是了，不过是个好习惯
 
