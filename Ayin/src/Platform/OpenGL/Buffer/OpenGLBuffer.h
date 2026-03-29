@@ -2,11 +2,6 @@
 
 #include "Ayin/Renderer/Buffer.h"
 
-
-//! 因为OpenGL的状态模式，对于OpenGL相关API的实现，需要注意
-//! 只有Bind()以及其它具备状态设置含义的方法（如VAO的SetVBO）可以修改全局状态；
-//! 其余API不可以对现有全局状态中有意义的部分造成影响（你可以进行无影响的操作）
-
 namespace Ayin {
 
 	//////////////////////////////////////////////////////////////////////////////////////////
@@ -31,6 +26,9 @@ namespace Ayin {
 		virtual void SetLayout(const BufferLayout& layout) override { m_Layout = layout; };
 
 		virtual const BufferLayout& GetLayout() const { return m_Layout; };
+
+		virtual inline operator uint32_t() const { return m_VertexBufferID; };
+
 
 	private:
 		uint32_t m_VertexBufferID;
@@ -59,6 +57,8 @@ namespace Ayin {
 
 		virtual uint32_t GetCount() const override { return m_Count; };
 
+		virtual inline operator uint32_t() const { return m_IndexBufferID; };
+
 	private:
 		uint32_t m_IndexBufferID;
 		uint32_t m_Count;
@@ -82,20 +82,25 @@ namespace Ayin {
 		virtual void Set(const std::string& paramName, void* data) override;
 		virtual void Set(void* data) override;
 
+		virtual void SetBindingIndexs(const std::initializer_list<int>& bindingIndexs);
+
 		virtual void Bind() const override;
+		virtual void Bind(int blockIndex) override;
 		virtual void UnBind() const override;
 
 		virtual inline void SetLayout(const UniformLayout& layout) override { m_UniformLayout = layout; };
 		virtual inline const UniformLayout& GetLayout() const override { return m_UniformLayout; };
 
-		virtual inline void SetIndex(int index) override { m_Index = index; };
-		virtual inline int GetIndex() const override { return m_Index; };
+
+		virtual inline const std::vector<int>& GetIndex() const override { return m_BindingIndexs; };
+
+		virtual inline operator uint32_t() const { return m_UniformBufferID; }
 
 	private:
 
 		uint32_t m_UniformBufferID;
-		uint32_t m_Index;
 		UniformLayout m_UniformLayout;
+		std::vector<int> m_BindingIndexs;
 
 	};
 

@@ -33,13 +33,10 @@ namespace Ayin {
 
 		UBO->Bind();
 
-		vertexArray->Bind();
-
 		RenderCommand::DrawIndexed(vertexArray);
 
 		shader->UnBind();
 		UBO->UnBind();
-		vertexArray->UnBind();
 	}
 
 }

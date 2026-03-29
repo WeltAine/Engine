@@ -104,15 +104,15 @@ public:
 		//Mode(使用统一缓冲)
 		{
 			glm::mat4 translate = glm::translate(glm::identity<glm::mat4>(), glm::vec3{ 0.0f });
-			m_UBO = (Ayin::UniformBuffer::Create(static_cast<void*>(glm::value_ptr(translate)), sizeof(translate)));
-			m_UBO->SetIndex(1);
+			m_UBO = Ayin::UniformBuffer::Create(static_cast<void*>(glm::value_ptr(translate)), sizeof(translate));
+			m_UBO->SetBindingIndexs({1});
 			m_UBO->SetLayout(Ayin::UniformLayout{ "TransformBlock", { Ayin::UniformElement{Ayin::ShaderDataType::Mat4, "t_Position"}} });
 		}
 
 		{
 			glm::mat4 translate = glm::translate(glm::identity<glm::mat4>(), glm::vec3{ 0.0f });
-			m_BlendUBO = (Ayin::UniformBuffer::Create(static_cast<void*>(glm::value_ptr(translate)), sizeof(translate)));
-			m_BlendUBO->SetIndex(1);
+			m_BlendUBO = Ayin::UniformBuffer::Create(static_cast<void*>(glm::value_ptr(translate)), sizeof(translate));
+			m_BlendUBO->SetBindingIndexs({1});
 			m_BlendUBO->SetLayout(Ayin::UniformLayout{ "TransformBlock", { Ayin::UniformElement{Ayin::ShaderDataType::Mat4, "t_Position"}} });
 		}
 
@@ -141,8 +141,8 @@ public:
 			}
 
 			{
-				m_Transform = glm::translate(m_Transform, glm::vec3{ 0.0f * deltaTime, 0.0f, 0.0f });
-				m_UBO->Set("t_Position", static_cast<void*>(glm::value_ptr(m_Transform)));
+				glm::mat4 transform = glm::translate(glm::mat4{ 1.0f }, glm::vec3{ 0.0f * deltaTime, 0.0f, 0.0f });
+				m_BlendUBO->Set("t_Position", static_cast<void*>(glm::value_ptr(transform)));
 			}
 
 

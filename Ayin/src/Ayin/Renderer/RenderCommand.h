@@ -25,6 +25,7 @@ namespace Ayin {
 		inline static void DrawIndexed(const Ref<VertexArray>& vertexArray) {
 			vertexArray->Bind();
 			s_RendererAPI->DrawIndexed(vertexArray); 
+			vertexArray->UnBind();
 		};
 
 
