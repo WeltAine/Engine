@@ -50,8 +50,8 @@ namespace Ayin {
 		//x 其目的是避免在后续更改纹理时，驱动程序因重新分配内存而产生开销。"
 
 		//参数设置
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);//缩小时是使用临近的四个像素加权平均
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTextureParameteri(m_TextureID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);//缩小时是使用临近的四个像素加权平均
+		glTextureParameteri(m_TextureID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 		//上传数据													 //每像素多少通道（格式）	//每通道的数据类型（类型）
 		glTextureSubImage2D(m_TextureID, 0, 0, 0, m_Width, m_Height, dataformat,				GL_UNSIGNED_BYTE, data);//x 一旦“形状”（glTextureStorage的固定式分配每一层的空间大小，但不只是考虑大小而是像4*4放不进你的3*3保险箱那样，就像）无法兼容，则报错
@@ -83,6 +83,8 @@ namespace Ayin {
 		
 		//glBindTextures();
 		//glBindImageTexture();
+		//! SampleGPU只能读
+		//! ImageGPU可随机读写（用于GPU生成纹理）
 
 		glBindTextureUnit(slot, m_TextureID);
 
