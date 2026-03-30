@@ -104,6 +104,9 @@ namespace Ayin {
 
 			int uintTextureID = 0;//单元中的纹理对象
 			glGetIntegerv(GL_TEXTURE_BINDING_2D, &uintTextureID);
+			//这个目前没有很好的查询API，倒是有办法查到纹理单元下所用的所有API
+			//! 之前一直以为TEXTURE_2D下头是n个纹理单元槽
+			//! 实际上是每个纹理单元下头有TEXTURE_XX槽，每个槽用于记录纹理引用
 
 			if (uintTextureID != m_TextureID)
 				continue;
