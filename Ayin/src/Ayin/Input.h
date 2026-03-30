@@ -11,6 +11,13 @@ namespace Ayin {
 	//! 单例加外观
 	class AYIN_API Input {
 
+	protected:
+		Input() = default;
+
+	public:
+		Input(const Input&) = delete;
+		Input& operator=(const Input&) = delete;
+
 	public:
 		inline static bool IsKeyPressed(int keyCode) { return s_Instance->IsKeyPressedImpl(keyCode); };
 

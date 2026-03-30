@@ -623,6 +623,7 @@ copy /B /Y ..\bin\Dist-windows-x86_64\Ayin\Ayin.lib ..\bin\Dist-windows-x86_64\S
     <ClCompile Include="src\Ayin\Application.cpp" />
     <ClCompile Include="src\Ayin\ImGui\ImGuiBuild.cpp" />
     <ClCompile Include="src\Ayin\ImGui\ImGuiLayer.cpp" />
+    <ClCompile Include="src\Ayin\Input.cpp" />
     <ClCompile Include="src\Ayin\Layer.cpp" />
     <ClCompile Include="src\Ayin\LayerStack.cpp" />
     <ClCompile Include="src\Ayin\Log.cpp" />

@@ -24,6 +24,11 @@ namespace Ayin {
 		friend Application* CreatApplication();
 
 	public:
+		Application(const Application&) = delete;
+		Application& operator=(const Application&) = delete;
+
+
+	public:
 		inline static Application& Get() { return *s_Instance; };
 
 		inline virtual ~Application() = default;
