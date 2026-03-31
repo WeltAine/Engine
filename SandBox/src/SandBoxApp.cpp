@@ -87,7 +87,7 @@ public:
 		}
 
 		// 着色器
-		m_Shader = Ayin::Shader::Create("O:/CppProgram/Ayin/assets/shader/shader.glsl");
+		m_ShaderLibrary.Load("O:/CppProgram/Ayin/assets/shader/shader.glsl");
 		m_TextureShader = Ayin::Shader::Create("O:/CppProgram/Ayin/assets/shader/TextureShader.glsl");
 
 
@@ -153,7 +153,7 @@ public:
 			m_Texture->Bind(0);
 
 			std::dynamic_pointer_cast<Ayin::OpenGLShader>(m_TextureShader)->UploadUniformFloat3("colorOffset", m_ColorOffset);
-			Ayin::Renderer::Submit(m_TextureShader, m_SquareVertexArray, m_UBO);
+			Ayin::Renderer::Submit(m_ShaderLibrary.Get("shader"), m_SquareVertexArray, m_UBO);
 
 
 			m_BlendTexture->Bind(0);
@@ -236,7 +236,8 @@ public:
 
 private:
 
-	Ayin::Ref<Ayin::Shader> m_Shader, m_TextureShader;								//着色器程序
+	Ayin::ShaderLibrary m_ShaderLibrary;
+	Ayin::Ref<Ayin::Shader> m_TextureShader;										//着色器程序
 	Ayin::Ref<Ayin::Texture2D> m_Texture, m_BlendTexture;							//纹理
 	Ayin::Ref<Ayin::UniformBuffer> m_UBO, m_BlendUBO;								//统一变量缓冲
 	glm::mat4 m_Transform{1.0f};	// mode测试

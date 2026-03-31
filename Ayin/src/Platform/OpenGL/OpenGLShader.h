@@ -28,9 +28,11 @@ namespace Ayin{
 		/// </summary>
 		/// <param name="vertexShaderSrc">顶点着色器源码</param>
 		/// <param name="fragmentShaderSrc">片元着色器源码</param>
-		OpenGLShader(const std::string& vertexShaderSrc, const std::string& fragmentShaderSrc);
+		OpenGLShader(const std::string& name, const std::string& vertexShaderSrc, const std::string& fragmentShaderSrc);
 
 		virtual ~OpenGLShader() override;
+
+		virtual inline const std::string& GetName() const override { return m_Name; };
 
 		/// <summary>
 		/// 将着色器程序绑定到当前渲染山下文中
@@ -79,6 +81,7 @@ namespace Ayin{
 	private:
 
 		uint32_t m_ProgramID = 0;
+		std::string m_Name;
 
 	};
 

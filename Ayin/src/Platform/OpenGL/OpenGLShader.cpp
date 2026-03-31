@@ -43,6 +43,17 @@ namespace Ayin {
 
 	OpenGLShader::OpenGLShader(const std::string& filePath) {
 
+		size_t lastSlash = filePath.find_last_of("/\\");//找"/"或者"\"
+		//! 该方法的含义为，查找字符串中最后出现过参数字符串中任意一个字符的位置（就像拿着一系列嫌疑人画像（参数），在监控里（对象）查找最后一个出现的嫌疑人）
+		lastSlash = lastSlash == std::string::npos ? 0 : lastSlash + 1;
+
+		size_t lastDot = filePath.rfind('.');//查找最后出现的目标（完全匹配）
+		lastDot = lastDot == std::string::npos ? filePath.size() : lastDot;
+
+		size_t count = lastDot - lastSlash;
+
+		m_Name = filePath.substr(lastSlash, count);
+
 		std::string source = ReadFile(filePath);
 		auto shaderShouces = PreProcess(source);
 		Compile(shaderShouces);
@@ -50,7 +61,9 @@ namespace Ayin {
 	}
 
 
-	OpenGLShader::OpenGLShader(const std::string& vertexShaderSrc, const std::string& fragmentShaderSrc) {
+	OpenGLShader::OpenGLShader(const std::string& name, const std::string& vertexShaderSrc, const std::string& fragmentShaderSrc) 
+		:m_Name{name}
+	{
 
 		std::unordered_map<GLenum, std::string> shaderSources;
 		shaderSources[GL_VERTEX_SHADER] = vertexShaderSrc;
@@ -127,8 +140,12 @@ namespace Ayin {
 
 		GLint programID = glCreateProgram();
 
-		std::vector<GLuint> shaderIDs(shaderSources.size());
+		//std::vector<GLuint> shaderIDs(shaderSources.size());
+		////! 该方法会开辟并填充空间
+		AYIN_CORE_ASSERT((shaderSources.size() <= 2), "Only two shaders are currently supported");
+		std::array<int, 2> shaderIDs;
 
+		int glShaderIDIndex = 0;
 		#pragma region 着色器编译
 		for (auto& kv : shaderSources) {
 
@@ -158,7 +175,7 @@ namespace Ayin {
 			}
 
 			glAttachShader(programID, shader);
-			shaderIDs.push_back(shader);
+			shaderIDs[glShaderIDIndex++] = shader;
 		}
 
 		#pragma endregion

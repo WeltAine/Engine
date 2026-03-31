@@ -6,6 +6,11 @@
 
 namespace Ayin {
 
+	//////////////////////////////////////////////////////////////////////////////////////////
+	/// Shader ///////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////
+
+
 	class AYIN_API Shader {
 
 	public:
@@ -21,9 +26,14 @@ namespace Ayin {
 		/// </summary>
 		/// <param name="vertexShaderSrc">顶点着色器源码</param>
 		/// <param name="fragmentShaderSrc">片元着色器源码</param>
-		static Ref<Shader> Create(const std::string& vertexShaderSrc, const std::string& fragmentShaderSrc);
+		static Ref<Shader> Create(const std::string& name, const std::string& vertexShaderSrc, const std::string& fragmentShaderSrc);
 		
+	public:
+
 		virtual ~Shader() = default;
+
+
+		virtual const std::string& GetName() const = 0;
 
 		/// <summary>
 		/// 将着色器程序绑定到当前渲染山下文中
@@ -48,4 +58,42 @@ namespace Ayin {
 
 	};
 
+
+	//////////////////////////////////////////////////////////////////////////////////////////
+	/// ShaderLibrary ////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////
+
+
+	class ShaderLibrary {
+
+
+	public:
+
+		/// <summary>
+		/// 加载着色器（编译，入库）
+		/// </summary>
+		/// <param name="filePath"></param>
+		/// <returns></returns>
+		Ref<Shader> Load(const std::string& filePath);
+		Ref<Shader> Load(const std::string& name, const std::string& filePath);
+
+		/// <summary>
+		/// 添加着色器到库中
+		/// </summary>
+		/// <param name="shader"></param>
+		void Add(const Ref<Shader>& shader);
+		void Add(const std::string& name, const Ref<Shader>& shader);
+
+		inline Ref<Shader> Get(const std::string& name) {
+			AYIN_CORE_ASSERT(Exists(name), "No Name_Index was found in the ShaderLibrary");
+			return m_Shaders[name]; 
+		};
+
+		//考虑到未来底层数据结构可能发生变化，所以留一个接口做收束整合
+		bool Exists(const std::string& name) const;
+
+	private:
+
+		std::unordered_map < std::string, Ref<Shader> > m_Shaders;
+	};
 }
