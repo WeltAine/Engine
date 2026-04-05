@@ -12,7 +12,7 @@ namespace Ayin {
 
 
 	Camera::Camera(CameraType cameraType, const CameraProp& cameraProp)
-		:m_CameraType{ cameraType }, m_CameraProp{ cameraProp }
+		:m_CameraType{ cameraType }
 	{
 
 		glm::mat4 pitch = glm::rotate(glm::identity<glm::mat4>(), glm::radians(m_Rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
@@ -54,6 +54,45 @@ namespace Ayin {
 
 	}
 
+
+	void SetProjection(const CameraProp& cameraProp){
+
+		m_CameraType = cameraProp.Type;
+
+		switch (cameraProp.Type) {
+
+			case(Camera::CameraType::Orthogonal): {
+
+				float right = cameraProp.orthogonalProp.Height * cameraProp.orthogonalProp.AspectRatio * 0.5f;
+				float top = cameraProp.orthogonalProp.Height * 0.5f;
+
+				m_ProjectionMatrix = glm::ortho(
+					-right, right, -top, top, 
+					cameraProp.orthogonalProp.NearPlaneDistance, 
+					cameraProp.orthogonalProp.FarPlaneDistance);
+
+				break;
+			};
+
+			case(Camera::CameraType::Perspective): {
+
+				m_ProjectionMatrix = glm::perspective(
+					glm::radians(cameraProp.perspectiveProp.FOV), 
+					cameraProp.perspectiveProp.AspectRatio, 
+					cameraProp.perspectiveProp.NearPlaneDistance, 
+					cameraProp.perspectiveProp.FarPlaneDistance);
+
+				break;
+			};
+		
+		}
+
+		m_ProjecttionViewMatrix = m_ProjectionMatrix * m_ViewMatrix;
+
+
+	}
+
+
 	void Camera::RecalculateViewMatrix()
 	{
 		glm::mat4 pitch = glm::rotate(glm::identity<glm::mat4>(), glm::radians(m_Rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
@@ -67,5 +106,5 @@ namespace Ayin {
 		m_ProjecttionViewMatrix = m_ProjectionMatrix * m_ViewMatrix;
 	}
 
-
+	 
 }
