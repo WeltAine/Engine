@@ -584,6 +584,7 @@ copy /B /Y ..\bin\Dist-windows-x86_64\Ayin\Ayin.lib ..\bin\Dist-windows-x86_64\S
     <ClInclude Include="Dependency\stb_image\stb_image.h" />
     <ClInclude Include="src\Ayin.h" />
     <ClInclude Include="src\Ayin\Application.h" />
+    <ClInclude Include="src\Ayin\CameraController.h" />
     <ClInclude Include="src\Ayin\Core.h" />
     <ClInclude Include="src\Ayin\Core\Timestep.h" />
     <ClInclude Include="src\Ayin\EntryPoint.h" />
@@ -621,6 +622,7 @@ copy /B /Y ..\bin\Dist-windows-x86_64\Ayin\Ayin.lib ..\bin\Dist-windows-x86_64\S
   <ItemGroup>
     <ClCompile Include="Dependency\stb_image\stb_image.cpp" />
     <ClCompile Include="src\Ayin\Application.cpp" />
+    <ClCompile Include="src\Ayin\CameraController.cpp" />
     <ClCompile Include="src\Ayin\ImGui\ImGuiBuild.cpp" />
     <ClCompile Include="src\Ayin\ImGui\ImGuiLayer.cpp" />
     <ClCompile Include="src\Ayin\Input.cpp" />

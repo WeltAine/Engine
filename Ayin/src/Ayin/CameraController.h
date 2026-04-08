@@ -2,8 +2,9 @@
 
 #include "Ayin/Core.h"
 
-#include "Ayin/Event/KeyEvent.h"
-#include "Ayin/Event/MouseEvent.h"
+#include "Ayin/Events/KeyEvent.h"
+#include "Ayin/Events/MouseEvent.h"
+#include "Ayin/Events/ApplicationEvent.h"
 
 #include "Ayin/Core/Timestep.h"
 
@@ -12,7 +13,7 @@
 
 namespace Ayin{
 
-    class AYIN_API CameraController{
+    class AYIN_API CameraController {
 
     public:
         CameraController(const CameraProp& cameraProp);
@@ -26,12 +27,12 @@ namespace Ayin{
     private:
         bool OnMouseScrolled(MouseSrolledEvent& e);
         bool OnMouseMidButtonPressed(MouseButtonPressedEvent& e);
-        bool OnMouseMidButtonReleased(MouseButtonReleaseEvent& e);
+        bool OnMouseMidButtonReleased(MouseButtonReleasedEvent& e);
         bool OnWindowResize(WindowResizeEvent& e);
 
-        void OnAxisKeyPressed( Ayin::Timestep deltaTime );
-        void OnMouseMoved( Ayin::Timestep deltaTime );
-        
+        void OnAxisKeyPressed(Ayin::Timestep deltaTime);
+        void OnMouseMoved(Ayin::Timestep deltaTime);
+
 
 
     private:
@@ -43,12 +44,12 @@ namespace Ayin{
 
         float m_ZoomLevel = 1.0f;                                               //缩放
 
-        glm::vec3 m_CameraPosition = {0.0f, 0.0f, 1.0f};						// 位置
-        glm::vec3 m_CameraRotation = {0.0f, 0.0f, 0.0f};						// 角度
+        glm::vec3 m_CameraPosition = { 0.0f, 0.0f, 1.0f };						// 位置
+        glm::vec3 m_CameraRotation = { 0.0f, 0.0f, 0.0f };						// 角度
 
-        float m_CameraTranslateSpeed = 5.0f, m_CameraRotationSpeed = 180.0f;
+        float m_CameraTranslateSpeed = 5.0f, m_CameraRotationSpeed = 120.0f;
 
-    }
+    };
 
 
 }

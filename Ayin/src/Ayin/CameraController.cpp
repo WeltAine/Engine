@@ -1,6 +1,9 @@
 #include <AyinPch.h>
 
 #include "Ayin/CameraController.h"
+#include "Ayin/KayCodes.h"
+#include "Ayin/MouseButtonCodes.h"
+#include "Ayin/Input.h"
 
 namespace Ayin{
 
@@ -8,13 +11,13 @@ namespace Ayin{
         CameraController::CameraController(const CameraProp& cameraProp)
             :m_Camera{cameraProp}, m_CameraProp{cameraProp}
         {
-            // 同步一下数据
+            // 同步一下相机状态（相机控制器类和相机控制类的默认值可能不同）
             m_Camera.SetPosition(m_CameraPosition);
             m_Camera.SetRotation(m_CameraRotation);
 
         }
 
-        void OnUpdate(Timestep deltaTime){
+        void CameraController::OnUpdate(Timestep deltaTime){
 
             OnAxisKeyPressed(deltaTime);
             OnMouseMoved(deltaTime);
@@ -22,31 +25,33 @@ namespace Ayin{
         }
 
 
-        void OnEvent(Event& e){
+        void CameraController::OnEvent(Event& e){
 
-            EventDispatcher dispatcher(e);
+            EventDispatcher dispatcher{ e };
 
-            e.Dispatch<MouseSrolledEvent>(BIND_EVENT_FUN(CameraController::OnMouseScrolled))
-            e.Dispatch<MouseButtonPressedEvent>(BIND_EVENT_FUN(CameraController::OnMouseMidButtonPressed));
-            e.Dispatch<MouseButtonReleaseEvent>(BIND_EVENT_FUN(CameraController::OnMouseMidButtonReleased));
-            e.Dispatch<WindowResizeEvent>(BIND_EVENT_FUN(CameraController::OnWindowResize));
+            dispatcher.Dispatch<MouseSrolledEvent>(BIND_EVENT_FUN(CameraController::OnMouseScrolled));
+            dispatcher.Dispatch<MouseButtonPressedEvent>(BIND_EVENT_FUN(CameraController::OnMouseMidButtonPressed));
+            dispatcher.Dispatch<MouseButtonReleasedEvent>(BIND_EVENT_FUN(CameraController::OnMouseMidButtonReleased));
+            dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FUN(CameraController::OnWindowResize));
 
         }
 
-        bool OnMouseScrolled(MouseSrolledEvent& e){
+        bool CameraController::OnMouseScrolled(MouseSrolledEvent& e){
 
             m_ZoomLevel -= e.GetYoffset() * 0.25f;// 减法，窗口范围越小，看见的越大
             m_ZoomLevel = std::clamp(m_ZoomLevel, 0.25f, 10.0f);
 
             m_CameraProp.Height *= m_ZoomLevel;
             
-            m_Camera.SetProjectiong(m_CameraProp);
+            m_Camera.SetProjection(m_CameraProp);
+
+            // 目前只会对正交有反应
 
             return false;
 
         }
 
-        bool OnMouseMidButtonPressed(MouseButtonPressedEvent& e){
+        bool CameraController::OnMouseMidButtonPressed(MouseButtonPressedEvent& e){
 
             if(e.GetMouseButton() == AYIN_MOUSE_BUTTON_MIDDLE){
                 m_isRotate = true;
@@ -56,7 +61,7 @@ namespace Ayin{
 
         }
 
-        bool OnMouseMidButtonReleased(MouseButtonReleaseEvent& e){
+        bool CameraController::OnMouseMidButtonReleased(MouseButtonReleasedEvent& e){
 
             if(e.GetMouseButton() == AYIN_MOUSE_BUTTON_MIDDLE){
                 m_isRotate = false;
@@ -65,7 +70,7 @@ namespace Ayin{
             return false;
         }
 
-        bool OnWindowResize(WindowResize& e){
+        bool CameraController::OnWindowResize(WindowResizeEvent& e){
 
             m_CameraProp.AspectRatio = e.GetWidth() / e.GetHeight();
 
@@ -76,28 +81,28 @@ namespace Ayin{
         }
 
     
-        void OnAxisKeyPressed( Ayin::Timestep deltaTime ) {
+        void CameraController::OnAxisKeyPressed( Ayin::Timestep deltaTime ) {
 		    //原点-》平移量 -》逆矩阵
 
             glm::vec3 distance{ 0.0f };
 
             //! 因为OpenGL对相机的可是朝向是z的负半轴，所以，这里的加减关系和直觉上是相反的
-            if (Ayin::Input::IsKeyPressed(AYIN_KEY_LEFT)) { distance.x -= m_MoveSpeed * deltaTime; };
-            if (Ayin::Input::IsKeyPressed(AYIN_KEY_RIGHT)) { distance.x += m_MoveSpeed * deltaTime; };
-            if (Ayin::Input::IsKeyPressed(AYIN_KEY_UP)) { distance.z -= m_MoveSpeed * deltaTime; };
-            if (Ayin::Input::IsKeyPressed(AYIN_KEY_DOWN)) { distance.z += m_MoveSpeed * deltaTime; };
+            if (Input::IsKeyPressed(AYIN_KEY_A)) { distance.x -= m_CameraTranslateSpeed * deltaTime; };
+            if (Input::IsKeyPressed(AYIN_KEY_D)) { distance.x += m_CameraTranslateSpeed * deltaTime; };
+            if (Input::IsKeyPressed(AYIN_KEY_W)) { distance.z -= m_CameraTranslateSpeed * deltaTime; };
+            if (Input::IsKeyPressed(AYIN_KEY_S)) { distance.z += m_CameraTranslateSpeed * deltaTime; };
 
             if (glm::length(distance) > 0.0f) {
 
                 //! 原点 -> 平移量 -> 逆矩阵
                 //让移动基于相机的本地坐标，当然GetRotationMatrix()是我临时加的，之后可能会移动到Transform中
-                distance = m_SceneCamera.GetRotationMatrix() * glm::translate(glm::identity<glm::mat4>(), distance) * glm::vec4{0.0f, 0.0f, 0.0f, 1.0f};
+                distance = m_Camera.GetRotationMatrix() * glm::translate(glm::identity<glm::mat4>(), distance) * glm::vec4{0.0f, 0.0f, 0.0f, 1.0f};
 
                 m_CameraPosition += glm::normalize(distance);
                 AYIN_ERROR("direction:{0}, {1}, {2}", distance.x, distance.y, distance.z);
 
 
-                m_SceneCamera.SetPosition(m_CameraPosition);
+                m_Camera.SetPosition(m_CameraPosition);
 
                 //AYIN_ERROR("Move");
                 //AYIN_ERROR("{0}, {1}, {2}", m_CameraRotation.x, m_CameraRotation.y, m_CameraRotation.z);
@@ -106,7 +111,12 @@ namespace Ayin{
 
         }
 
-        void OnMouseMoved( Ayin::Timestep deltaTime ) {
+        void CameraController::OnMouseMoved( Ayin::Timestep deltaTime ) {
+
+            //正交相机（我们使用按键）或者非旋转状态无法使用鼠标发出旋转指令
+            if (m_CameraProp.Type == Camera::CameraType::Orthogonal || !m_isRotate) {
+                return;
+            }
 
             auto [x, y] = Ayin::Input::GetMousePosition();
 
@@ -119,12 +129,12 @@ namespace Ayin{
 
             rotation = glm::vec3{ y, x, 0.0f };
 
+            //死区半径
+            if (glm::length(rotation) > 50.0f) {
 
-            if (glm::length(rotation) > 30.0f) {
+                m_CameraRotation -= glm::normalize(rotation) * m_CameraRotationSpeed  * float(deltaTime);
 
-                m_CameraRotation -= glm::normalize(rotation) * m_RotationSpeed  * float(deltaTime);
-
-                m_SceneCamera.SetRotation(m_CameraRotation);
+                m_Camera.SetRotation(m_CameraRotation);
 
                 lastRotation = { y, x, 0.0f };
 

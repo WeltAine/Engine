@@ -11,8 +11,8 @@
 namespace Ayin {
 
 
-	Camera::Camera(CameraType cameraType, const CameraProp& cameraProp)
-		:m_CameraType{ cameraType }
+	Camera::Camera(const CameraProp& cameraProp)
+		:m_CameraType{ cameraProp.Type }
 	{
 
 		glm::mat4 pitch = glm::rotate(glm::identity<glm::mat4>(), glm::radians(m_Rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
@@ -24,25 +24,25 @@ namespace Ayin {
 		m_ViewMatrix = glm::inverse(transform);
 
 		// 矩阵的结果是映射为一个[2, 2, 2]的大小（当然没有齐次化）
-		switch (cameraType) {
+		switch (m_CameraType) {
 
 			case(Camera::CameraType::Orthogonal): {
 
-				float right = cameraProp.orthogonalProp.Height * cameraProp.orthogonalProp.AspectRatio * 0.5f;
-				float top = cameraProp.orthogonalProp.Height * 0.5f;
+				float right = cameraProp.Height * cameraProp.AspectRatio * 0.5f;
+				float top = cameraProp.Height * 0.5f;
 
 				m_ProjectionMatrix = glm::ortho(-right, right, -top, top, 
-					cameraProp.orthogonalProp.NearPlaneDistance, cameraProp.orthogonalProp.FarPlaneDistance);
+					cameraProp.NearPlaneDistance, cameraProp.FarPlaneDistance);
 
 				break;
 			};
 
 			case(Camera::CameraType::Perspective): {
 
-				m_ProjectionMatrix = glm::perspective(glm::radians(cameraProp.perspectiveProp.FOV), 
-					cameraProp.perspectiveProp.AspectRatio, 
-					cameraProp.perspectiveProp.NearPlaneDistance, 
-					cameraProp.perspectiveProp.FarPlaneDistance);
+				m_ProjectionMatrix = glm::perspective(glm::radians(cameraProp.FOV), 
+					cameraProp.AspectRatio, 
+					cameraProp.NearPlaneDistance, 
+					cameraProp.FarPlaneDistance);
 
 				break;
 			};
@@ -55,7 +55,7 @@ namespace Ayin {
 	}
 
 
-	void SetProjection(const CameraProp& cameraProp){
+	void Camera::SetProjection(const CameraProp& cameraProp){
 
 		m_CameraType = cameraProp.Type;
 
@@ -63,13 +63,13 @@ namespace Ayin {
 
 			case(Camera::CameraType::Orthogonal): {
 
-				float right = cameraProp.orthogonalProp.Height * cameraProp.orthogonalProp.AspectRatio * 0.5f;
-				float top = cameraProp.orthogonalProp.Height * 0.5f;
+				float right = cameraProp.Height * cameraProp.AspectRatio * 0.5f;
+				float top = cameraProp.Height * 0.5f;
 
 				m_ProjectionMatrix = glm::ortho(
 					-right, right, -top, top, 
-					cameraProp.orthogonalProp.NearPlaneDistance, 
-					cameraProp.orthogonalProp.FarPlaneDistance);
+					cameraProp.NearPlaneDistance, 
+					cameraProp.FarPlaneDistance);
 
 				break;
 			};
@@ -77,10 +77,10 @@ namespace Ayin {
 			case(Camera::CameraType::Perspective): {
 
 				m_ProjectionMatrix = glm::perspective(
-					glm::radians(cameraProp.perspectiveProp.FOV), 
-					cameraProp.perspectiveProp.AspectRatio, 
-					cameraProp.perspectiveProp.NearPlaneDistance, 
-					cameraProp.perspectiveProp.FarPlaneDistance);
+					glm::radians(cameraProp.FOV), 
+					cameraProp.AspectRatio, 
+					cameraProp.NearPlaneDistance, 
+					cameraProp.FarPlaneDistance);
 
 				break;
 			};
