@@ -11,6 +11,9 @@ namespace Ayin{
         CameraController::CameraController(const CameraProp& cameraProp)
             :m_Camera{cameraProp}, m_CameraProp{cameraProp}
         {
+            AYIN_ERROR("Now FOV: {0}", m_CameraProp.FOV);
+
+
             // 同步一下相机状态（相机控制器类和相机控制类的默认值可能不同）
             m_Camera.SetPosition(m_CameraPosition);
             m_Camera.SetRotation(m_CameraRotation);
@@ -38,14 +41,20 @@ namespace Ayin{
 
         bool CameraController::OnMouseScrolled(MouseSrolledEvent& e){
 
-            m_ZoomLevel -= e.GetYoffset() * 0.25f;// 减法，窗口范围越小，看见的越大
+            m_ZoomLevel -= e.GetYoffset() * 0.25f;// 减法，窗口范围越小，看见的物体越大
             m_ZoomLevel = std::clamp(m_ZoomLevel, 0.25f, 10.0f);
 
-            m_CameraProp.Height *= m_ZoomLevel;
-            
-            m_Camera.SetProjection(m_CameraProp);
 
-            // 目前只会对正交有反应
+            float height = m_CameraProp.Height * m_ZoomLevel;
+            float FOV = 2 * glm::degrees( std::atan(m_ZoomLevel * std::tan(glm::radians(0.5f * m_CameraProp.FOV))) );
+            
+
+            m_Camera.SetProjection({ 
+                .Type{m_CameraProp.Type},
+                .FOV{FOV}, .Height{height},
+                .AspectRatio{m_CameraProp.AspectRatio},
+                .NearPlaneDistance{m_CameraProp.NearPlaneDistance}, .FarPlaneDistance{m_CameraProp.FarPlaneDistance} });
+
 
             return false;
 
@@ -72,9 +81,22 @@ namespace Ayin{
 
         bool CameraController::OnWindowResize(WindowResizeEvent& e){
 
-            m_CameraProp.AspectRatio = e.GetWidth() / e.GetHeight();
+            if (e.GetWidth() <= 0 || e.GetHeight() <= 0) {
+                return false;
+            }
 
-            m_Camera.SetProjection(m_CameraProp);
+            m_CameraProp.AspectRatio = (float)e.GetWidth() / (float)e.GetHeight();
+
+
+            float height = m_CameraProp.Height * m_ZoomLevel;
+            float FOV = 2 * glm::degrees(std::atan(m_ZoomLevel * std::tan(glm::radians(0.5f * m_CameraProp.FOV))));
+
+            m_Camera.SetProjection({
+                .Type{m_CameraProp.Type},
+                .FOV{FOV}, .Height{height},
+                .AspectRatio{m_CameraProp.AspectRatio},
+                .NearPlaneDistance{m_CameraProp.NearPlaneDistance}, .FarPlaneDistance{m_CameraProp.FarPlaneDistance} });
+
 
             return false;
 

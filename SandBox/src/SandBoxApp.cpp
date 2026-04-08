@@ -16,7 +16,7 @@ class ExampleLayer : public Ayin::Layer {
 public:
 	ExampleLayer()
 		:Ayin::Layer("Example"), 
-		m_SceneCameraController{ {.FOV = 60.0f, .AspectRatio = (16.0f/9.0f), .NearPlaneDistance = 0.1f, .FarPlaneDistance = 100.0f}}
+		m_SceneCameraController{ {.Type = Ayin::Camera::CameraType::Perspective, .FOV = 60.0f, .AspectRatio = (16.0f/9.0f), .NearPlaneDistance = 0.1f, .FarPlaneDistance = 100.0f}}
 	{
 
 		#pragma region 基础渲染流程参考（这一部分也可以放到OnAttach中）

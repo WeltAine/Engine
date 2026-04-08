@@ -47,7 +47,7 @@ namespace Ayin{
         glm::vec3 m_CameraPosition = { 0.0f, 0.0f, 1.0f };						// 位置
         glm::vec3 m_CameraRotation = { 0.0f, 0.0f, 0.0f };						// 角度
 
-        float m_CameraTranslateSpeed = 5.0f, m_CameraRotationSpeed = 120.0f;
+        float m_CameraTranslateSpeed = 1.0f, m_CameraRotationSpeed = 120.0f;
 
     };
 
