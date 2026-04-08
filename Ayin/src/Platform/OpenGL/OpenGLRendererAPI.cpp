@@ -13,6 +13,12 @@ namespace Ayin{
 
 	}
 
+	void OpenGLRendererAPI::SetViewport(int x, int y, int width, int height) {
+		glViewport(0, 0, width, height);
+		//x 该API只会显示相机能看到的东西，改变的只是在窗口上的大小
+		//x 这意味着单纯的拉伸窗口只会放大相机的照片尺寸而已，不会扩展视野，我们还需要调整相机的参数
+	}
+
 	void OpenGLRendererAPI::SetClearColor(const glm::vec4& color) const
 	{
 		glClearColor(color.r, color.g, color.b, color.a);

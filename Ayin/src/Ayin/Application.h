@@ -52,12 +52,15 @@ namespace Ayin {
 		bool OnWindowResize(const WindowResizeEvent& e);
 
 		std::unique_ptr<Window> m_Window;
+		bool m_IsVisible = true;					//窗口内容是否可见（好像没什么必要的样子，或者说这个字段应该移动到Window本身中）
 		bool m_Running = true;
 
 		LayerStack m_LayerStack;					//栈层
 		ImGuiLayer* m_ImGuiLayer;//！！！没有释放
 
 		float m_LastFrameTime = 0.0f;
+
+		
 	
 	private:
 		static Application* s_Instance;				//应用单例实例

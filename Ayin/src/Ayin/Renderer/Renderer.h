@@ -14,6 +14,8 @@ namespace Ayin {
 
 		static void Init();
 
+		static void OnWindowResize(int width, int height);
+
 		/// <summary>
 		/// 场景/环境设置（相机位置，光照。。。）
 		/// </summary>

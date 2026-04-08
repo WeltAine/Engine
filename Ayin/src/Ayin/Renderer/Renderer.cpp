@@ -12,6 +12,12 @@ namespace Ayin {
 		RenderCommand::Init();
 	};
 
+	void Renderer::OnWindowResize(int width, int height) {
+
+		RenderCommand::SetViewport(0, 0, width, height);
+
+	}
+
 	void Renderer::BeginScene(const Camera& rendererCamera) {
 
 		s_SceneData->projectionViewMatrix = rendererCamera.GetProjecttionViewMatrix();
