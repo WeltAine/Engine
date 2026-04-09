@@ -10,7 +10,7 @@
 namespace Ayin {
 
 
-	#pragma region 辅助方法
+	#pragma region 辅助方法（仅限于本文件使用）
 	static GLenum ShaderTypeFromString(const std::string& type) {
 
 		if (type == "vertex")
@@ -43,6 +43,7 @@ namespace Ayin {
 
 	OpenGLShader::OpenGLShader(const std::string& filePath) {
 
+		// 查找名称
 		size_t lastSlash = filePath.find_last_of("/\\");//找"/"或者"\"
 		//! 该方法的含义为，查找字符串中最后出现过参数字符串中任意一个字符的位置（就像拿着一系列嫌疑人画像（参数），在监控里（对象）查找最后一个出现的嫌疑人）
 		lastSlash = lastSlash == std::string::npos ? 0 : lastSlash + 1;
@@ -54,6 +55,7 @@ namespace Ayin {
 
 		m_Name = filePath.substr(lastSlash, count);
 
+		// 编译
 		std::string source = ReadFile(filePath);
 		auto shaderShouces = PreProcess(source);
 		Compile(shaderShouces);
@@ -121,15 +123,22 @@ namespace Ayin {
 
 			size_t end_of_line = source.find_first_of("\r\n", begin_of_Passage);			//行结尾
 			//! window中的回车是由\r\n一起组成的，Linux中是\n
+			AYIN_CORE_ASSERT(end_of_line != std::string::npos, "Syntax error");
+
 			size_t begin_of_Type = begin_of_Passage + typeTokenLength + 1;					//类型开头
 			std::string type = source.substr(begin_of_Type, end_of_line - begin_of_Type);	//类型
+			AYIN_CORE_ASSERT(ShaderTypeFromString(type), "Invalid shader type specified");
 
 			size_t begin_of_Shader = source.find_first_not_of("\r\n", end_of_line);			//shader代码开头（#version。。。。。。）
 			begin_of_Passage = source.find(typeToken, begin_of_Shader);						//下一个代码片段开头（以#Type开头）
 
 			shaderSources[ShaderTypeFromString(type)] = source.substr(begin_of_Shader, begin_of_Passage - begin_of_Shader);//提取shader代码
+			//! string中能够存储的最大大小就是npos，这是极限，不允许超过这么大
+			//! 所以我们不必再做一个关于npos的判定，因为即使没有下一段代码，那么本次获取的范围只有两种可能
+			//! 1) 获取从begin_of_Shader开始超出文本剩余长度的文本内容 （会自然的读取完剩余内容）
+			//! 2)获取从begin_of_Shader开始到npos的文本内容 （这种情况只在string的文本内容完全填满上限时发生）
 
-			//x 注释不用担心，glsl代码本身就至此类似C++的注释方式
+			//x 注释不用担心，glsl代码本身就支持类似C++的注释方式
 		}
 
 		return shaderSources;

@@ -19,8 +19,7 @@ namespace Ayin{
 		/// <summary>
 		/// 编译着色器并生成着色器程序
 		/// </summary>
-		/// <param name="vertexShaderSrc">顶点着色器源码</param>
-		/// <param name="fragmentShaderSrc">片元着色器源码</param>
+		/// <param name="filePath">shader代码路径</param>
 		OpenGLShader(const std::string& filePath);
 
 		/// <summary>
@@ -29,6 +28,8 @@ namespace Ayin{
 		/// <param name="vertexShaderSrc">顶点着色器源码</param>
 		/// <param name="fragmentShaderSrc">片元着色器源码</param>
 		OpenGLShader(const std::string& name, const std::string& vertexShaderSrc, const std::string& fragmentShaderSrc);
+
+		//x 有一说一，我们是否可以构建一个构造器来在运行时动态决定整个着色器执行流程？我觉得这是一个很有意思的构想
 
 		virtual ~OpenGLShader() override;
 
@@ -80,8 +81,8 @@ namespace Ayin{
 
 	private:
 
-		uint32_t m_ProgramID = 0;
-		std::string m_Name;
+		uint32_t m_ProgramID = 0;		
+		std::string m_Name;				// 如果来源于统一的glsl文件那么名称则使用文件的名称(不允许自定义命名)，如果来自碎片化的整合则可以自定义名称（你也必须给一个命名）
 
 	};
 

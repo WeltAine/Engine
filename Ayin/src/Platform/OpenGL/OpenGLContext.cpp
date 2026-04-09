@@ -40,6 +40,16 @@ namespace Ayin {
 		// 把 int 类型的内存数据当成字符解析，输出乱码
 		// 至因为没有 \0 结束符，程序读取越界内存，触发崩溃 / 段错误
 		// spdlog::info("指针 p 的地址是：{:p}", p);是正确查看地址地方式，或者强制转换为void*（spdlog默认它是输出地址的意图）
+
+#ifdef AYIN_ENABLE_ASSERT
+
+		int majorVersion, minorVersion;
+		glGetIntegerv(GL_MAJOR_VERSION, &majorVersion);
+		glGetIntegerv(GL_MINOR_VERSION, &minorVersion);
+		AYIN_CORE_ASSERT(majorVersion > 4 || (majorVersion == 4 && minorVersion >= 6), "Ayin requires at least OpenGL version 4.6!");
+
+#endif // AYIN_ENABLE_ASSERT
+
 	}
 
 	void OpenGLContext::SwapBuffer()

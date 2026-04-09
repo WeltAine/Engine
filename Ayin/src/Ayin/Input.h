@@ -37,7 +37,7 @@ namespace Ayin {
 
 
 	private:
-		static Input* s_Instance;//单例的保证（本身是抽象类无法直接构造实例），同时实现侧的指针
+		static Scope<Input> s_Instance;//单例的保证（本身是抽象类无法直接构造实例），同时实现侧的指针
 	};
 
 }

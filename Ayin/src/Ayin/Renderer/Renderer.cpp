@@ -5,7 +5,7 @@
 
 namespace Ayin {
 
-	Renderer::SceneData* Renderer::s_SceneData = new SceneData{ .projectionViewMatrix = {glm::identity<glm::mat4>()}};
+	Scope<Renderer::SceneData> Renderer::s_SceneData = CreateScope<Renderer::SceneData>();
 
 
 	void Renderer::Init() {
