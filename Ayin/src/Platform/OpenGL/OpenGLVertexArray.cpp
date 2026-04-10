@@ -118,20 +118,20 @@ namespace Ayin {
 		glGetIntegerv(GL_MAX_VERTEX_ATTRIB_BINDINGS, &maxVAOBindingIndexs);
 		glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &maxVAOAttribIndexs);
 
-		//将缓冲链接到BindingIndex上，并设置缓冲读指针移动方式
+		//将缓冲链接到BindingIndex上，并设置缓冲读指针移动方式（每一次移动就意味着一次吐出行为，每一次吐出都吐出一行（条）数据项）
 		glVertexArrayVertexBuffer(
-			m_VertexArrayID,							//目标VAO
-			m_BindingIndex,								//VBO占用目标VAO的哪一个BindingIndex
-			*vertexBuffer,								//VBO
-			(long long int)0,							//指针起始位置
-			vertexBuffer->GetLayout().GetStride()		//指针移动量
+			m_VertexArrayID,								//目标VAO
+			m_BindingIndex,									//VBO占用目标VAO的哪一个BindingIndex
+			*vertexBuffer,									//VBO
+			(long long int)0,								//指针起始位置
+			vertexBuffer->GetLayout().GetStride()			//指针移动量（一次吐出量）
 		);
 
 		//缓冲读指针的移动频率设置（0：每个顶点移动一次，n：多少个实例（模型）移动一次）
 		glVertexArrayBindingDivisor(
-			m_VertexArrayID,						//目标VAO 
-			m_BindingIndex,							//要设置VAO的哪一个BindingIndex的数据吐出频率（）直接作用在绑定于该BindingIndex的缓冲读指针，决定了指针何时移动（可用于批量渲染优化）
-			0										//设置吐出频率（实例的意思可以理解为一个模型）
+			m_VertexArrayID,								//目标VAO 
+			m_BindingIndex,									//要设置VAO的哪一个BindingIndex的数据吐出频率（）直接作用在绑定于该BindingIndex的缓冲读指针，决定了指针何时移动（可用于批量渲染优化）
+			0												//设置吐出频率（实例的意思可以理解为一个模型）
 		);
 
 		for (const auto& element : vertexBuffer->GetLayout()) {
@@ -142,20 +142,20 @@ namespace Ayin {
 
 			//连接AttribIndex和BindingIndex
 			glVertexArrayAttribBinding(
-				m_VertexArrayID,						//目标VAO
-				element.LocationIndex,					//目标VAO的哪一个AttribIndex要进行连接配置
-				m_BindingIndex							//连接到哪一个BindingIndex以对缓冲进行数据访问
+				m_VertexArrayID,							//目标VAO
+				element.LocationIndex,						//目标VAO的哪一个AttribIndex要进行连接配置
+				m_BindingIndex								//连接到哪一个BindingIndex以对缓冲进行数据访问
 			);
 
 
 			//AttribIndex读取设置（从bindingIndex中突出的数据中如何读取）
 			glVertexArrayAttribFormat(
-				m_VertexArrayID,						//目标VAO
-				element.LocationIndex,					//设置目标VAO的哪一个AttribIndex
-				element.GetComponentCount(),			//从缓冲吐出中的读取量（配合后一个参数）
-				ShaderDataTypeToBaseType(element.Type), //从缓冲吐出中的读取量（配合前一个参数）
-				element.Normalized,						//是否归一化
-				element.Offset							//缓冲吐出块中的读取偏移
+				m_VertexArrayID,							//目标VAO
+				element.LocationIndex,						//设置目标VAO的哪一个AttribIndex
+				element.GetComponentCount(),				//从缓冲吐出中的读取量（配合后一个参数）
+				ShaderDataTypeToBaseType(element.Type),		//从缓冲吐出中的读取量（配合前一个参数）
+				element.Normalized,							//是否归一化
+				element.Offset								//缓冲吐出块中的读取偏移
 			);
 
 		}

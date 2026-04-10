@@ -339,12 +339,13 @@ namespace Ayin {
 	{
 	#pragma region BTA
 		//glBindBuffer(GL_UNIFORM_BUFFER, m_UniformBufferID);
-		//glBindBufferBase(GL_UNIFORM_BUFFER, blockIndex, m_UniformBufferID);	// UBO绑定到对应binding上，不改变当前 GL 上下文的绑定状态！
+		//glBindBufferBase(GL_UNIFORM_BUFFER, blockIndex, m_UniformBufferID);	// UBO绑定到上下文的对应BlockBinding上
 		//m_BindingIndexs.push_back(blockIndex)
 	#pragma endregion
 
 	#pragma region DSA
-		glBindBufferBase(GL_UNIFORM_BUFFER, blockIndex, m_UniformBufferID);// UBO绑定到对应binding上，不改变当前 GL 上下文的绑定状态！
+		glBindBuffer(GL_UNIFORM_BUFFER, m_UniformBufferID);						//! 尽管对于让Shader使用上正确的UBO来说并不必要，但还是写上，因为Bind方法有这层含义
+		glBindBufferBase(GL_UNIFORM_BUFFER, blockIndex, m_UniformBufferID);		// UBO绑定到上下文的对应BlockBinding上
 		m_BindingIndexs.push_back(blockIndex);
 	#pragma endregion
 	}
