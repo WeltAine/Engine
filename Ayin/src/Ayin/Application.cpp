@@ -112,11 +112,13 @@ namespace Ayin {
 
 	bool Application::OnWindowResize(const WindowResizeEvent& e) {
 
-		glViewport(0, 0, e.GetWidth(), e.GetHeight());
-		//x 现在窗口只会显示相机能看到的东西
-		//x 这意味着单纯的拉伸窗口只会放大相机的照片而已，不会扩展视野，我们还需要调整相机的参数
+		if (e.GetWidth() <= 0 || e.GetHeight() <= 0) {
+			m_IsVisible = false;
+			return false;
+		}
 
-		
+		Renderer::OnWindowResize(e.GetWidth(), e.GetHeight());
+		return false;
 
 		return true;
 

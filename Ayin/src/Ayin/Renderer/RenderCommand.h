@@ -18,6 +18,8 @@ namespace Ayin {
 		//x 没想到我竟然提前就干了这种事情
 		static void Init();
 
+		inline static void SetViewport(int x, int y, int width, int height) { s_RendererAPI->SetViewport(x, y, width, height); };
+
 		inline static void SetClearColor(const glm::vec4& color) { s_RendererAPI->SetClearColor(color); };
 
 		inline static void Clear() { s_RendererAPI->Clear(); };
@@ -30,7 +32,7 @@ namespace Ayin {
 
 
 	private:
-		static RendererAPI* s_RendererAPI;
+		static Scope<RendererAPI> s_RendererAPI;
 
 	};
 

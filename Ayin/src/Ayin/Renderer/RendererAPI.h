@@ -27,6 +27,8 @@ namespace Ayin {
 		/// </summary>
 		virtual void Init() = 0;
 
+		virtual void SetViewport(int x, int y, int width, int height) = 0;
+
 		/// <summary>
 		/// 设置清屏时的颜色缓冲
 		/// </summary>

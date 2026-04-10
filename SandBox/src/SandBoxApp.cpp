@@ -16,7 +16,7 @@ class ExampleLayer : public Ayin::Layer {
 public:
 	ExampleLayer()
 		:Ayin::Layer("Example"), 
-		m_SceneCamera{ Ayin::Camera::CameraType::Perspective, {.perspectiveProp = {.NearPlaneDistance = 0.1f, .FarPlaneDistance = 100.0f, .FOV = 60.0f, .AspectRatio = 16.0f / 9}} }
+		m_SceneCameraController{ {.Type = Ayin::Camera::CameraType::Perspective, .FOV = 60.0f, .AspectRatio = (16.0f/9.0f), .NearPlaneDistance = 0.1f, .FarPlaneDistance = 100.0f}}
 	{
 
 		#pragma region 基础渲染流程参考（这一部分也可以放到OnAttach中）
@@ -87,7 +87,7 @@ public:
 		}
 
 		// 着色器
-		m_Shader = Ayin::Shader::Create("O:/CppProgram/Ayin/assets/shader/shader.glsl");
+		m_ShaderLibrary.Load("O:/CppProgram/Ayin/assets/shader/shader.glsl");
 		m_TextureShader = Ayin::Shader::Create("O:/CppProgram/Ayin/assets/shader/TextureShader.glsl");
 
 
@@ -116,9 +116,6 @@ public:
 			m_BlendUBO->SetLayout(Ayin::UniformLayout{ "TransformBlock", { Ayin::UniformElement{Ayin::ShaderDataType::Mat4, "t_Position"}} });
 		}
 
-
-		m_SceneCamera.SetPosition(m_CameraPosition);
-		m_SceneCamera.SetRotation(m_CameraRotation);
 		
 	
 	}
@@ -128,12 +125,13 @@ public:
 
 		//OnAxisKeyPressed(deltaTime);
 		//OnMouseMoved(deltaTime);
+		m_SceneCameraController.OnUpdate(deltaTime);
 
 
 		Ayin::RenderCommand::Clear();
 
 		// 图形渲染
-		Ayin::Renderer::BeginScene(m_SceneCamera);
+		Ayin::Renderer::BeginScene(m_SceneCameraController.GetCamera());
 		{
 			{
 				m_Transform = glm::translate(m_Transform, glm::vec3{ 0.1f * deltaTime, 0.0f, 0.0f });
@@ -153,7 +151,7 @@ public:
 			m_Texture->Bind(0);
 
 			std::dynamic_pointer_cast<Ayin::OpenGLShader>(m_TextureShader)->UploadUniformFloat3("colorOffset", m_ColorOffset);
-			Ayin::Renderer::Submit(m_TextureShader, m_SquareVertexArray, m_UBO);
+			Ayin::Renderer::Submit(m_ShaderLibrary.Get("shader"), m_SquareVertexArray, m_UBO);
 
 
 			m_BlendTexture->Bind(0);
@@ -165,6 +163,10 @@ public:
 
 	}
 
+	virtual void OnEvent(Ayin::Event& e) override {
+		m_SceneCameraController.OnEvent(e);
+	}
+
 	virtual void OnImGuiRender() override {
 
 		ImGui::Begin("Color Offset");
@@ -174,82 +176,19 @@ public:
 	}
 
 
-	void OnAxisKeyPressed( Ayin::Timestep deltaTime ) {
-		//原点-》平移量 -》逆矩阵
-
-		glm::vec3 distance{ 0.0f };
-
-		//! 因为OpenGL对相机的可是朝向是z的负半轴，所以，这里的加减关系和直觉上是相反的
-		if (Ayin::Input::IsKeyPressed(AYIN_KEY_LEFT)) { distance.x -= m_MoveSpeed * deltaTime; };
-		if (Ayin::Input::IsKeyPressed(AYIN_KEY_RIGHT)) { distance.x += m_MoveSpeed * deltaTime; };
-		if (Ayin::Input::IsKeyPressed(AYIN_KEY_UP)) { distance.z -= m_MoveSpeed * deltaTime; };
-		if (Ayin::Input::IsKeyPressed(AYIN_KEY_DOWN)) { distance.z += m_MoveSpeed * deltaTime; };
-
-		if (glm::length(distance) > 0.0f) {
-
-			//! 原点 -> 平移量 -> 逆矩阵
-			//让移动基于相机的本地坐标，当然GetRotationMatrix()是我临时加的，之后可能会移动到Transform中
-			distance = m_SceneCamera.GetRotationMatrix() * glm::translate(glm::identity<glm::mat4>(), distance) * glm::vec4{0.0f, 0.0f, 0.0f, 1.0f};
-
-			m_CameraPosition += glm::normalize(distance);
-			AYIN_ERROR("direction:{0}, {1}, {2}", distance.x, distance.y, distance.z);
-
-
-			m_SceneCamera.SetPosition(m_CameraPosition);
-
-			//AYIN_ERROR("Move");
-			//AYIN_ERROR("{0}, {1}, {2}", m_CameraRotation.x, m_CameraRotation.y, m_CameraRotation.z);
-
-		}
-
-	}
-
-	void OnMouseMoved( Ayin::Timestep deltaTime ) {
-
-		auto [x, y] = Ayin::Input::GetMousePosition();
-
-		x = (x - 640);
-		y = (y - 360);
-
-		static glm::vec3 lastRotation{ y, x, 0.0f };
-		glm::vec3 rotation{ 0.0f };
-
-
-		rotation = glm::vec3{ y, x, 0.0f };
-
-
-		if (glm::length(rotation) > 30.0f) {
-
-			m_CameraRotation -= glm::normalize(rotation) * m_RotationSpeed  * float(deltaTime);
-
-			m_SceneCamera.SetRotation(m_CameraRotation);
-
-			lastRotation = { y, x, 0.0f };
-
-			AYIN_ERROR("Rotate");
-			AYIN_ERROR("{0}, {1}, {2}", m_CameraRotation.x, m_CameraRotation.y, m_CameraRotation.z);
-
-		}
-
-
-	}
 
 private:
 
-	Ayin::Ref<Ayin::Shader> m_Shader, m_TextureShader;								//着色器程序
+	Ayin::ShaderLibrary m_ShaderLibrary;
+	Ayin::Ref<Ayin::Shader> m_TextureShader;										//着色器程序
 	Ayin::Ref<Ayin::Texture2D> m_Texture, m_BlendTexture;							//纹理
 	Ayin::Ref<Ayin::UniformBuffer> m_UBO, m_BlendUBO;								//统一变量缓冲
 	glm::mat4 m_Transform{1.0f};	// mode测试
 	glm::vec3 m_ColorOffset{ 0.0f };// 其余uniform参数设置
 	Ayin::Ref<Ayin::VertexArray> m_TriangleVertexArray, m_SquareVertexArray;		//顶点数组
 
-	Ayin::Camera m_SceneCamera;														//场景相机
+	Ayin::CameraController m_SceneCameraController;														//场景相机
 
-	glm::vec3 m_CameraPosition{0.0f, 0.0f, 3.0f};									//相机位置
-	float m_MoveSpeed = 0.1f;														//移动速度
-
-	glm::vec3 m_CameraRotation{0.0f};												//相机度数
-	float m_RotationSpeed = 30.0f;													//转动速度
 
 };
 

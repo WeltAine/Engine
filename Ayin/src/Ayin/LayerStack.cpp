@@ -11,6 +11,7 @@ namespace Ayin {
 	LayerStack::~LayerStack() {
 		//cherno所说的所有权应该就是指当Stack析构时，Layer*该何去何从
 		for (Layer* layer : m_Layers) {
+			layer->OnDetach();
 			delete layer;
 		}
 	}

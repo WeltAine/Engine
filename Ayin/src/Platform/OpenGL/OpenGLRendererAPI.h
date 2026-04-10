@@ -13,6 +13,8 @@ namespace Ayin {
 		// 通过 RendererAPI 继承
 		virtual void Init() override;
 
+		virtual void SetViewport(int x, int y, int width, int height) override;
+
 		virtual void SetClearColor(const glm::vec4& color) const override;
 
 		virtual void Clear() const override;

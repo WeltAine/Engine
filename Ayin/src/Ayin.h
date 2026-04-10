@@ -13,6 +13,7 @@
 #include "Ayin/Input.h"
 #include "Ayin/KayCodes.h"
 #include "Ayin/MouseButtonCodes.h"
+#include "Ayin/CameraController.h"
 
 // ---渲染器--------------------------
 #include "Ayin/Renderer/Renderer.h"

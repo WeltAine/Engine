@@ -11,6 +11,13 @@ namespace Ayin {
 	//! 单例加外观
 	class AYIN_API Input {
 
+	protected:
+		Input() = default;
+
+	public:
+		Input(const Input&) = delete;
+		Input& operator=(const Input&) = delete;
+
 	public:
 		inline static bool IsKeyPressed(int keyCode) { return s_Instance->IsKeyPressedImpl(keyCode); };
 
@@ -30,7 +37,7 @@ namespace Ayin {
 
 
 	private:
-		static Input* s_Instance;//单例的保证（本身是抽象类无法直接构造实例），同时实现侧的指针
+		static Scope<Input> s_Instance;//单例的保证（本身是抽象类无法直接构造实例），同时实现侧的指针
 	};
 
 }

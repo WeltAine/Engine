@@ -14,6 +14,8 @@ namespace Ayin {
 
 		static void Init();
 
+		static void OnWindowResize(int width, int height);
+
 		/// <summary>
 		/// 场景/环境设置（相机位置，光照。。。）
 		/// </summary>
@@ -33,10 +35,10 @@ namespace Ayin {
 		// 所以需要设计一个静态成员来存放场景数据
 		struct SceneData {
 
-			glm::mat4 projectionViewMatrix;
+			glm::mat4 projectionViewMatrix = glm::identity<glm::mat4>();
 
 		};
 
-		static SceneData* s_SceneData;
+		static Scope<SceneData> s_SceneData;
 	};
 }
