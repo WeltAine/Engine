@@ -59,5 +59,16 @@ namespace Ayin {
 
 	}
 
+	const std::vector<int>& UniformBuffer::GetIndexs() {
+
+		switch (Renderer::GetAPI()) {
+
+			case(RendererAPI::API::None):	AYIN_CORE_ASSERT(false, "RendererAPI::None is currently not supported!");
+			case(RendererAPI::API::OpenGL): return OpenGLUniformBuffer::GetIndexs();
+
+		}
+
+	}
+
 
 }

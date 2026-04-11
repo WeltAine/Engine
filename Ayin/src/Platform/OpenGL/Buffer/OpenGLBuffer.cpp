@@ -1,7 +1,11 @@
 #include <AyinPch.h>
-#include "OpenGLBuffer.h"
 
 #include <Glad/glad.h>
+#include <glm/gtc/type_ptr.hpp>
+
+
+#include "OpenGLBuffer.h"
+
 
 namespace Ayin {
 
@@ -186,6 +190,10 @@ namespace Ayin {
 	/// UniformBuffer ////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////////////////////
 
+	//ToDo 先这么写着，之后可以高层次Init，内部再低层次Init来针对不同API初始化，就像Renderer里的那样
+	std::vector<int> OpenGLUniformBuffer::s_BindingIndexs(64);
+
+
 	OpenGLUniformBuffer::OpenGLUniformBuffer(void* uniformData, size_t size)
 	{
 
@@ -193,12 +201,6 @@ namespace Ayin {
 		//glBindBufferBase(目标，索引（bind）, 对象);	//也可以不指定（注意不会设置当前活跃的UBO，只是指定，shader中没有这个block块也没关系）
 		//glBufferSubData(目标, 起始偏移, 大小，数据);//向当前活跃对象上传数据，偏移是GPU中block内的偏移
 		//glBindBufferRange(目标，索引（bind），对象，起始偏移，总大小);//划分对象数据段到指定bind
-
-		int maxUBOBindings = 0;
-		glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &maxUBOBindings);
-
-		m_BindingIndexs.reserve(maxUBOBindings);
-
 
 	#pragma region BTA
 		//int currentUniformBufferID = 0;
@@ -224,36 +226,14 @@ namespace Ayin {
 
 	#pragma region BTA/DSA
 		UnBind();
+
+		//解除相关绑定
+		for (int index = 0; index < s_BindingIndexs.size(); index++) {
+			if (s_BindingIndexs[index] = m_UniformBufferID)
+				glBindBufferBase(GL_UNIFORM_BUFFER, index, 0);
+		}
+			
 		glDeleteBuffers(1, &m_UniformBufferID);
-	#pragma endregion
-
-	}
-
-
-	void OpenGLUniformBuffer::Set(const std::string& paramName, void* data)
-	{
-		auto it = std::find_if(m_UniformLayout.begin(), m_UniformLayout.end(), [&paramName](const UniformElement& element) {
-			return element.Name == paramName;
-			});
-
-		AYIN_ASSERT(it != m_UniformLayout.end(), "Unfind {0} in shader!", paramName);
-
-	#pragma region BTA
-		//int currentUniformBufferID = 0;
-		//glGetIntegerv(GL_UNIFORM_BUFFER_BINDING, &currentUniformBufferID);
-
-		//glBindBuffer(GL_UNIFORM_BUFFER, m_UniformBufferID);
-
-		//// 设置UBO对应数据块上某一段区域数据
-		//glBufferSubData(GL_UNIFORM_BUFFER, it->Offset, it->Size, data);
-
-		//glBindBuffer(GL_UNIFORM_BUFFER, currentUniformBufferID);
-	#pragma endregion
-
-
-	#pragma region DSA
-		// 设置UBO对应数据块上某一段区域数据
-		glNamedBufferSubData(m_UniformBufferID, it->Offset, it->Size, data);
 	#pragma endregion
 
 	}
@@ -283,7 +263,10 @@ namespace Ayin {
 	void OpenGLUniformBuffer::SetBindingIndexs(const std::initializer_list<int>& bindingIndexs) {
 
 	#pragma region BTA/DSA
-		m_BindingIndexs = bindingIndexs;
+		for (const int& index : bindingIndexs) {
+			s_BindingIndexs[index] = m_UniformBufferID ;
+			glBindBufferBase(GL_UNIFORM_BUFFER, index, m_UniformBufferID);		// UBO绑定到上下文的对应BlockBinding上
+		}
 	#pragma endregion
 
 	}
@@ -291,104 +274,179 @@ namespace Ayin {
 
 	void OpenGLUniformBuffer::Bind() const {
 
-	#pragma region BTA
-		//glBindBuffer(GL_UNIFORM_BUFFER, m_UniformBufferID);
-
-		////清除旧绑定
-		//int maxUBOBindings = 0;
-		//glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &maxUBOBindings);
-
-		//int indexToUniformBufferID = 0;
-		//for (int index = 0; index < maxUBOBindings; index++) {
-
-		//	glGetIntegeri_v(GL_UNIFORM_BUFFER_BINDING, index, &indexToUniformBufferID);
-
-		//	if (indexToUniformBufferID == m_UniformBufferID)
-		//		glBindBufferBase(GL_UNIFORM_BUFFER, index, 0);
-		//}
-
-		////建立新绑定
-		//for (int index : m_BindingIndexs) {
-		//	glBindBufferBase(GL_UNIFORM_BUFFER, index, m_UniformBufferID);
-		//}
+	#pragma region BTA/DSA
+		glBindBuffer(GL_UNIFORM_BUFFER, m_UniformBufferID);
 	#pragma endregion
 
-	#pragma region DSA
-		//清除旧绑定
-		int maxUBOBindings = 0;
-		glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &maxUBOBindings);
-
-		int indexToUniformBufferID = 0;
-		for (int index = 0; index < maxUBOBindings; index++) {
-
-			glGetIntegeri_v(GL_UNIFORM_BUFFER_BINDING, index, &indexToUniformBufferID);
-
-			if (indexToUniformBufferID == m_UniformBufferID)
-				glBindBufferBase(GL_UNIFORM_BUFFER, index, 0);
-		}
-
-		//建立新绑定
-		for (int index : m_BindingIndexs) {
-			glBindBufferBase(GL_UNIFORM_BUFFER, index, m_UniformBufferID);
-		}
-	#pragma endregion
-
-	}
-
-	void OpenGLUniformBuffer::Bind(int blockIndex)
-	{
-	#pragma region BTA
-		//glBindBuffer(GL_UNIFORM_BUFFER, m_UniformBufferID);
-		//glBindBufferBase(GL_UNIFORM_BUFFER, blockIndex, m_UniformBufferID);	// UBO绑定到上下文的对应BlockBinding上
-		//m_BindingIndexs.push_back(blockIndex)
-	#pragma endregion
-
-	#pragma region DSA
-		glBindBuffer(GL_UNIFORM_BUFFER, m_UniformBufferID);						//! 尽管对于让Shader使用上正确的UBO来说并不必要，但还是写上，因为Bind方法有这层含义
-		glBindBufferBase(GL_UNIFORM_BUFFER, blockIndex, m_UniformBufferID);		// UBO绑定到上下文的对应BlockBinding上
-		m_BindingIndexs.push_back(blockIndex);
-	#pragma endregion
 	}
 
 
 	void OpenGLUniformBuffer::UnBind() const
 	{
-	#pragma region BTA
-		//int currentUniformBufferID = 0;
-		//glGetIntegerv(GL_UNIFORM_BUFFER_BINDING, &currentUniformBufferID);
+	#pragma region BTA/DSA
+		int currentUniformBufferID = 0;
+		glGetIntegerv(GL_UNIFORM_BUFFER, &currentUniformBufferID);
 
-		//int maxUBOBindings = 0;
-		//glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &maxUBOBindings);
+		if (currentUniformBufferID == m_UniformBufferID)
+			glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-		//int indexToUniformBufferID = 0;
-		//for (int index = 0; index < maxUBOBindings; index++) {
-
-		//	glGetIntegeri_v(GL_UNIFORM_BUFFER_BINDING, index, &indexToUniformBufferID);
-
-		//	if (indexToUniformBufferID == m_UniformBufferID)
-		//		glBindBufferBase(GL_UNIFORM_BUFFER, index, 0);
-		//}
-
-		//if (currentUniformBufferID == m_UniformBufferID)
-		//	glBindBuffer(GL_UNIFORM_BUFFER, 0);
-	#pragma endregion
-
-
-
-	#pragma region DSA
-		int maxUBOBindings = 0;
-		glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &maxUBOBindings);
-
-		int indexToUniformBufferID = 0;
-		for (int index = 0; index < maxUBOBindings; index++) {
-
-			glGetIntegeri_v(GL_UNIFORM_BUFFER_BINDING, index, &indexToUniformBufferID);
-
-			if (indexToUniformBufferID == m_UniformBufferID)
-				glBindBufferBase(GL_UNIFORM_BUFFER, index, 0);
-		}
 	#pragma endregion
 	}
+
+
+
+
+
+	void OpenGLUniformBuffer::UploadBool(const std::string& paramName, bool value) {
+
+	#pragma region DSA
+		auto it = std::find_if(m_UniformLayout.begin(), m_UniformLayout.end(), [&paramName](const UniformElement& element) {
+			return element.Name == paramName;
+			});
+		AYIN_ASSERT(it != m_UniformLayout.end(), "Unfind {0} in shader!", paramName);
+
+
+		glNamedBufferSubData(m_UniformBufferID, it->Offset, it->Size, &value);
+	#pragma endregion
+
+	}
+
+
+	void OpenGLUniformBuffer::UploadInt(const std::string& paramName, int value) {
+
+	#pragma region DSA
+		auto it = std::find_if(m_UniformLayout.begin(), m_UniformLayout.end(), [&paramName](const UniformElement& element) {
+			return element.Name == paramName;
+			});
+		AYIN_ASSERT(it != m_UniformLayout.end(), "Unfind {0} in shader!", paramName);
+
+
+		glNamedBufferSubData(m_UniformBufferID, it->Offset, it->Size, &value);
+	#pragma endregion
+
+	}
+	void OpenGLUniformBuffer::UploadInt2(const std::string& paramName, const glm::ivec2& vector) {
+
+	#pragma region DSA
+		auto it = std::find_if(m_UniformLayout.begin(), m_UniformLayout.end(), [&paramName](const UniformElement& element) {
+			return element.Name == paramName;
+			});
+		AYIN_ASSERT(it != m_UniformLayout.end(), "Unfind {0} in shader!", paramName);
+
+
+		glNamedBufferSubData(m_UniformBufferID, it->Offset, it->Size, glm::value_ptr(vector));
+	#pragma endregion
+	
+	}
+	void OpenGLUniformBuffer::UploadInt3(const std::string& paramName, const glm::ivec3& vector) {
+
+	#pragma region DSA
+		auto it = std::find_if(m_UniformLayout.begin(), m_UniformLayout.end(), [&paramName](const UniformElement& element) {
+			return element.Name == paramName;
+			});
+		AYIN_ASSERT(it != m_UniformLayout.end(), "Unfind {0} in shader!", paramName);
+
+
+		glNamedBufferSubData(m_UniformBufferID, it->Offset, it->Size, glm::value_ptr(vector));
+	#pragma endregion
+
+	}
+	void OpenGLUniformBuffer::UploadInt4(const std::string& paramName, const glm::ivec4& vector) {
+
+	#pragma region DSA
+		auto it = std::find_if(m_UniformLayout.begin(), m_UniformLayout.end(), [&paramName](const UniformElement& element) {
+			return element.Name == paramName;
+			});
+		AYIN_ASSERT(it != m_UniformLayout.end(), "Unfind {0} in shader!", paramName);
+
+
+		glNamedBufferSubData(m_UniformBufferID, it->Offset, it->Size, glm::value_ptr(vector));
+	#pragma endregion
+
+	}
+
+
+	void OpenGLUniformBuffer::UploadFloat(const std::string& paramName, float value) {
+
+	#pragma region DSA
+		auto it = std::find_if(m_UniformLayout.begin(), m_UniformLayout.end(), [&paramName](const UniformElement& element) {
+			return element.Name == paramName;
+			});
+		AYIN_ASSERT(it != m_UniformLayout.end(), "Unfind {0} in shader!", paramName);
+
+
+		glNamedBufferSubData(m_UniformBufferID, it->Offset, it->Size, &value);
+	#pragma endregion
+
+	}
+	void OpenGLUniformBuffer::UploadFloat2(const std::string& paramName, const glm::vec2& vector) {
+	
+	#pragma region DSA
+		auto it = std::find_if(m_UniformLayout.begin(), m_UniformLayout.end(), [&paramName](const UniformElement& element) {
+			return element.Name == paramName;
+			});
+		AYIN_ASSERT(it != m_UniformLayout.end(), "Unfind {0} in shader!", paramName);
+
+
+		glNamedBufferSubData(m_UniformBufferID, it->Offset, it->Size, glm::value_ptr(vector));
+	#pragma endregion
+
+	}
+	void OpenGLUniformBuffer::UploadFloat3(const std::string& paramName, const glm::vec3& vector) {
+
+	#pragma region DSA
+		auto it = std::find_if(m_UniformLayout.begin(), m_UniformLayout.end(), [&paramName](const UniformElement& element) {
+			return element.Name == paramName;
+			});
+		AYIN_ASSERT(it != m_UniformLayout.end(), "Unfind {0} in shader!", paramName);
+
+
+		glNamedBufferSubData(m_UniformBufferID, it->Offset, it->Size, glm::value_ptr(vector));
+	#pragma endregion
+
+	}
+	void OpenGLUniformBuffer::UploadFloat4(const std::string& paramName, const glm::vec4& vector) {
+
+	#pragma region DSA
+		auto it = std::find_if(m_UniformLayout.begin(), m_UniformLayout.end(), [&paramName](const UniformElement& element) {
+			return element.Name == paramName;
+			});
+		AYIN_ASSERT(it != m_UniformLayout.end(), "Unfind {0} in shader!", paramName);
+
+
+		glNamedBufferSubData(m_UniformBufferID, it->Offset, it->Size, glm::value_ptr(vector));
+	#pragma endregion
+
+	}
+
+
+	void OpenGLUniformBuffer::UploadMat3(const std::string& paramName, const glm::mat3& matrix) {
+
+	#pragma region DSA
+		auto it = std::find_if(m_UniformLayout.begin(), m_UniformLayout.end(), [&paramName](const UniformElement& element) {
+			return element.Name == paramName;
+			});
+		AYIN_ASSERT(it != m_UniformLayout.end(), "Unfind {0} in shader!", paramName);
+
+
+		glNamedBufferSubData(m_UniformBufferID, it->Offset, it->Size, glm::value_ptr(matrix));
+	#pragma endregion
+
+	}
+	void OpenGLUniformBuffer::UploadMat4(const std::string& paramName, const glm::mat4& matrix) {
+
+	#pragma region DSA
+		auto it = std::find_if(m_UniformLayout.begin(), m_UniformLayout.end(), [&paramName](const UniformElement& element) {
+			return element.Name == paramName;
+			});
+		AYIN_ASSERT(it != m_UniformLayout.end(), "Unfind {0} in shader!", paramName);
+
+
+		glNamedBufferSubData(m_UniformBufferID, it->Offset, it->Size, glm::value_ptr(matrix));
+	#pragma endregion
+
+	}
+
 
 
 }

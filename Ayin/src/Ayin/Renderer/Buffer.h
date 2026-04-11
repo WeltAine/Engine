@@ -382,12 +382,12 @@ namespace Ayin{
 
 		virtual ~UniformBuffer() = default;
 
-		/// <summary>
-		/// 设置指定数据
-		/// </summary>
-		/// <param name="paramName"></param>
-		/// <param name="data"></param>
-		virtual void Set(const std::string& paramName, void* data) = 0;
+		///// <summary>
+		///// 设置指定数据
+		///// </summary>
+		///// <param name="paramName"></param>
+		///// <param name="data"></param>
+		//virtual void Set(const std::string& paramName, void* data) = 0;
 
 		/// <summary>
 		/// 全部数据设置
@@ -411,10 +411,9 @@ namespace Ayin{
 		//! 至于&，是因为当下就两个选择T，const T，const T&，很显然最后一个可以避免拷贝
 
 		virtual void SetBindingIndexs(const std::initializer_list<int>& bindingIndexs) = 0;
-		virtual const std::vector<int>& GetIndex() const = 0;
+		static const std::vector<int>& GetIndexs();
 
 		virtual void Bind() const = 0;
-		virtual void Bind(int blockIndex) = 0;
 
 		virtual void UnBind() const = 0;
 

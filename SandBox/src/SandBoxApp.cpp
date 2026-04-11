@@ -9,6 +9,8 @@
 //! 所以SandBox的设置中没有包含Glad路径，但是<Platform/OpenGL/OpenGLShader.h>中如果包含的话就会被引入，但SandBox在预处理时无法访问
 //! 这就是为什么Ayin编译时没有问题，而SandBox中却有问题
 
+#include <Platform/OpenGL/Buffer/OpenGLBuffer.h>
+
 
 
 class ExampleLayer : public Ayin::Layer {
@@ -135,12 +137,12 @@ public:
 		{
 			{
 				m_Transform = glm::translate(m_Transform, glm::vec3{ 0.1f * deltaTime, 0.0f, 0.0f });
-				m_UBO->Set("t_Position", static_cast<void*>(glm::value_ptr(m_Transform)));
+				std::dynamic_pointer_cast<Ayin::OpenGLUniformBuffer>(m_UBO)->UploadMat4("t_Position", m_Transform);
 			}
 
 			{
 				glm::mat4 transform = glm::translate(glm::mat4{ 1.0f }, glm::vec3{ 0.0f * deltaTime, 0.0f, 0.0f });
-				m_BlendUBO->Set("t_Position", static_cast<void*>(glm::value_ptr(transform)));
+				std::dynamic_pointer_cast<Ayin::OpenGLUniformBuffer>(m_BlendUBO)->UploadMat4("t_Position", transform);
 			}
 
 
@@ -149,11 +151,12 @@ public:
 			//Ayin::Renderer::Submit(m_Shader, m_TriangleVertexArray, m_UBO);//绑定shader并绘制VAO
 
 			m_Texture->Bind(0);
-
-			std::dynamic_pointer_cast<Ayin::OpenGLShader>(m_TextureShader)->UploadUniformFloat3("colorOffset", m_ColorOffset);
+			m_UBO->SetBindingIndexs({1});
 			Ayin::Renderer::Submit(m_ShaderLibrary.Get("shader"), m_SquareVertexArray, m_UBO);
 
 
+			std::dynamic_pointer_cast<Ayin::OpenGLShader>(m_TextureShader)->UploadUniformFloat3("colorOffset", m_ColorOffset);
+			m_BlendUBO->SetBindingIndexs({1});
 			m_BlendTexture->Bind(0);
 			Ayin::Renderer::Submit(m_TextureShader, m_SquareVertexArray, m_BlendUBO);
 
