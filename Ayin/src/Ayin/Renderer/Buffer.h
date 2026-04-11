@@ -102,26 +102,20 @@ namespace Ayin{
 		{
 			CalculateOffsetsAndStride();
 		}
-		// 关于initializer_list的使用
-		// 简单来说initializer_list 就是列表初始化或者叫初始化列表的化身（文档上两者的格式都是{"初始化列表"}），列表初始化可以称呼为基于初始化列表的初始化行为
-		// 我们知道隐式转换序列中我们只允许进行一次用户定义转换
-		// 但是initializer_list十分特殊，可以理解它是C++特性，可以以它为媒介发起一次无"转换计数"的转换，而且整个转换序列可以发起多次
-		// BufferElement --> BufferLayout：消耗一次计数；
-		// 如果以const std::initializer_list<BufferElement>& elements作为中间参数
-		// BufferElement -(隧穿)-> BufferLayout：不消耗计数；就像量子隧穿是量子自身的特性，无代价转换就是initializer_list的特性（完整过程为BufferElement --> initializer_lise<BufferElement> -->  BufferLayout）
-		// 对了，隐式转换关注的是从实参变为形参，所以最后的目标构造是不用算在其中的
+		//? 内容有误（之后修改）
+		//x 关于initializer_list的使用
+		//x 简单来说initializer_list 就是列表初始化或者叫初始化列表的化身（文档上两者的格式都是{"初始化列表"}），列表初始化可以称呼为基于初始化列表的初始化行为
+		//x 我们知道隐式转换序列中我们只允许进行一次用户定义转换
+		//x 但是initializer_list十分特殊，可以理解它是C++特性，可以以它为媒介发起一次无"转换计数"的转换，而且整个转换序列可以发起多次
+		//x BufferElement --> BufferLayout：消耗一次计数；
+		//x 如果以const std::initializer_list<BufferElement>& elements作为中间参数
+		//x BufferElement -(隧穿)-> BufferLayout：不消耗计数；就像量子隧穿是量子自身的特性，无代价转换就是initializer_list的特性（完整过程为BufferElement --> initializer_lise<BufferElement> -->  BufferLayout）
+		//x 对了，隐式转换关注的是从实参变为形参，所以最后的目标构造是不用算在其中的
 		// 参考资料
 		// https://en.cppreference.com/w/cpp/language/list_initialization.html
 		// https://en.cppreference.com/w/cpp/language/initialization.html
 		// https://en.cppreference.com/w/cpp/language/overload_resolution.html#Ranking_of_implicit_conversion_sequences
 		// https://en.cppreference.com/w/cpp/utility/initializer_list/initializer_list.html
-
-
-		//BufferLayout(const std::vector<BufferElement>& elements)
-		//	:m_Elements(elements)
-		//{
-		//	CalculateOffsetsAndStride();
-		//}
 
 
 		void CalculateOffsetsAndStride() {
@@ -148,7 +142,7 @@ namespace Ayin{
 
 	private:
 		std::vector<BufferElement> m_Elements;
-		size_t m_Stride;
+		size_t m_Stride = 0;
 
 	};
 

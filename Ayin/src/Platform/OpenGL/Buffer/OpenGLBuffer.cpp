@@ -15,25 +15,9 @@ namespace Ayin {
 
 	OpenGLVertexBuffer::OpenGLVertexBuffer(float* vertices, size_t size) {
 
-	#pragma region BTA
-
-		//int currentVertexBufferID = 0;
-		//glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &currentVertexBufferID);
-
-		//glCreateBuffers(1, &m_VertexBufferID);
-		//glBindBuffer(GL_ARRAY_BUFFER, m_VertexBufferID);
-		//glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
-
-		//glBindBuffer(GL_ARRAY_BUFFER, currentVertexBufferID);
-
-	#pragma endregion
-
-
 	#pragma region DSA
-
 		glCreateBuffers(1, &m_VertexBufferID);
 		glNamedBufferData(m_VertexBufferID, size, vertices, GL_STATIC_DRAW);
-
 	#pragma endregion
 
 	}
@@ -50,11 +34,7 @@ namespace Ayin {
 	void OpenGLVertexBuffer::Bind() const { 
 
 	#pragma region BTA/DSA
-		//glBindBuffer(GL_ARRAY_BUFFER, m_VertexBufferID); 
-	#pragma endregion
-
-	#pragma region DSA
-		//nothing
+		glBindBuffer(GL_ARRAY_BUFFER, m_VertexBufferID); 
 	#pragma endregion
 
 	}
@@ -63,16 +43,12 @@ namespace Ayin {
 
 	#pragma region BTA/DSA
 
-		//int currentVertexBufferID = 0;
-		//glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &currentVertexBufferID);
+		int currentVertexBufferID = 0;
+		glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &currentVertexBufferID);
 
-		//if (currentVertexBufferID == m_VertexBufferID)
-		//	glBindBuffer(GL_ARRAY_BUFFER, 0);
+		if (currentVertexBufferID == m_VertexBufferID)
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	#pragma endregion
-
-	#pragma region DSA
-		//nothing
 	#pragma endregion
 
 	}
@@ -157,30 +133,22 @@ namespace Ayin {
 
 	void OpenGLIndexBuffer::Bind() const { 
 
-	#pragma region BTA
-		//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IndexBufferID); 
-	#pragma endregion
-
-	#pragma region DSA
-		//nothing
+	#pragma region BTA/DSA
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IndexBufferID); 
 	#pragma endregion
 
 	}
 
 	void OpenGLIndexBuffer::UnBind() const {
 	
-	#pragma region BTA
+	#pragma region BTA/DSA
 
-		//int currentIndexBufferID;
-		//glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &currentIndexBufferID);
+		int currentIndexBufferID;
+		glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &currentIndexBufferID);
 
-		//if (currentIndexBufferID == m_IndexBufferID)
-		//	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		if (currentIndexBufferID == m_IndexBufferID)
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-	#pragma endregion
-
-	#pragma region DSA
-		//nothing
 	#pragma endregion
 
 	}
@@ -240,20 +208,6 @@ namespace Ayin {
 
 	void OpenGLUniformBuffer::Set(void* data)
 	{
-	#pragma region BTA
-		//int currentUniformBufferID = 0;
-		//glGetIntegerv(GL_UNIFORM_BUFFER_BINDING, &currentUniformBufferID);
-
-		//glBindBuffer(GL_UNIFORM_BUFFER, m_UniformBufferID);
-
-		//// 设置UBO对应数据块整个区域数据
-		//glBufferSubData(GL_UNIFORM_BUFFER, 0, m_UniformLayout.GetSize(), data);
-
-		//glBindBuffer(GL_UNIFORM_BUFFER, currentUniformBufferID);
-	#pragma endregion
-
-
-
 	#pragma region DSA
 		// 设置UBO对应数据块整个区域数据
 		glNamedBufferSubData(m_UniformBufferID, 0, m_UniformLayout.GetSize(), data);
