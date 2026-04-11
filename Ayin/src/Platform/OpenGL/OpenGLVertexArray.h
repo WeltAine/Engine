@@ -35,7 +35,7 @@ namespace Ayin {
 		std::vector<Ref<VertexBuffer>> m_VertexBuffers;
 		Ref<IndexBuffer> m_IndexBuffer;
 
-		uint32_t m_BindingIndex = 0;//DSA下，下一次记录VBO时要使用的BindingIndex
+		uint32_t m_BindingIndex = 0;//DSA下，下一次设置VBO中属性时要使用的BindingIndex
 
 	};
 
