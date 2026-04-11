@@ -63,7 +63,7 @@ namespace Ayin {
 
 		switch (Renderer::GetAPI()) {
 
-			case(RendererAPI::API::None):	AYIN_CORE_ASSERT(false, "RendererAPI::None is currently not supported!"); return;
+		case(RendererAPI::API::None):	AYIN_CORE_ASSERT(false, "RendererAPI::None is currently not supported!"); return std::vector<int>();
 			case(RendererAPI::API::OpenGL): return OpenGLUniformBuffer::GetIndexs();
 
 		}
