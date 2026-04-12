@@ -1,4 +1,9 @@
 #include <Ayin.h>
+
+// ---入口点--------------------------
+#include "Ayin/EntryPoint.h"
+// -----------------------------------
+
 #include <Platform/OpenGL/OpenGLShader.h>
 //! 在< a525129954c7c020ad0bd789b60ccc895825f1ca >提交中有一个关于该头文件的bug
 //! 在设置shader所需数据时我们选择在原地转换指针（关于当下Shader没有这个API的原因在Shader和OpenGLShader中有说明），转换为具体类型（之后肯定会改的）
@@ -103,19 +108,19 @@ public:
 
 		#pragma endregion
 
-		//Mode(使用统一缓冲)
+		//Mode(使用统一缓冲,UBO)
 		{
 			glm::mat4 translate = glm::translate(glm::identity<glm::mat4>(), glm::vec3{ 0.0f });
 			m_UBO = Ayin::UniformBuffer::Create(static_cast<void*>(glm::value_ptr(translate)), sizeof(translate));
 			m_UBO->SetBindingIndexs({1});
-			m_UBO->SetLayout(Ayin::UniformLayout{ "TransformBlock", { Ayin::UniformElement{Ayin::ShaderDataType::Mat4, "t_Position"}} });
+			m_UBO->SetLayout(Ayin::UniformLayout{ "TransformBlock", { Ayin::UniformElement{Ayin::ShaderDataType::Mat4, "t_Transform"}} });
 		}
 
 		{
 			glm::mat4 translate = glm::translate(glm::identity<glm::mat4>(), glm::vec3{ 0.0f });
 			m_BlendUBO = Ayin::UniformBuffer::Create(static_cast<void*>(glm::value_ptr(translate)), sizeof(translate));
 			m_BlendUBO->SetBindingIndexs({1});
-			m_BlendUBO->SetLayout(Ayin::UniformLayout{ "TransformBlock", { Ayin::UniformElement{Ayin::ShaderDataType::Mat4, "t_Position"}} });
+			m_BlendUBO->SetLayout(Ayin::UniformLayout{ "TransformBlock", { Ayin::UniformElement{Ayin::ShaderDataType::Mat4, "t_Transform"}} });
 		}
 
 		
@@ -137,12 +142,12 @@ public:
 		{
 			{
 				m_Transform = glm::translate(m_Transform, glm::vec3{ 0.1f * deltaTime, 0.0f, 0.0f });
-				std::dynamic_pointer_cast<Ayin::OpenGLUniformBuffer>(m_UBO)->UploadMat4("t_Position", m_Transform);
+				std::dynamic_pointer_cast<Ayin::OpenGLUniformBuffer>(m_UBO)->UploadMat4("t_Transform", m_Transform);
 			}
 
 			{
 				glm::mat4 transform = glm::translate(glm::mat4{ 1.0f }, glm::vec3{ 0.0f * deltaTime, 0.0f, 0.0f });
-				std::dynamic_pointer_cast<Ayin::OpenGLUniformBuffer>(m_BlendUBO)->UploadMat4("t_Position", transform);
+				std::dynamic_pointer_cast<Ayin::OpenGLUniformBuffer>(m_BlendUBO)->UploadMat4("t_Transform", transform);
 			}
 
 
@@ -151,14 +156,16 @@ public:
 			//Ayin::Renderer::Submit(m_Shader, m_TriangleVertexArray, m_UBO);//绑定shader并绘制VAO
 
 			m_Texture->Bind(0);
+			m_UBO->Bind();
 			m_UBO->SetBindingIndexs({1});
-			Ayin::Renderer::Submit(m_ShaderLibrary.Get("shader"), m_SquareVertexArray, m_UBO);
+			Ayin::Renderer::Submit(m_ShaderLibrary.Get("shader"), m_SquareVertexArray);
 
 
 			std::dynamic_pointer_cast<Ayin::OpenGLShader>(m_TextureShader)->UploadUniformFloat3("colorOffset", m_ColorOffset);
-			m_BlendUBO->SetBindingIndexs({1});
 			m_BlendTexture->Bind(0);
-			Ayin::Renderer::Submit(m_TextureShader, m_SquareVertexArray, m_BlendUBO);
+			m_BlendUBO->Bind();
+			m_BlendUBO->SetBindingIndexs({1});
+			Ayin::Renderer::Submit(m_TextureShader, m_SquareVertexArray);
 
 
 		}

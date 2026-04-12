@@ -10,12 +10,12 @@ uniform mat4 u_ProjectionViewMatrix;
 
 
 layout(std140, binding = 1) uniform TransformBlock{
-    mat4 t_Position;
+    mat4 t_Transform;
 };
 
 void main(){
     v_Position = a_Position;
-    gl_Position = u_ProjectionViewMatrix * t_Position * vec4(a_Position, 1.0f);
+    gl_Position = u_ProjectionViewMatrix * t_Transform * vec4(a_Position, 1.0f);
 
     v_UV = a_UV;
 }
