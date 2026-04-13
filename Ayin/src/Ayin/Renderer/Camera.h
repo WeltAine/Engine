@@ -72,6 +72,10 @@ namespace Ayin {
 
 	/// <summary>
 	/// 相机参数结构体
+	/// <para> Type(透视) </para>
+	/// <para> FOV(60),	Height(2) </para>
+	/// <para> AspectRatio(16:9) </para>
+	/// <para> NearPlaneDistance(0.1), FarPlaneDistance(100) </para>
 	/// </summary>
 	struct CameraProp
 	{

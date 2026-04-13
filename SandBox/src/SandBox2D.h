@@ -24,9 +24,6 @@ private:
 
 	Ayin::CameraController m_CamreaController;		//相机控制器
 
-	Ayin::Ref<Ayin::VertexArray> m_SquareVAO;		//矩形VAO
-
-	Ayin::Ref<Ayin::Shader> m_SquareShader;			//矩形着色器
 
 	glm::vec4 m_SquareColor{1.0f, 1.0f, 1.0f, 1.0f};//矩形着色器中的参数
 

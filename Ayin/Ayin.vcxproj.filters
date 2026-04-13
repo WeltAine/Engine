@@ -1423,6 +1423,7 @@
       <Filter>src\Platform\Windows</Filter>
     </ClInclude>
     <ClInclude Include="src\Ayin\CameraController.h" />
+    <ClInclude Include="src\Ayin\Renderer\Renderer2D.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Dependency\stb_image\stb_image.cpp">
@@ -1499,5 +1500,6 @@
     </ClCompile>
     <ClCompile Include="src\Ayin\Input.cpp" />
     <ClCompile Include="src\Ayin\CameraController.cpp" />
+    <ClCompile Include="src\Ayin\Renderer\Renderer2D.cpp" />
   </ItemGroup>
 </Project>

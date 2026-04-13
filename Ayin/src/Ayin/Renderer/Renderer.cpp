@@ -1,6 +1,7 @@
 #include <AyinPch.h>
 
 #include "Renderer.h"
+#include "Ayin/Renderer/Renderer2D.h"
 #include <Platform/OpenGL/OpenGLShader.h>
 
 namespace Ayin {
@@ -9,7 +10,10 @@ namespace Ayin {
 
 
 	void Renderer::Init() {
+
+		Renderer2D::Init();
 		RenderCommand::Init();
+
 	};
 
 	void Renderer::OnWindowResize(int width, int height) {

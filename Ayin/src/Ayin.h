@@ -17,6 +17,7 @@
 
 // ---渲染器--------------------------
 #include "Ayin/Renderer/Renderer.h"
+#include "Ayin/Renderer/Renderer2D.h"
 #include "Ayin/Renderer/RenderCommand.h"
 
 #include "Ayin/Renderer/Shader.h"
