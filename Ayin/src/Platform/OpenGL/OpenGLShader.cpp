@@ -178,7 +178,7 @@ namespace Ayin {
 					glDeleteShader(shader);
 
 					AYIN_CORE_ERROR("{0}", inforLog.data());
-					AYIN_ASSERT(false, "ERROR::OpenGLShader::{0}::Compilation Failed", ShaderTypeToString(kv.first));
+					AYIN_CORE_ASSERT(false, "ERROR::OpenGLShader::{0}::Compilation Failed", ShaderTypeToString(kv.first).data());
 					return;
 				}
 			}
@@ -214,7 +214,7 @@ namespace Ayin {
 				}
 
 				AYIN_CORE_ERROR("{0}", inforLog.data());
-				AYIN_ASSERT(false, "ERROR::OpenGLShader::Shader Link Failed!");
+				AYIN_CORE_ASSERT(false, "ERROR::OpenGLShader::Shader Link Failed!");
 				return;
 			}
 		}
@@ -438,6 +438,7 @@ namespace Ayin {
 		if (lastProgram != m_ProgramID)
 			glUseProgram(lastProgram);
 
+		//glProgramUniformMatrix4fv();
 	}
 
 

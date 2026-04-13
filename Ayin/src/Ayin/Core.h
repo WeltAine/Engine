@@ -73,8 +73,8 @@
 
 //断言宏（宏里套宏，我也成为了自己讨厌的样子，不过这至少是正经封装。微软！变量类型也分平台么？啊！回答我！）
 #ifdef AYIN_ENABLE_ASSERT
-	#define AYIN_ASSERT(condition, ...) if(!(condition)) { AYIN_ERROR("Assertion Failed: {0}", __VA_ARGS__); __debugbreak(); }
-	#define AYIN_CORE_ASSERT(condition, ...) if(!(condition)) { AYIN_CORE_ERROR("Assertion Failed: {0}", __VA_ARGS__); __debugbreak(); }
+	#define AYIN_ASSERT(condition, ...) if(!(condition)) { AYIN_ERROR("Assertion Failed: "), AYIN_ERROR(__VA_ARGS__); __debugbreak(); }
+	#define AYIN_CORE_ASSERT(condition, ...) if(!(condition)) { AYIN_CORE_ERROR("Assertion Failed: "), AYIN_CORE_ERROR(__VA_ARGS__); __debugbreak(); }
 #else
 	#define AYIN_ASSERT(condition, ...)
 	#define AYIN_CORE_ASSERT(condition, ...)
@@ -104,5 +104,5 @@ namespace Ayin {
 		return std::make_unique<T>(std::forward<Args>(args)...);
 	};
 
-
+	//ToDo 这里有个问题，高层很多都是抽象的，导致无法构造，构造方式不统一的情况下，可能没法调用
 }

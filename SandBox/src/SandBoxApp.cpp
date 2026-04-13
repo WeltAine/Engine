@@ -16,6 +16,8 @@
 
 #include <Platform/OpenGL/Buffer/OpenGLBuffer.h>
 
+#include "SandBox2D.h"
+
 
 
 class ExampleLayer : public Ayin::Layer {
@@ -208,7 +210,8 @@ class SandBox : public Ayin::Application {
 public:
 	SandBox() {
 
-		PushLayer(new ExampleLayer());//! 这里我们对于层的概念更加清晰了一些——游戏循环中某一模块的逻辑
+		//PushLayer(new ExampleLayer{});//! 这里我们对于层的概念更加清晰了一些——游戏循环中某一模块的逻辑
+		PushLayer(new SandBox2D{});
 
 	};
 
