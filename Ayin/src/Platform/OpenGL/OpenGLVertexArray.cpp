@@ -78,7 +78,7 @@ namespace Ayin {
 	{
 		AYIN_CORE_ASSERT(vertexBuffer->GetLayout().GetElements().size(), "Vertex Buffer has no layout!");
 
-	#pragma region BTA
+	#pragma region BTA（该注释中具备一定教育意义，先留着，下次完善时再删除）
 		//// 收集上下文环境（用于恢复）
 		//int lastVertexArrayID = 0, lastVertexBufferID = 0;
 		//glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &lastVertexArrayID);
