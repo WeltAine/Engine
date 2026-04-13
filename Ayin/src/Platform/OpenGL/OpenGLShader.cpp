@@ -253,192 +253,82 @@ namespace Ayin {
 
 
 	void OpenGLShader::UploadUniformBool(const std::string& name, bool value) {
-
-		int lastProgram = 0;
-		glGetIntegerv(GL_CURRENT_PROGRAM, &lastProgram);
-
-		if (lastProgram != m_ProgramID)
-			glUseProgram(m_ProgramID);
-
-		// 之后可以试着将location变量作为成员
+	#pragma region DSA
 		int location = glGetUniformLocation(m_ProgramID, name.c_str());
-		glUniform1i(location, value ? 1 : 0);
-
-		if (lastProgram != m_ProgramID)
-			glUseProgram(lastProgram);
-
+		glProgramUniform1i(m_ProgramID, location, value);
+	#pragma endregion
 	}
 
 
 	void OpenGLShader::UploadUniformInt(const std::string& name, int value) {
-
-
-		int lastProgram = 0;
-		glGetIntegerv(GL_CURRENT_PROGRAM, &lastProgram);
-
-		if (lastProgram != m_ProgramID)
-			glUseProgram(m_ProgramID);
-
-		// 之后可以试着将location变量作为成员
+	#pragma region DSA
 		int location = glGetUniformLocation(m_ProgramID, name.c_str());
-		glUniform1i(location, value);
-
-		if (lastProgram != m_ProgramID)
-			glUseProgram(lastProgram);
-
+		glProgramUniform1i(m_ProgramID, location,value);
+	#pragma endregion
 	}
 	void OpenGLShader::UploadUniformInt2(const std::string& name, const glm::ivec2& vector) {
-
-		int lastProgram = 0;
-		glGetIntegerv(GL_CURRENT_PROGRAM, &lastProgram);
-
-		if (lastProgram != m_ProgramID)
-			glUseProgram(m_ProgramID);
-
-		// 之后可以试着将location变量作为成员
+	#pragma region DSA
 		int location = glGetUniformLocation(m_ProgramID, name.c_str());
-		glUniform2iv(location, 1, glm::value_ptr(vector));
-
-		if (lastProgram != m_ProgramID)
-			glUseProgram(lastProgram);
-
+		glProgramUniform2iv(m_ProgramID, location, 1, glm::value_ptr(vector));
+	#pragma endregion
 	}
 	void OpenGLShader::UploadUniformInt3(const std::string& name, const glm::ivec3& vector) {
-
-		int lastProgram = 0;
-		glGetIntegerv(GL_CURRENT_PROGRAM, &lastProgram);
-
-		if (lastProgram != m_ProgramID)
-			glUseProgram(m_ProgramID);
-
-		// 之后可以试着将location变量作为成员
+	#pragma region DSA
 		int location = glGetUniformLocation(m_ProgramID, name.c_str());
-		glUniform3iv(location, 1, glm::value_ptr(vector));
-
-		if (lastProgram != m_ProgramID)
-			glUseProgram(lastProgram);
+		glProgramUniform3iv(m_ProgramID, location, 1, glm::value_ptr(vector));
+	#pragma endregion
 
 	}
 	void OpenGLShader::UploadUniformInt4(const std::string& name, const glm::ivec4& vector) {
-
-		int lastProgram = 0;
-		glGetIntegerv(GL_CURRENT_PROGRAM, &lastProgram);
-
-		if (lastProgram != m_ProgramID)
-			glUseProgram(m_ProgramID);
-
-		// 之后可以试着将location变量作为成员
+	#pragma region DSA
 		int location = glGetUniformLocation(m_ProgramID, name.c_str());
-		glUniform4iv(location, 1, glm::value_ptr(vector));
-
-		if (lastProgram != m_ProgramID)
-			glUseProgram(lastProgram);
+		glProgramUniform4iv(m_ProgramID, location, 1, glm::value_ptr(vector));
+	#pragma endregion
 
 	}
 
 
 	void OpenGLShader::UploadUniformFloat(const std::string& name, float value) {
-
-		int lastProgram = 0;
-		glGetIntegerv(GL_CURRENT_PROGRAM, &lastProgram);
-
-		if (lastProgram != m_ProgramID)
-			glUseProgram(m_ProgramID);
-
-		// 之后可以试着将location变量作为成员
+	#pragma region DSA
 		int location = glGetUniformLocation(m_ProgramID, name.c_str());
-		glUniform1f(location, value);
-
-		if (lastProgram != m_ProgramID)
-			glUseProgram(lastProgram);
-
+		glProgramUniform1f(m_ProgramID, location, value);
+	#pragma endregion
 
 	}
 	void OpenGLShader::UploadUniformFloat2(const std::string& name, const glm::vec2& vector) {
-
-		int lastProgram = 0;
-		glGetIntegerv(GL_CURRENT_PROGRAM, &lastProgram);
-
-		if (lastProgram != m_ProgramID)
-			glUseProgram(m_ProgramID);
-
-		// 之后可以试着将location变量作为成员
+	#pragma region DSA
 		int location = glGetUniformLocation(m_ProgramID, name.c_str());
-		glUniform2fv(location, 1, glm::value_ptr(vector));
-
-		if (lastProgram != m_ProgramID)
-			glUseProgram(lastProgram);
-
+		glProgramUniform2fv(m_ProgramID, location, 1, glm::value_ptr(vector));
+	#pragma endregion
 
 	}
 	void OpenGLShader::UploadUniformFloat3(const std::string& name, const glm::vec3& vector) {
-
-		int lastProgram = 0;
-		glGetIntegerv(GL_CURRENT_PROGRAM, &lastProgram);
-
-		if (lastProgram != m_ProgramID)
-			glUseProgram(m_ProgramID);
-
-		// 之后可以试着将location变量作为成员
+	#pragma region DSA
 		int location = glGetUniformLocation(m_ProgramID, name.c_str());
-		glUniform3fv(location, 1, glm::value_ptr(vector));
-
-		if (lastProgram != m_ProgramID)
-			glUseProgram(lastProgram);
-
-
+		glProgramUniform3fv(m_ProgramID, location, 1, glm::value_ptr(vector));
+	#pragma endregion
 	}
 	void OpenGLShader::UploadUniformFloat4(const std::string& name, const glm::vec4& vector) {
-
-		int lastProgram = 0;
-		glGetIntegerv(GL_CURRENT_PROGRAM, &lastProgram);
-
-		if (lastProgram != m_ProgramID)
-			glUseProgram(m_ProgramID);
-
-		// 之后可以试着将location变量作为成员
+	#pragma region DSA
 		int location = glGetUniformLocation(m_ProgramID, name.c_str());
-		glUniform4fv(location, 1, glm::value_ptr(vector));
-
-		if (lastProgram != m_ProgramID)
-			glUseProgram(lastProgram);
-
+		glProgramUniform4fv(m_ProgramID, location, 1, glm::value_ptr(vector));
+	#pragma endregion
 	}
 
 
 	void OpenGLShader::UploadUniformMat3(const std::string& name, const glm::mat3& matrix) {
-
-		int lastProgram = 0;
-		glGetIntegerv(GL_CURRENT_PROGRAM, &lastProgram);
-
-		if (lastProgram != m_ProgramID)
-			glUseProgram(m_ProgramID);
-
-		// 之后可以试着将location变量作为成员
+	#pragma region DSA
 		int location = glGetUniformLocation(m_ProgramID, name.c_str());
-		glUniformMatrix3fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
-
-		if (lastProgram != m_ProgramID)
-			glUseProgram(lastProgram);
+		glProgramUniformMatrix3fv(m_ProgramID, location, 1, GL_FALSE, glm::value_ptr(matrix));
+	#pragma endregion
 
 	}
 	void OpenGLShader::UploadUniformMat4(const std::string& name, const glm::mat4& matrix)
 	{
-
-		int lastProgram = 0;
-		glGetIntegerv(GL_CURRENT_PROGRAM, &lastProgram);
-
-		if (lastProgram != m_ProgramID)
-			glUseProgram(m_ProgramID);
-
-		// 之后可以试着将location变量作为成员
+	#pragma region DSA
 		int location = glGetUniformLocation(m_ProgramID, name.c_str());
-		glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
-
-		if (lastProgram != m_ProgramID)
-			glUseProgram(lastProgram);
-
-		//glProgramUniformMatrix4fv();
+		glProgramUniformMatrix4fv(m_ProgramID, location, 1, GL_FALSE, glm::value_ptr(matrix));
+	#pragma endregion
 	}
 
 
