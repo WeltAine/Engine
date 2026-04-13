@@ -12,7 +12,7 @@
 
 namespace Ayin {
 
-	static bool s_GLFWInitialized = false;//专制变量，确保glfw只初始化一次
+	static uint8_t s_GLFWWindowCount = 0; //窗口计数
 
 	static void GLFWErrorCallback(int error_code, const char* description) {//不写成无闭包lambda或许是为了复用
 		AYIN_CORE_ERROR("GLFW Error ({0}) : {1}", error_code, description);
@@ -39,16 +39,17 @@ namespace Ayin {
 
 		// GLWL初始化
 		#pragma region GLFW初始化与相关配置（OpenGL版本以及错误回调）
-		if (!s_GLFWInitialized) {
+		if (s_GLFWWindowCount == 0) {
 			glfwSetErrorCallback(GLFWErrorCallback);
 
+			AYIN_CORE_INFO("Initializing GLFW");
 			int success = glfwInit();
 			// 在使用大多数 GLFW 函数之前，必须先对库进行初始化。如果初始化成功，将返回 GLFW_TRUE ；如果发生错误，则返回 GLFW_FALSE 。
 			// 初始化过程会检查当前设备的可用特性、枚举显示器、初始化计时器，并执行所有必要的平台相关初始化操作。
 			// 在使用完 GLFW 后，通常在应用程序退出前，你需要调用终止函数glfwTerminate()来释放 GLFW 资源。
 
 			AYIN_CORE_ASSERT(success, "Could not initialize GLFW!");//断言宏
-			s_GLFWInitialized = true;
+			s_GLFWWindowCount++;
 
 			// OpenGL上下文版本，与配置文件
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -203,7 +204,10 @@ namespace Ayin {
 
 	void WindowsWindow::Shutdown() {
 		glfwDestroyWindow(m_Window);
-		glfwTerminate();
+		if (--s_GLFWWindowCount == 0) {
+			AYIN_CORE_INFO("Terminating GLFW");
+			glfwTerminate();
+		}
 	}
 
 	WindowsWindow::~WindowsWindow() {

@@ -7,6 +7,10 @@
 
 namespace Ayin {
 
+	//! 窗口不同于渲染API，软件在运行时是在既定侧一个操作系统中运行的，而一个GPU可以支持多种API
+	//! 所以窗口进行文件级别的跨系统隔离就够了（就是决定那些跨平台cpp和h会被编译就好了）
+	//! 这也是抽象Window中不实现Create的原因
+
 	class WindowsWindow : public Window//也没加AYIN_API，会不会是那个属性也有继承性？？？
 	{
 		friend class Window;
