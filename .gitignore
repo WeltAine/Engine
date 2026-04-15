@@ -5,3 +5,4 @@ bin-int/
 
 #忽略文件
 *.user
+imgui.ini
