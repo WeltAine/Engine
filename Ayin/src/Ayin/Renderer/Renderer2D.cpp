@@ -17,7 +17,7 @@ namespace Ayin {
 	
 		s_Data = new Renderer2DStroage;
 
-		s_Data->QuadVAO = Ayin::VertexArray::Create();
+		s_Data->QuadVAO = VertexArray::Create();
 
 		//VBO
 		float vertexs[] = {
@@ -26,27 +26,27 @@ namespace Ayin {
 			 0.5f,  0.5f,  0.0f,	1.0f, 1.0f,
 			-0.5f,  0.5f,  0.0f,	0.0f, 1.0f
 		};
-		Ayin::Ref<Ayin::VertexBuffer> vbo = Ayin::VertexBuffer::Create(vertexs, sizeof(vertexs));
-		vbo->SetLayout(Ayin::BufferLayout{
-			Ayin::BufferElement{0, Ayin::ShaderDataType::Float3, "a_Position"},
-			Ayin::BufferElement{1, Ayin::ShaderDataType::Float2, "a_UV"}
+		Ref<VertexBuffer> vbo = VertexBuffer::Create(vertexs, sizeof(vertexs));
+		vbo->SetLayout(BufferLayout{
+			BufferElement{0, ShaderDataType::Float3, "a_Position"},
+			BufferElement{1, ShaderDataType::Float2, "a_UV"}
 			});
 		//EBO
 		uint32_t indexs[] = {
 			0, 3, 2,
 			0, 2, 1
 		};
-		Ayin::Ref<Ayin::IndexBuffer> ebo = Ayin::IndexBuffer::Create(indexs, sizeof(indexs));
+		Ref<IndexBuffer> ebo = IndexBuffer::Create(indexs, sizeof(indexs));
 		//VAO
 		s_Data->QuadVAO->AddVertexBuffer(vbo);
 		s_Data->QuadVAO->SetIndexBuffer(ebo);
 
 
 		//Shader
-		s_Data->QuadShader = Ayin::Shader::Create("O:/CppProgram/Ayin/assets/shader/2D/QuadShader.glsl");
-		s_Data->QuadTextureShader = Ayin::Shader::Create("O:/CppProgram/Ayin/assets/shader/2D/QuadTextureShader.glsl");
+		s_Data->QuadShader = Shader::Create("O:/CppProgram/Ayin/assets/shader/2D/QuadShader.glsl");
 
-
+		//Texture
+		s_Data->WhiteTexture = Texture2D::Create(100, 100);
 	};
 
 	void Renderer2D::Shutdown() {
@@ -58,7 +58,6 @@ namespace Ayin {
 	void Renderer2D::BeginScene(const Camera& camera) {
 	
 		s_Data->QuadShader->SetMat4("u_ProjectionViewMatrix", camera.GetProjecttionViewMatrix());
-		s_Data->QuadTextureShader->SetMat4("u_ProjectionViewMatrix", camera.GetProjecttionViewMatrix());
 
 	};
 	void Renderer2D::EndScene() {};
@@ -76,9 +75,11 @@ namespace Ayin {
 
 
 		s_Data->QuadShader->Bind();
+		s_Data->WhiteTexture->Bind(0);
 		s_Data->QuadShader->SetMat4("u_Transform", transform * pitch * yaw * roll);
 
 		RenderCommand::DrawIndexed(s_Data->QuadVAO);
+		s_Data->WhiteTexture->UnBind();
 		s_Data->QuadShader->UnBind();
 
 	};
@@ -94,12 +95,13 @@ namespace Ayin {
 		glm::mat4 roll = glm::rotate(glm::identity<glm::mat4>(), glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
 
 
-		s_Data->QuadTextureShader->Bind();
+		s_Data->QuadShader->Bind();
 		texture->Bind(0);
-		s_Data->QuadTextureShader->SetMat4("u_Transform", transform * pitch * yaw * roll);
+		s_Data->QuadShader->SetMat4("u_Transform", transform * pitch * yaw * roll);
 
 		RenderCommand::DrawIndexed(s_Data->QuadVAO);
-		s_Data->QuadTextureShader->UnBind();
+		texture->UnBind();
+		s_Data->QuadShader->UnBind();
 
 	};
 

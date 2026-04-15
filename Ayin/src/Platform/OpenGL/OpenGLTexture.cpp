@@ -3,8 +3,6 @@
 #include "OpenGLTexture.h"
 #include "stb_image.h"
 
-#include "glad/glad.h"
-
 
 
 namespace Ayin {
@@ -65,10 +63,45 @@ namespace Ayin {
 		//x 在图形学发展的早期（20 世纪 90 年代），CPU 内存与 GPU 内存的架构往往大相径庭。
 		//x CPU 通常以简单的线性数组形式存储数据，而 GPU 则可能采用“平铺（tiling）”或“重排（swizzling）”技术来优化内存布局（你可能在计算机组成原理上看到过那个网状一样多维空间般的内存布局，以保证n步内访问到任何数据），从而提升硬件读取相邻像素的效率。
 
+
+		m_InternalFormat = internalformat;
+		m_DataFormat = dataformat;
+
 		//删除资源
 		stbi_image_free(data);
 
 	}
+
+	OpenGLTexture2D::OpenGLTexture2D(int width, int height, void* data) 
+		:m_Width{ width }, m_Height{ height }
+	{
+	
+		m_InternalFormat = GL_RGBA8, m_DataFormat = GL_RGBA;
+		m_Components = 4;
+
+		glCreateTextures(GL_TEXTURE_2D, 1, &m_TextureID);
+		glTextureStorage2D(m_TextureID, 1, m_InternalFormat, width, height);
+
+		//参数设置
+		glTextureParameteri(m_TextureID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);//缩小时是使用临近的四个像素加权平均
+		glTextureParameteri(m_TextureID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		glTextureParameteri(m_TextureID, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTextureParameteri(m_TextureID, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+
+		if (data == nullptr) {
+
+			data = new uint8_t[m_Width * m_Height * 4];
+			memset(data, 0xFF, m_Width * m_Height * 4);//逐字节填充数据，各颜色拉满
+
+		}
+	
+		//上传数据
+		glTextureSubImage2D(m_TextureID, 0, 0, 0, m_Width, m_Height, m_DataFormat, GL_UNSIGNED_BYTE, data);
+		delete data;
+	}
+
 
 	OpenGLTexture2D::~OpenGLTexture2D() {
 
@@ -77,6 +110,11 @@ namespace Ayin {
 	}
 
 
+	void OpenGLTexture2D::SetData(int width, int height, void* data) {
+
+		glTextureSubImage2D(m_TextureID, 1 , 0, 0, width, height, m_DataFormat, GL_UNSIGNED_BYTE, data);
+
+	}
 
 
 	void OpenGLTexture2D::Bind(int slot) const

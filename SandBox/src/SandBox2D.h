@@ -24,9 +24,5 @@ private:
 
 	Ayin::CameraController m_CamreaController;		//相机控制器
 
-
-	glm::vec4 m_SquareColor{1.0f, 1.0f, 1.0f, 1.0f};//矩形着色器中的参数
-
-
-	Ayin::Ref<Ayin::Texture2D> m_Texture;
+	Ayin::Ref<Ayin::Texture2D> m_Texture;			//测试用纹理
 };

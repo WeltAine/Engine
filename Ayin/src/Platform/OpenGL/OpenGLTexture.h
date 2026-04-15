@@ -2,16 +2,22 @@
 
 #include "Ayin/Renderer/Texture.h"
 
+#include "glad/glad.h"
+
+
 namespace Ayin {
 
 	class AYIN_API OpenGLTexture2D : public Texture2D {
 
 	public:
 		OpenGLTexture2D(const std::string& path);
+		OpenGLTexture2D(int width, int height, void* data = nullptr);
 
 		virtual ~OpenGLTexture2D() override;
 
 		// 通过 Texture2D 继承
+		virtual void SetData(int width, int height, void* datar) override;
+
 		virtual inline int GetWidth() const override { return m_Width; };
 		virtual inline int GetHeight() const override { return m_Height; };
 		virtual inline int GetComponents() const override { return m_Components; };
@@ -24,6 +30,7 @@ namespace Ayin {
 	private:
 
 		int m_Width, m_Height;	//宽高
+		GLenum m_InternalFormat, m_DataFormat;
 		int m_Components;		//通道数量
 		uint32_t m_TextureID;
 

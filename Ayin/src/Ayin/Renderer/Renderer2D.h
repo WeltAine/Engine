@@ -15,9 +15,11 @@ namespace Ayin {
 
 	struct Renderer2DStroage {
 
-		Ref<VertexArray> QuadVAO;
-		Ref<Shader> QuadShader;
-		Ref<Shader> QuadTextureShader;
+		Ref<VertexArray> QuadVAO;			//默认矩形
+
+		Ref<Shader> QuadShader;				//默认Shader
+
+		Ref<Texture2D> WhiteTexture;		//默认纹理
 
 	};
 

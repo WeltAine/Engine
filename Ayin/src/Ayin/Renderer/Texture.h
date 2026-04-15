@@ -28,7 +28,10 @@ namespace Ayin {
 
 	public:
 
+		virtual void SetData(int width, int height, void* data) = 0;
+
 		static Ref<Texture2D> Create(const std::string& path);
+		static Ref<Texture2D> Create(int width, int height, void* data = nullptr);
 
 	};
 }
