@@ -1320,17 +1320,8 @@
     <ClInclude Include="src\Ayin.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\Ayin\Application.h">
-      <Filter>src\Ayin</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Ayin\Core.h">
-      <Filter>src\Ayin</Filter>
-    </ClInclude>
     <ClInclude Include="src\Ayin\Core\Timestep.h">
       <Filter>src\Ayin\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Ayin\EntryPoint.h">
-      <Filter>src\Ayin</Filter>
     </ClInclude>
     <ClInclude Include="src\Ayin\Events\ApplicationEvent.h">
       <Filter>src\Ayin\Events</Filter>
@@ -1346,24 +1337,6 @@
     </ClInclude>
     <ClInclude Include="src\Ayin\ImGui\ImGuiLayer.h">
       <Filter>src\Ayin\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Ayin\Input.h">
-      <Filter>src\Ayin</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Ayin\KayCodes.h">
-      <Filter>src\Ayin</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Ayin\Layer.h">
-      <Filter>src\Ayin</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Ayin\LayerStack.h">
-      <Filter>src\Ayin</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Ayin\Log.h">
-      <Filter>src\Ayin</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Ayin\MouseButtonCodes.h">
-      <Filter>src\Ayin</Filter>
     </ClInclude>
     <ClInclude Include="src\Ayin\Renderer\Buffer.h">
       <Filter>src\Ayin\Renderer</Filter>
@@ -1391,9 +1364,6 @@
     </ClInclude>
     <ClInclude Include="src\Ayin\Renderer\VertexArray.h">
       <Filter>src\Ayin\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Ayin\Window.h">
-      <Filter>src\Ayin</Filter>
     </ClInclude>
     <ClInclude Include="src\AyinPch.h">
       <Filter>src</Filter>
@@ -1424,28 +1394,26 @@
     </ClInclude>
     <ClInclude Include="src\Ayin\CameraController.h" />
     <ClInclude Include="src\Ayin\Renderer\Renderer2D.h" />
+    <ClInclude Include="src\Ayin\Core\Application.h" />
+    <ClInclude Include="src\Ayin\Core\Core.h" />
+    <ClInclude Include="src\Ayin\Core\EntryPoint.h" />
+    <ClInclude Include="src\Ayin\Core\Input.h" />
+    <ClInclude Include="src\Ayin\Core\KeyCodes.h" />
+    <ClInclude Include="src\Ayin\Core\Layer.h" />
+    <ClInclude Include="src\Ayin\Core\LayerStack.h" />
+    <ClInclude Include="src\Ayin\Core\Log.h" />
+    <ClInclude Include="src\Ayin\Core\MouseButtonCodes.h" />
+    <ClInclude Include="src\Ayin\Core\Window.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Dependency\stb_image\stb_image.cpp">
       <Filter>Dependency\stb_image</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Ayin\Application.cpp">
-      <Filter>src\Ayin</Filter>
     </ClCompile>
     <ClCompile Include="src\Ayin\ImGui\ImGuiBuild.cpp">
       <Filter>src\Ayin\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="src\Ayin\ImGui\ImGuiLayer.cpp">
       <Filter>src\Ayin\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Ayin\Layer.cpp">
-      <Filter>src\Ayin</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Ayin\LayerStack.cpp">
-      <Filter>src\Ayin</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Ayin\Log.cpp">
-      <Filter>src\Ayin</Filter>
     </ClCompile>
     <ClCompile Include="src\Ayin\Renderer\Buffer.cpp">
       <Filter>src\Ayin\Renderer</Filter>
@@ -1498,8 +1466,12 @@
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp">
       <Filter>src\Platform\Windows</Filter>
     </ClCompile>
-    <ClCompile Include="src\Ayin\Input.cpp" />
     <ClCompile Include="src\Ayin\CameraController.cpp" />
     <ClCompile Include="src\Ayin\Renderer\Renderer2D.cpp" />
+    <ClCompile Include="src\Ayin\Core\Application.cpp" />
+    <ClCompile Include="src\Ayin\Core\Input.cpp" />
+    <ClCompile Include="src\Ayin\Core\Layer.cpp" />
+    <ClCompile Include="src\Ayin\Core\LayerStack.cpp" />
+    <ClCompile Include="src\Ayin\Core\Log.cpp" />
   </ItemGroup>
 </Project>

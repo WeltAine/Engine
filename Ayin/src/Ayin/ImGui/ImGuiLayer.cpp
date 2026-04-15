@@ -1,6 +1,6 @@
 #include "AyinPch.h"
 #include "ImGuiLayer.h"
-#include "Ayin/Application.h"
+#include "Ayin/Core/Application.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>

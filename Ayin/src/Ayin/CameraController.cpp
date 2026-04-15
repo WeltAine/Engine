@@ -1,9 +1,9 @@
 #include <AyinPch.h>
 
 #include "Ayin/CameraController.h"
-#include "Ayin/KayCodes.h"
-#include "Ayin/MouseButtonCodes.h"
-#include "Ayin/Input.h"
+#include "Ayin/Core/KeyCodes.h"
+#include "Ayin/Core/MouseButtonCodes.h"
+#include "Ayin/Core/Input.h"
 
 namespace Ayin{
 

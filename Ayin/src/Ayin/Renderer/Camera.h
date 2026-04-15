@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Ayin/Core.h"
+#include "Ayin/Core/Core.h"
 #include <glm/glm.hpp>
 #include <glm/ext/matrix_float4x4.hpp> // mat4x4
 
@@ -85,7 +85,7 @@ namespace Ayin {
 
 		float AspectRatio = 16.0f / 9.0f;
 
-		float NearPlaneDistance = 0.1, FarPlaneDistance = 100;
+		float NearPlaneDistance = 0.1f, FarPlaneDistance = 100.0f;
 	};
 
 

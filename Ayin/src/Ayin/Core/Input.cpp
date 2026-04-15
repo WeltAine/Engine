@@ -1,6 +1,6 @@
 #include <AyinPch.h>
 
-#include "Ayin/Input.h"
+#include "Ayin/Core/Input.h"
 
 #include "Platform/Windows/WindowsInput.h"
 

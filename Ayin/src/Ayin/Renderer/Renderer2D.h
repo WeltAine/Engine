@@ -2,7 +2,7 @@
 
 #include <GLM/glm.hpp>
 
-#include "Ayin/Core.h"
+#include "Ayin/Core/Core.h"
 #include "Ayin/Renderer/VertexArray.h"
 #include "Ayin/Renderer/Shader.h"
 #include "Ayin/Renderer/Camera.h"

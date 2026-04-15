@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Ayin/Core.h"
-#include "Ayin/Layer.h"
+#include "Ayin/Core/Core.h"
+#include "Ayin/Core/Layer.h"
 
 
 #include "Ayin/Events/ApplicationEvent.h"

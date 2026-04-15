@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Ayin/Core.h"
+#include "Ayin/Core/Core.h"
 #include <memory>
 #include <vector>
 

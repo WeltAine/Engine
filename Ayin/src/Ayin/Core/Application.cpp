@@ -5,9 +5,9 @@
 #include "spdlog/fmt/bundled/format.h"
 
 #include "Ayin/Events/ApplicationEvent.h"
-#include "Ayin/Log.h"
+#include "Ayin/Core/Log.h"
 
-#include "Ayin/Input.h"
+#include "Ayin/Core/Input.h"
 
 #include "Ayin/Renderer/Buffer.h"
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Ayin/Input.h"
+#include "Ayin/Core/Input.h"
 
 namespace Ayin {
 

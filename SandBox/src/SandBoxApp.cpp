@@ -1,7 +1,7 @@
 #include <Ayin.h>
 
 // ---入口点--------------------------
-#include "Ayin/EntryPoint.h"
+#include "Ayin/Core/EntryPoint.h"
 // -----------------------------------
 
 #include <Platform/OpenGL/OpenGLShader.h>

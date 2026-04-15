@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Ayin/Window.h"
+#include "Ayin/Core/Window.h"
 
 #include "Ayin/Renderer/GraphicsContext.h"
 #include <GLFW/glfw3.h>

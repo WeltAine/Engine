@@ -1,6 +1,6 @@
 #include "AyinPch.h"
 #include "WindowsInput.h"
-#include "Ayin/Application.h"
+#include "Ayin/Core/Application.h"
 
 #include <GLFW/glfw3.h>
 

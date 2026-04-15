@@ -1,7 +1,7 @@
 #pragma once
 #include "AyinPch.h"
 
-#include "Ayin/Core.h"
+#include "Ayin/Core/Core.h"
 
 //#include <functional>
 //#include <string>
