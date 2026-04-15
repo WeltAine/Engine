@@ -13,6 +13,11 @@ namespace Ayin {
 
 		virtual int GetWidth() const = 0;
 		virtual int GetHeight() const = 0;
+
+		/// <summary>
+		/// 获取像素通道数量
+		/// </summary>
+		/// <returns>像素通道数量</returns>
 		virtual int GetComponents() const = 0;
 
 		virtual void Bind(int slot) const = 0;

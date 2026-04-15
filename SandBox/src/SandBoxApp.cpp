@@ -104,7 +104,7 @@ public:
 		m_Texture = Ayin::Texture2D::Create("O:/CppProgram/Ayin/assets/textures/texture.png");//不支持中文路径
 
 		m_BlendTexture = Ayin::Texture2D::Create("O:/CppProgram/Ayin/assets/textures/blendTexture.png");
-		std::dynamic_pointer_cast<Ayin::OpenGLShader>(m_TextureShader)->UploadUniformInt("ourTexture", 0);
+		m_TextureShader->SetInt("ourTexture", 0);
 		//! sampler2D本质是一个int对应纹理单元的槽位（你也可以在shader代码中用location来指定）
 
 
@@ -163,7 +163,7 @@ public:
 			Ayin::Renderer::Submit(m_ShaderLibrary.Get("shader"), m_SquareVertexArray);
 
 
-			std::dynamic_pointer_cast<Ayin::OpenGLShader>(m_TextureShader)->UploadUniformFloat3("colorOffset", m_ColorOffset);
+			m_TextureShader->SetFloat3("colorOffset", m_ColorOffset);
 			m_BlendTexture->Bind(0);
 			m_BlendUBO->Bind();
 			m_BlendUBO->SetBindingIndexs({1});
@@ -199,7 +199,7 @@ private:
 	glm::vec3 m_ColorOffset{ 0.0f };// 其余uniform参数设置
 	Ayin::Ref<Ayin::VertexArray> m_TriangleVertexArray, m_SquareVertexArray;		//顶点数组
 
-	Ayin::CameraController m_SceneCameraController;														//场景相机
+	Ayin::CameraController m_SceneCameraController;									//场景相机
 
 
 };

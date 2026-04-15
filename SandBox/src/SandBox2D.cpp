@@ -6,7 +6,11 @@ SandBox2D::SandBox2D()
 {};
 
 
-void SandBox2D::OnAttach() {};
+void SandBox2D::OnAttach() {
+
+	m_Texture = Ayin::Texture2D::Create("O:/CppProgram/Ayin/assets/textures/blendTexture.png");
+
+};
 void SandBox2D::OnDetach() {};
 
 void SandBox2D::OnUpdate(Ayin::Timestep deltaTime) {
@@ -18,6 +22,7 @@ void SandBox2D::OnUpdate(Ayin::Timestep deltaTime) {
 	Ayin::Renderer2D::BeginScene(m_CamreaController.GetCamera());
 
 	Ayin::Renderer2D::DrawQuad(glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{0.0f, 0.0f, 60.0f}, glm::vec3{ 1.0f, 1.0f, 1.0f });
+	Ayin::Renderer2D::DrawQuad(glm::vec3{ 0.0f, 0.0f, -5.0f }, glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 1.0f, 1.0f, 1.0f }, m_Texture);
 
 	Ayin::Renderer2D::EndScene();
 

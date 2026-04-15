@@ -6,6 +6,7 @@
 #include "Ayin/Renderer/VertexArray.h"
 #include "Ayin/Renderer/Shader.h"
 #include "Ayin/Renderer/Camera.h"
+#include "Ayin/Renderer/Texture.h"
 
 
 
@@ -16,10 +17,11 @@ namespace Ayin {
 
 		Ref<VertexArray> QuadVAO;
 		Ref<Shader> QuadShader;
+		Ref<Shader> QuadTextureShader;
 
 	};
 
-	class Renderer2D {
+	AYIN_API class Renderer2D {
 
 	public:
 
@@ -32,6 +34,7 @@ namespace Ayin {
 		
 
 		static void DrawQuad(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& size);
+		static void DrawQuad(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& size, const Ref<Texture2D>& texture);
 
 	private:
 

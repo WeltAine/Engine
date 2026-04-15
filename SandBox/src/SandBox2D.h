@@ -27,4 +27,6 @@ private:
 
 	glm::vec4 m_SquareColor{1.0f, 1.0f, 1.0f, 1.0f};//矩形着色器中的参数
 
+
+	Ayin::Ref<Ayin::Texture2D> m_Texture;
 };
