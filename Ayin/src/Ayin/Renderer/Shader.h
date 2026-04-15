@@ -28,7 +28,6 @@ namespace Ayin {
 		/// <param name="fragmentShaderSrc">片元着色器源码</param>
 		static Ref<Shader> Create(const std::string& name, const std::string& vertexShaderSrc, const std::string& fragmentShaderSrc);
 		
-	public:
 
 		virtual ~Shader() = default;
 
@@ -55,7 +54,12 @@ namespace Ayin {
 		//x 之后我们会将数据交由材质和渲染器管理（shader本身所需数据和场景数据），数据的传输也是如此，会根据API的不同来手动转换指针，并发起数据传输
 		//x 这些过程会被封装在核心内部，使用方不应干涉
 
-
+		virtual void SetInt(const std::string& name, int value) = 0;
+		virtual void SetFloat(const std::string& name, float value) = 0;
+		virtual void SetFloat3(const std::string& name, const glm::vec3& vertex) = 0;
+		virtual void SetFloat4(const std::string& name, const glm::vec4& vertex) = 0;
+		virtual void SetMat3(const std::string& name, const glm::mat3& matrix) = 0;
+		virtual void SetMat4(const std::string& name, const glm::mat4& matrix) = 0;
 	};
 
 

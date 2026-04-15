@@ -73,6 +73,15 @@ namespace Ayin{
 		//! 这些过程会被封装在核心内部，使用方不应干涉
 		//TODO 不过我仍旧认为shader中应该设计一个统一传输函数接口，毕竟我自己的构想里，shader会通过反射以感知布局信息，材质也将从布局中获得信息
 
+
+		virtual inline void SetInt(const std::string& name, int value) override { UploadUniformInt(name, value); };
+		virtual inline void SetFloat(const std::string& name, float value) override { UploadUniformFloat(name, value); };
+		virtual inline void SetFloat3(const std::string& name, const glm::vec3& vertex) override { UploadUniformFloat3(name, vertex); };
+		virtual inline void SetFloat4(const std::string& name, const glm::vec4& vertex) override { UploadUniformFloat4(name, vertex); };
+		virtual inline void SetMat3(const std::string& name, const glm::mat3& matrix) override { UploadUniformMat3(name, matrix); };
+		virtual inline void SetMat4(const std::string& name, const glm::mat4& matrix) override { UploadUniformMat4(name, matrix); };
+
+
 	private:
 
 		std::string ReadFile(const std::string& filePath);
