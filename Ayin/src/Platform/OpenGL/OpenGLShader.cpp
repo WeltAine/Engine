@@ -88,18 +88,25 @@ namespace Ayin {
 			//! 一个Bug，缓冲区不会在初始化时填充，而是在第一次读操作时填充
 			//! 所以初始化后的buf里什么都没有，导致source.resize(in.rdbuf()->in_avail());中的长度被设置为0
 			
-			in.seekg(0, std::ios::end);				//设置输入流读位置（不是读操作）
-			source.resize(in.tellg());				//获取输入流读位置
-			in.seekg(0, std::ios::beg);				//输入流读位置复位（放置到开头）
+			in.seekg(0, std::ios::end);					//设置输入流读位置（不是读操作）
+			size_t fileSize = in.tellg();
 
-			in.read(source.data(), source.size());	//读操作
+			if (fileSize != -1) {							//之前的寻找文件末尾的操作可能失败，或者发现文件大到超过存储上限时不要读取内容
 			
+				source.resize(fileSize);				//获取输入流读位置
+				in.seekg(0, std::ios::beg);				//输入流读位置复位（放置到开头）
+
+				in.read(source.data(), source.size());	//读操作
+
+			}
+			else {
+				AYIN_CORE_ERROR("Could not read file '{0}'", filePath);
+			}
+
 		}
 		else {
 
 			AYIN_CORE_ERROR("Could not open file '{0}'", filePath);
-			//! 不使用断言是因为我们允许这样的错误发生，window上的缓冲大小比较小，所以有可能因为文本过大而导致无法读取?
-			//? 真的这样么，感觉in不至于因为太大一次都不完而报错
 
 		}
 

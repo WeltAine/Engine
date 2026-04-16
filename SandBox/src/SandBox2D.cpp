@@ -15,16 +15,27 @@ void SandBox2D::OnDetach() {};
 
 void SandBox2D::OnUpdate(Ayin::Timestep deltaTime) {
 
-	m_CamreaController.OnUpdate(deltaTime);
+	AYIN_PROFILE_FUNCTION();
 
-	Ayin::RenderCommand::Clear();
+	{
+		AYIN_PROFILE_SCOPE("CameraController::OnUpdate");
+		m_CamreaController.OnUpdate(deltaTime);
+	}
 
-	Ayin::Renderer2D::BeginScene(m_CamreaController.GetCamera());
+	{
+		AYIN_PROFILE_SCOPE("Renderer Prep");
+		Ayin::RenderCommand::Clear();
+	}
 
-	Ayin::Renderer2D::DrawQuad(glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{0.0f, 0.0f, 60.0f}, glm::vec3{ 1.0f, 1.0f, 1.0f });
-	Ayin::Renderer2D::DrawQuad(glm::vec3{ 0.0f, 0.0f, -5.0f }, glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 1.0f, 1.0f, 1.0f }, m_Texture);
+	{
+		AYIN_PROFILE_SCOPE("Renderer Draw");
+		Ayin::Renderer2D::BeginScene(m_CamreaController.GetCamera());
 
-	Ayin::Renderer2D::EndScene();
+		Ayin::Renderer2D::DrawQuad(glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{0.0f, 0.0f, 60.0f}, glm::vec3{ 1.0f, 1.0f, 1.0f });
+		Ayin::Renderer2D::DrawQuad(glm::vec3{ 0.0f, 0.0f, -5.0f }, glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 1.0f, 1.0f, 1.0f }, m_Texture);
+
+		Ayin::Renderer2D::EndScene();
+	}
 
 };
 

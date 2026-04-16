@@ -1404,6 +1404,7 @@
     <ClInclude Include="src\Ayin\Core\Log.h" />
     <ClInclude Include="src\Ayin\Core\MouseButtonCodes.h" />
     <ClInclude Include="src\Ayin\Core\Window.h" />
+    <ClInclude Include="src\Ayin\Debug\Instrumentor.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Dependency\stb_image\stb_image.cpp">
