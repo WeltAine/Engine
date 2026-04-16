@@ -1,6 +1,7 @@
 #include <AyinPch.h>
 
 #include "Platform/OpenGL/OpenGLShader.h"
+
 #include <glm/gtc/type_ptr.hpp>
 
 #include <Glad/glad.h>
@@ -134,9 +135,9 @@ namespace Ayin {
 
 			shaderSources[ShaderTypeFromString(type)] = source.substr(begin_of_Shader, begin_of_Passage - begin_of_Shader);//提取shader代码
 			//! string中能够存储的最大大小就是npos，这是极限，不允许超过这么大
-			//! 所以我们不必再做一个关于npos的判定，因为即使没有下一段代码，那么本次获取的范围只有两种可能
+			//! 所以我们不必再做一个关于npos的判定，因为即使没有下一段代码(或者说已经读到最后一段了)，那么本次获取的范围只有两种可能
 			//! 1) 获取从begin_of_Shader开始超出文本剩余长度的文本内容 （会自然的读取完剩余内容）
-			//! 2)获取从begin_of_Shader开始到npos的文本内容 （这种情况只在string的文本内容完全填满上限时发生）
+			//! 2)获取从begin_of_Shader开始到npos的文本内容 （这种情况只在string的文本内容完全填满上限时发生，这也意味着我们没能读完）
 
 			//x 注释不用担心，glsl代码本身就支持类似C++的注释方式
 		}

@@ -1,6 +1,6 @@
 #include <AyinPch.h>
 
-#include "Camera.h"
+#include "Ayin/Renderer/Camera.h"
 
 #include <glm/ext/vector_float2.hpp> // vec2
 #include <glm/ext/vector_float3.hpp> // vec3

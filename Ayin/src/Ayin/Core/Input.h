@@ -1,6 +1,5 @@
 #pragma once
 
-#include <AyinPch.h>
 #include "Ayin/Core/Core.h"
 
 namespace Ayin {

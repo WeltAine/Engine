@@ -2,7 +2,7 @@
 
 #include "Ayin/Renderer/Texture.h"
 
-#include "glad/glad.h"
+#include <Glad/glad.h>
 
 
 namespace Ayin {

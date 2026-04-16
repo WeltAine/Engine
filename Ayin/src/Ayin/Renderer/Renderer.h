@@ -1,9 +1,8 @@
 #pragma once
 
-#include "RenderCommand.h"
-
-#include "Camera.h"
-#include "Shader.h"
+#include "Ayin/Renderer/RenderCommand.h"
+#include "Ayin/Renderer/Camera.h"
+#include "Ayin/Renderer/Shader.h"
 
 // 渲染器Renderer的部分实现
 namespace Ayin {
@@ -13,6 +12,7 @@ namespace Ayin {
 	public:
 
 		static void Init();
+		static void Shutdown();
 
 		static void OnWindowResize(int width, int height);
 

@@ -2,7 +2,7 @@
 
 #include "Renderer.h"
 #include "Ayin/Renderer/Renderer2D.h"
-#include <Platform/OpenGL/OpenGLShader.h>
+#include "Platform/OpenGL/OpenGLShader.h"
 
 namespace Ayin {
 
@@ -15,6 +15,12 @@ namespace Ayin {
 		RenderCommand::Init();
 
 	};
+
+	void Renderer::Shutdown() {
+	
+		Renderer2D::Shutdown();
+	};
+
 
 	void Renderer::OnWindowResize(int width, int height) {
 

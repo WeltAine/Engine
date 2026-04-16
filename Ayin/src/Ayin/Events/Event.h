@@ -1,5 +1,4 @@
 #pragma once
-#include "AyinPch.h"
 
 #include "Ayin/Core/Core.h"
 
@@ -13,7 +12,7 @@
 //我想我们目前还缺少一个管理事件的类
 namespace Ayin {
 
-	#define BIND_EVENT_FUN(funcName) std::bind(&funcName, this, std::placeholders::_1)//事件处理回调（不是事件发生回调OnEvent）的包装器
+	#define AYIN_BIND_EVENT_FUN(funcName) std::bind(&funcName, this, std::placeholders::_1)//事件处理回调（不是事件发生回调OnEvent）的包装器
 
 	//事件枚举
 	enum class EventType

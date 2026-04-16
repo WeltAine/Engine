@@ -1,13 +1,10 @@
 #pragma once
 
 
-#include <string>
 #include "Ayin/Renderer/Shader.h"
 
-// TODO: REMOVE!
-typedef unsigned int GLenum;
-//原因详见SandBox中#include <Platform/OpenGL/OpenGLShader.h>下的注释
-
+#include <string>
+#include <Glad/glad.h>
 
 
 namespace Ayin{

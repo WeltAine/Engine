@@ -4,16 +4,6 @@
 #include "Ayin/Core/EntryPoint.h"
 // -----------------------------------
 
-#include <Platform/OpenGL/OpenGLShader.h>
-//! 在< a525129954c7c020ad0bd789b60ccc895825f1ca >提交中有一个关于该头文件的bug
-//! 在设置shader所需数据时我们选择在原地转换指针（关于当下Shader没有这个API的原因在Shader和OpenGLShader中有说明），转换为具体类型（之后肯定会改的）
-//! 所以我们引入的<Platform/OpenGL/OpenGLShader.h>，这只是为了让程序快速跑起来
-//! 但在< a525129954c7c020ad0bd789b60ccc895825f1ca >提交的初期我们在该头文件中引入了glad.h
-//! 在编译Ayin项目（即核心时）是没有问题的，但是编译SandBox项目时却会报错，[错误]：找不到头文件
-//! 原因是在premake中只有Ayin（核心）被设置为包含Glad路径，这很正常因为不应该让客户端感知到它，他是核心是底层的一部分
-//! 所以SandBox的设置中没有包含Glad路径，但是<Platform/OpenGL/OpenGLShader.h>中如果包含的话就会被引入，但SandBox在预处理时无法访问
-//! 这就是为什么Ayin编译时没有问题，而SandBox中却有问题
-
 #include <Platform/OpenGL/Buffer/OpenGLBuffer.h>
 
 #include "SandBox2D.h"

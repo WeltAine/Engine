@@ -1,9 +1,9 @@
 #pragma once
 
 #include "Ayin/Core/Core.h"
+
 #include <glm/glm.hpp>
 #include <glm/ext/matrix_float4x4.hpp> // mat4x4
-
 #include <glm/ext/matrix_transform.hpp> // translate, rotate, scale, identity
 
 

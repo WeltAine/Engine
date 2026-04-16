@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Ayin/Core/Core.h"
-#include "Event.h"
+#include "Ayin/Events/Event.h"
 
 //#include <sstream>
 

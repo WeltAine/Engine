@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Ayin/Core/Window.h"
-
 #include "Ayin/Renderer/GraphicsContext.h"
+
 #include <GLFW/glfw3.h>
 
 namespace Ayin {

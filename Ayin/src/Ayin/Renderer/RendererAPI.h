@@ -1,7 +1,8 @@
 #pragma once
 
+#include "Ayin/Renderer/VertexArray.h"
+
 #include <glm/glm.hpp>
-#include "VertexArray.h"
 
 namespace Ayin {
 
@@ -53,6 +54,10 @@ namespace Ayin {
 		/// <returns></returns>
 		inline static API GetAPI() { return s_API; };
 
+
+	public:
+
+		static Scope<RendererAPI> Create();
 
 	private:
 		static API s_API;

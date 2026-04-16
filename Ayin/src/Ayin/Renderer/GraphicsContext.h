@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Ayin/Core/Window.h"
+
 namespace Ayin {
 
 	/// <summary>
@@ -10,6 +12,10 @@ namespace Ayin {
 
 		virtual void Init() = 0;
 		virtual void SwapBuffer() = 0;
+
+	public:
+
+		static Scope<GraphicsContext> Create(Window* window);
 	};
 
 }

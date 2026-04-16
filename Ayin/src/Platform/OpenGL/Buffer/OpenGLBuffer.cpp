@@ -1,11 +1,9 @@
 #include <AyinPch.h>
 
-#include <Glad/glad.h>
-#include <glm/gtc/type_ptr.hpp>
-
-
 #include "OpenGLBuffer.h"
 
+#include <Glad/glad.h>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace Ayin {
 

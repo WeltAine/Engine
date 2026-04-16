@@ -2,18 +2,14 @@
 
 #include "Application.h"
 
-#include "spdlog/fmt/bundled/format.h"
+#include "Ayin/Core/Log.h"
+#include "Ayin/Core/Input.h"
+#include "Ayin/Core/Timestep.h"
 
 #include "Ayin/Events/ApplicationEvent.h"
-#include "Ayin/Core/Log.h"
-
-#include "Ayin/Core/Input.h"
 
 #include "Ayin/Renderer/Buffer.h"
 
-#include "Ayin/Core/Timestep.h"
-
-#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 namespace Ayin {
@@ -33,7 +29,7 @@ namespace Ayin {
 		m_Window = std::unique_ptr<Window>(Window::Create());
 
 		//当窗口发生事件时（通过GLFW），窗口类会调用OnEvent回调，由我们来处理，Application成了中介者，而窗口成为了组件，这道函指则是组件与中介之间的沟通桥梁
-		m_Window->SetEventCallback(BIND_EVENT_FUN(Application::OnEvent));
+		m_Window->SetEventCallback(AYIN_BIND_EVENT_FUN(Application::OnEvent));
 
 
 		Renderer::Init();
@@ -50,7 +46,7 @@ namespace Ayin {
 		while (m_Running)
 		{
 			// 时间更新
-			Timestep runTime = glfwGetTime();//已经运行的时间长度
+			Timestep runTime = (float)glfwGetTime();//已经运行的时间长度
 			Timestep frameInterval = runTime - m_LastFrameTime;
 			//? 这个过程我觉得应该单独设置一个Time外观来完成，甚至是单独弄一个为其弄一个计时层和ImGui一样，一起更新
 			//? glfwGetTime这类底层API应该封在一个Platform中，像Input和WindowsInput那样
@@ -87,10 +83,10 @@ namespace Ayin {
 		EventDispatcher dispatcher(e);
 
 		//关闭事件
-		dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FUN(Application::OnWindowClose));
+		dispatcher.Dispatch<WindowCloseEvent>(AYIN_BIND_EVENT_FUN(Application::OnWindowClose));
 
 		//窗口尺寸事件
-		dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FUN(Application::OnWindowResize));
+		dispatcher.Dispatch<WindowResizeEvent>(AYIN_BIND_EVENT_FUN(Application::OnWindowResize));
 
 		//从后往前逐层通知事件
 		for (auto iterator = m_LayerStack.end(); iterator != m_LayerStack.begin(); ) {

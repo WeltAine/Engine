@@ -1,8 +1,8 @@
 #pragma once
 
-#include <GLM/glm.hpp>
-
 #include "Ayin/Renderer/Buffer.h"
+
+#include <glm/glm.hpp>
 
 namespace Ayin {
 

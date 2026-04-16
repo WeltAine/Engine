@@ -1,10 +1,12 @@
 #pragma once
 
+#include "Ayin/Core/Core.h"
+
 //步进时间，或者叫时间长度，总之用来记录经过了多长时间
 namespace Ayin {
 
 
-	struct Timestep {
+	AYIN_API struct Timestep {
 
 	public:
 		Timestep(float time) 

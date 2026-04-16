@@ -1,12 +1,10 @@
 #include <AyinPch.h>
 
-#include <glm/ext/matrix_transform.hpp> // translate, rotate, scale, identity
-
-
-#include "Ayin/Renderer/Renderer2D.h"
-
-#include "Platform/OpenGL/OpenGLShader.h"
 #include "Ayin/Renderer/RenderCommand.h"
+#include "Ayin/Renderer/Renderer2D.h"
+#include "Platform/OpenGL/OpenGLShader.h"
+
+#include <glm/ext/matrix_transform.hpp> // translate, rotate, scale, identity
 
 namespace Ayin {
 

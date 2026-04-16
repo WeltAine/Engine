@@ -1,10 +1,8 @@
 #pragma once
 
 #include "Ayin/Core/Core.h"
-#include <memory>
-#include <vector>
+#include "Ayin/Renderer/Buffer.h"
 
-#include "Buffer.h"
 
 namespace Ayin{
 

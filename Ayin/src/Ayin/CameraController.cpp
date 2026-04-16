@@ -32,10 +32,10 @@ namespace Ayin{
 
             EventDispatcher dispatcher{ e };
 
-            dispatcher.Dispatch<MouseSrolledEvent>(BIND_EVENT_FUN(CameraController::OnMouseScrolled));
-            dispatcher.Dispatch<MouseButtonPressedEvent>(BIND_EVENT_FUN(CameraController::OnMouseMidButtonPressed));
-            dispatcher.Dispatch<MouseButtonReleasedEvent>(BIND_EVENT_FUN(CameraController::OnMouseMidButtonReleased));
-            dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FUN(CameraController::OnWindowResize));
+            dispatcher.Dispatch<MouseSrolledEvent>(AYIN_BIND_EVENT_FUN(CameraController::OnMouseScrolled));
+            dispatcher.Dispatch<MouseButtonPressedEvent>(AYIN_BIND_EVENT_FUN(CameraController::OnMouseMidButtonPressed));
+            dispatcher.Dispatch<MouseButtonReleasedEvent>(AYIN_BIND_EVENT_FUN(CameraController::OnMouseMidButtonReleased));
+            dispatcher.Dispatch<WindowResizeEvent>(AYIN_BIND_EVENT_FUN(CameraController::OnWindowResize));
 
         }
 

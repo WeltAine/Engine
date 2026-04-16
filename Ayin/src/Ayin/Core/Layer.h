@@ -1,8 +1,7 @@
 #pragma once
-#include "AyinPch.h"
-#include "Ayin/Events/Event.h"
 
 #include "Ayin/Core/Timestep.h"
+#include "Ayin/Events/Event.h"
 
 namespace Ayin {
 

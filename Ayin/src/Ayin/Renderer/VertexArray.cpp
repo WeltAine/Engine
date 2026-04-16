@@ -1,7 +1,7 @@
 #include <AyinPch.h>
 
-#include "Renderer.h"
-#include "VertexArray.h"
+#include "Ayin/Renderer/Renderer.h"
+#include "Ayin/Renderer/VertexArray.h"
 #include "Platform/OpenGL/OpenGLVertexArray.h"
 
 namespace Ayin{

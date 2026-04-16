@@ -2,7 +2,7 @@
 
 #include "Ayin/Core/Core.h"
 
-#include "RendererAPI.h"
+#include "Ayin/Renderer/RendererAPI.h"
 
 namespace Ayin {
 
@@ -16,7 +16,7 @@ namespace Ayin {
 	public:
 		// 工厂方法（我觉得这样更好就加了，在init中决定RendererAPI）
 		//x 没想到我竟然提前就干了这种事情
-		static void Init();
+		inline static void Init() { s_RendererAPI->Init(); };
 
 		inline static void SetViewport(int x, int y, int width, int height) { s_RendererAPI->SetViewport(x, y, width, height); };
 

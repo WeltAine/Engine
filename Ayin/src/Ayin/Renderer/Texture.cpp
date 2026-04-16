@@ -1,6 +1,6 @@
 #include <AyinPch.h>
 
-#include "Texture.h"
+#include "Ayin/Renderer/Texture.h"
 #include "Ayin/Renderer/Renderer.h"
 #include "Platform/OpenGL/OpenGLTexture.h"
 

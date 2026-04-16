@@ -1,7 +1,6 @@
 #pragma once
 
-#include "AyinPch.h"
-#include "Event.h"
+#include "Ayin/Events/Event.h"
 
 //#include <sstream>
 

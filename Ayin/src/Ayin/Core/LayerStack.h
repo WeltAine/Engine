@@ -1,5 +1,4 @@
 #pragma once
-#include "AyinPch.h"
 #include "Ayin/Core/Layer.h"
 
 
@@ -12,7 +11,7 @@ namespace Ayin {
 	class LayerStack
 	{
 	public:
-		LayerStack();
+		LayerStack() = default;
 		~LayerStack();
 
 		void PushLayer(Layer* layer);//增加非覆盖层

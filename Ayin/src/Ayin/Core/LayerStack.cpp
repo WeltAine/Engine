@@ -1,12 +1,9 @@
-#include "AyinPch.h"
-#include "LayerStack.h"
+#include <AyinPch.h>
+
+#include "Ayin/Core/LayerStack.h"
 
 
 namespace Ayin {
-
-
-	LayerStack::LayerStack() {
-	}
 
 	LayerStack::~LayerStack() {
 		//cherno所说的所有权应该就是指当Stack析构时，Layer*该何去何从

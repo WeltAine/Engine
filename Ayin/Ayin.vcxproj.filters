@@ -1473,5 +1473,6 @@
     <ClCompile Include="src\Ayin\Core\Layer.cpp" />
     <ClCompile Include="src\Ayin\Core\LayerStack.cpp" />
     <ClCompile Include="src\Ayin\Core\Log.cpp" />
+    <ClCompile Include="src\Ayin\Renderer\GraphicsContext.cpp" />
   </ItemGroup>
 </Project>

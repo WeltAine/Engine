@@ -632,6 +632,7 @@ copy /B /Y ..\bin\Dist-windows-x86_64\Ayin\Ayin.lib ..\bin\Dist-windows-x86_64\S
     <ClCompile Include="src\Ayin\ImGui\ImGuiLayer.cpp" />
     <ClCompile Include="src\Ayin\Renderer\Buffer.cpp" />
     <ClCompile Include="src\Ayin\Renderer\Camera.cpp" />
+    <ClCompile Include="src\Ayin\Renderer\GraphicsContext.cpp" />
     <ClCompile Include="src\Ayin\Renderer\RenderCommand.cpp" />
     <ClCompile Include="src\Ayin\Renderer\Renderer.cpp" />
     <ClCompile Include="src\Ayin\Renderer\Renderer2D.cpp" />

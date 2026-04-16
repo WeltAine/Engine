@@ -1,7 +1,8 @@
 #include <AyinPch.h>
 
-#include "Renderer.h"
-#include "Buffer.h"
+#include "Ayin/Renderer/Renderer.h"
+#include "Ayin/Renderer/Buffer.h"
+
 #include "Platform/OpenGL/Buffer/OpenGLBuffer.h"
 
 namespace Ayin {
