@@ -23,9 +23,10 @@ namespace Ayin {
 	AYIN_API struct ProfileResult {
 
 		std::string FuncName;
-		long long Start, End;
+		double Time;
 		//ToDo 这里加一个线程ID
 		uint32_t ThreadID;
+		char Type;
 
 	};
 
@@ -38,25 +39,24 @@ struct fmt::formatter<Ayin::ProfileResult> {
 	constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
 	template <typename FormatContext>
-	auto format(const Ayin::ProfileResult& res, FormatContext& ctx) const {
+	auto format(const Ayin::ProfileResult& result, FormatContext& ctx) const {
 
-		std::string name = res.FuncName;
+		std::string name = result.FuncName;
 		std::replace(name.begin(), name.end(), '"', '\'');
 
 		return fmt::format_to(ctx.out(),
 			"\n\t\t{{\n"						//		{
 			"\t\t\t\"cat\": \"function\",\n"	//			"cat": "function"
-			"\t\t\t\"dur\": {},\n"				//			"dur": n
 			"\t\t\t\"name\": \"{}\",\n"			//			"name": "EntryPoint"
-			"\t\t\t\"ph\": \"X\",\n"			//			"ph": "X"
+			"\t\t\t\"ph\": \"{}\",\n"			//			"ph": "B or E"
 			"\t\t\t\"pid\": 0,\n"				//			"pid": 0
 			"\t\t\t\"tid\": {},\n"				//			"tid": n,
-			"\t\t\t\"ts\": {}\n"				//			"ts": n
+			"\t\t\t\"ts\": {:.3f}\n"			//			"ts": n
 			"\t\t}}",							//		}
-			(res.End - res.Start),
 			name,
-			res.ThreadID,
-			res.Start
+			result.Type,
+			result.ThreadID,
+			result.Time
 		);
 	}
 
@@ -190,7 +190,13 @@ namespace Ayin {
 		InstrumentationTimer(const char* name)
 			:m_Name{ name }
 		{
-			m_StartTimepoint = std::chrono::high_resolution_clock::now();
+			// 构造时立即记录 Begin 事件
+			double start = std::chrono::duration<double, std::micro>(
+				std::chrono::high_resolution_clock::now().time_since_epoch()
+			).count();
+
+			uint32_t tid = static_cast<uint32_t>(std::hash<std::thread::id>{}(std::this_thread::get_id()));
+			Instrumentor::Get().WriteProfile({ m_Name, start, tid, 'B' });
 		}
 
 		~InstrumentationTimer() {
@@ -202,13 +208,13 @@ namespace Ayin {
 
 		inline void Stop() {
 
-			auto endTimepoint = std::chrono::high_resolution_clock::now();
+			// 析构时记录 End 事件
+			double end = std::chrono::duration<double, std::micro>(
+				std::chrono::high_resolution_clock::now().time_since_epoch()
+			).count();
 
-			long long start = std::chrono::time_point_cast<std::chrono::microseconds>(m_StartTimepoint).time_since_epoch().count();
-			long long end = std::chrono::time_point_cast<std::chrono::microseconds>(endTimepoint).time_since_epoch().count();
-
-			uint32_t threadID = static_cast<uint32_t>(std::hash<std::thread::id>{}(std::this_thread::get_id()));
-			Instrumentor::Get().WriteProfile({m_Name, start, end, threadID});
+			uint32_t tid = static_cast<uint32_t>(std::hash<std::thread::id>{}(std::this_thread::get_id()));
+			Instrumentor::Get().WriteProfile({ m_Name, end, tid, 'E' });
 
 			m_Stopped = true;
 		}
@@ -217,7 +223,6 @@ namespace Ayin {
 
 		const char* m_Name;
 		bool m_Stopped = false;
-		std::chrono::time_point<std::chrono::high_resolution_clock> m_StartTimepoint;
 	};
 }
 
