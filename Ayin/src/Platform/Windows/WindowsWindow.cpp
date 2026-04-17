@@ -95,21 +95,21 @@ namespace Ayin {
 					case GLFW_PRESS: {
 						WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);				//可以看一看glfwSetWindowUserPointer(m_Window, &m_Data)处的猜想
 
-						KeyPressedEvent event(key, scancode, 0);
+						KeyPressedEvent event(static_cast<KeyCode>(key), scancode, 0);
 						data.EventCallback(event);
 						break;
 					}
 					case GLFW_REPEAT: {
 						WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);				//可以看一看glfwSetWindowUserPointer(m_Window, &m_Data)处的猜想
 
-						KeyPressedEvent event(key, scancode, 1);
+						KeyPressedEvent event(static_cast<KeyCode>(key), scancode, 1);
 						data.EventCallback(event);
 						break;
 					}
 					case GLFW_RELEASE: {
 						WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);				//可以看一看glfwSetWindowUserPointer(m_Window, &m_Data)处的猜想
 
-						KeyReleasedEvent event(key, scancode);
+						KeyReleasedEvent event(static_cast<KeyCode>(key), scancode);
 						data.EventCallback(event);
 						break;
 					}
@@ -144,14 +144,14 @@ namespace Ayin {
 					case GLFW_PRESS: {
 						WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);//可以看一看glfwSetWindowUserPointer(m_Window, &m_Data)处的猜想
 
-						MouseButtonPressedEvent event(button);
+						MouseButtonPressedEvent event(static_cast<MouseCode>(button));
 						data.EventCallback(event);
 						break;
 					}
 					case GLFW_RELEASE: {
 						WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);//可以看一看glfwSetWindowUserPointer(m_Window, &m_Data)处的猜想
 
-						MouseButtonReleasedEvent event(button);
+						MouseButtonReleasedEvent event(static_cast<MouseCode>(button));
 						data.EventCallback(event);
 						break;
 					}

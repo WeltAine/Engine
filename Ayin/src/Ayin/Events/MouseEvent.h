@@ -3,6 +3,8 @@
 #include "Ayin/Core/Core.h"
 #include "Ayin/Events/Event.h"
 
+#include "Ayin/Core/MouseButtonCodes.h"
+
 //#include <sstream>
 
 
@@ -14,15 +16,15 @@ namespace Ayin{
 	public:
 		EVENT_CLASS_CATEGORY((int)EventCategory::EventCategoryInput|(int)EventCategory::EventCategoryMouse|(int)EventCategory::EventCategoryMouseButton);
 
-		inline int GetMouseButton() const { return m_Button; };
+		inline MouseCode GetMouseButton() const { return m_Button; };
 
 
 	protected:
-		MouseButtonEvent(int button)
+		MouseButtonEvent(MouseCode button)
 			:m_Button(button)
 		{}
 
-		int m_Button;
+		MouseCode m_Button;
 
 	};
 
@@ -30,7 +32,7 @@ namespace Ayin{
 	class AYIN_API MouseButtonPressedEvent : public MouseButtonEvent {
 
 	public:
-		MouseButtonPressedEvent(int button)
+		MouseButtonPressedEvent(MouseCode button)
 			:MouseButtonEvent(button)
 		{}
 
@@ -47,7 +49,7 @@ namespace Ayin{
 	class AYIN_API MouseButtonReleasedEvent : public MouseButtonEvent {
 
 	public:
-		MouseButtonReleasedEvent(int button)
+		MouseButtonReleasedEvent(MouseCode button)
 			:MouseButtonEvent(button)
 		{
 		}
