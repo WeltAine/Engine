@@ -1,5 +1,5 @@
 workspace "Ayin" --对应解决方案
-    architecture "x64"
+    architecture "x86_64"
     startproject "SandBox" --默认启动项目
 
     configurations --对应vs中的配置
