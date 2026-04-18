@@ -38,6 +38,6 @@ namespace Ayin {
 #define AYIN_INFO(...)			Ayin::Log::GetClientLogger()->info(__VA_ARGS__)
 #define AYIN_WARN(...)			Ayin::Log::GetClientLogger()->warn(__VA_ARGS__)
 #define AYIN_ERROR(...)			Ayin::Log::GetClientLogger()->error(__VA_ARGS__)
-#define AYIN_CRITICAL(...)			Ayin::Log::GetClientLogger()->critical(__VA_ARGS__)
+#define AYIN_CRITICAL(...)		Ayin::Log::GetClientLogger()->critical(__VA_ARGS__)
 
 

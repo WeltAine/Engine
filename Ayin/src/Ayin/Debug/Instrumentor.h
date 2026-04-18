@@ -24,8 +24,8 @@ namespace Ayin {
 
 		std::string FuncName;
 		double Time;
-		//ToDo 这里加一个线程ID
-		uint32_t ThreadID;
+		//ToDo 这里加一个进程ID
+		std::thread::id ThreadID;
 		char Type;
 
 	};
@@ -89,25 +89,26 @@ namespace Ayin {
 		inline void BeginSession(const std::string& name, const std::string& filepath = "results.json") {
 		
 			// 如果线程池尚未初始化，则进行初始化
-			// 队列中 8192 个插槽通常足以满足性能分析的需求
-			// 1 是后台线程的数量。
+			// 生产者消费者模型，logger->info(...)是生产者
+			// 队列中 8192 个插槽（生产者产生的数据）通常足以满足性能分析的需求
+			// 1 是后台线程的数量。（将数据写入文件的消费者）
 			spdlog::init_thread_pool(8192, 1);
 
 
 			// 我们使用一个基础的文件接收器。
-			// set_pattern("%v") 确保只记录消息内容，
-			// 不包含 spdlog 默认的时间戳或标签，否则会破坏 JSON 格式。
-			auto sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(filepath, true);
-			//m_Logger = std::make_shared<spdlog::logger>("Instrumentor", sink);
+			auto sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(filepath, true);//设置输出目标，是否清空文件
 
 			// 使用 create_async 以确保日志记录器不会阻塞游戏主线程
 			m_Logger = std::make_shared<spdlog::async_logger>(
 				"Instrumentor",							// logger 名称
 				sink,									// 已创建的 sink 对象
-				spdlog::thread_pool(),					// 线程池
-				spdlog::async_overflow_policy::block	// 溢出策略
+				spdlog::thread_pool(),					// 使用共享全局线程池
+				spdlog::async_overflow_policy::block	// 溢出策略（超过sink中的槽数则阻塞，并输出）
 			);
 
+
+			// set_pattern("%v") 确保只记录消息内容，
+			// 不包含 spdlog 默认的时间戳或标签，否则会破坏 JSON 格式。
 			m_Logger->set_pattern("%v");
 			m_Logger->flush_on(spdlog::level::err);		// 如果发生错误，立即刷新
 
@@ -195,7 +196,7 @@ namespace Ayin {
 				std::chrono::high_resolution_clock::now().time_since_epoch()
 			).count();
 
-			uint32_t tid = static_cast<uint32_t>(std::hash<std::thread::id>{}(std::this_thread::get_id()));
+			std::thread::id tid = std::this_thread::get_id();
 			Instrumentor::Get().WriteProfile({ m_Name, start, tid, 'B' });
 		}
 
@@ -213,7 +214,7 @@ namespace Ayin {
 				std::chrono::high_resolution_clock::now().time_since_epoch()
 			).count();
 
-			uint32_t tid = static_cast<uint32_t>(std::hash<std::thread::id>{}(std::this_thread::get_id()));
+			std::thread::id tid = std::this_thread::get_id();
 			Instrumentor::Get().WriteProfile({ m_Name, end, tid, 'E' });
 
 			m_Stopped = true;
