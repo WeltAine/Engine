@@ -2,6 +2,8 @@
 
 #include "Ayin/Events/Event.h"
 
+#include "Ayin/Core/KeyCodes.h"
+
 //#include <sstream>
 
 namespace Ayin {
@@ -14,17 +16,17 @@ namespace Ayin {
 
 		EVENT_CLASS_CATEGORY((int)EventCategory::EventCategoryKeyboard | (int)EventCategory::EventCategoryInput);
 
-		inline int GetKeyCode() const { return m_KeyCode; };
+		inline KeyCode GetKeyCode() const { return m_KeyCode; };
 		inline int GetScanCode() const { return m_ScanCode; };
 
 
 	protected:
 
-		KeyEvent(int keyCode, int scanCode)
+		KeyEvent(KeyCode keyCode, int scanCode)
 			:Event(), m_KeyCode(keyCode), m_ScanCode(scanCode)
 		{}
 
-		int m_KeyCode;
+		KeyCode m_KeyCode;
 		int m_ScanCode;
 
 	};
@@ -34,7 +36,7 @@ namespace Ayin {
 
 	public:
 
-		KeyPressedEvent(int keyCode, int scanCode, int repeatCount)
+		KeyPressedEvent(KeyCode keyCode, int scanCode, int repeatCount)
 			:KeyEvent(keyCode, scanCode), m_RepeatCount(repeatCount)
 		{}
 
@@ -44,7 +46,7 @@ namespace Ayin {
 
 		std::string ToString() const override{
 			std::stringstream ss;
-			ss << "KeyPressedEvent: " << m_KeyCode << "(" << m_RepeatCount << "repeats)";
+			ss << "KeyPressedEvent: " << m_KeyCode << " ( " << m_RepeatCount << " repeats)";
 			return ss.str();
 		}
 
@@ -57,7 +59,7 @@ namespace Ayin {
 	class AYIN_API KeyReleasedEvent : public KeyEvent {
 
 	public:
-		KeyReleasedEvent(int keyCode, int scanCode)
+		KeyReleasedEvent(KeyCode keyCode, int scanCode)
 			:KeyEvent(keyCode, scanCode)
 		{}
 
@@ -78,17 +80,21 @@ namespace Ayin {
 	{
 
 	public:
-		TextEvent(int keyCode, int scanCode)
-			:KeyEvent(keyCode, scanCode)
+		TextEvent(int codepoint, int scanCode)
+			:KeyEvent(KeyCode::MAX, scanCode), m_Codepoint{codepoint}
 		{}
 
 		EVENT_CLASS_TYPE(Text);
 
 		std::string ToString() const override {
 			std::stringstream ss;
-			ss << "TextEvent: " << m_KeyCode;
+			ss << "TextEvent: " << static_cast<char>(m_Codepoint) << "( " << m_Codepoint << " )";
 			return ss.str();
 		}
 
+
+	private:
+
+		int m_Codepoint;
 	};
 }

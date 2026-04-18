@@ -8,20 +8,20 @@
 namespace Ayin {
 
 
-	bool WindowsInput::IsKeyPressedImpl(int keyCode) const
+	bool WindowsInput::IsKeyPressedImpl(KeyCode keyCode) const
 	{
 		GLFWwindow* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
 
-		int state = glfwGetKey(window, keyCode);
+		int state = glfwGetKey(window, static_cast<uint32_t>(keyCode));
 
 		return ( state == GLFW_PRESS || state == GLFW_REPEAT );
 	}
 
-	bool WindowsInput::GetMouseButtonImpl(int button) const
+	bool WindowsInput::GetMouseButtonImpl(MouseCode button) const
 	{
 		GLFWwindow* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
 		
-		int state = glfwGetMouseButton(window, button);
+		int state = glfwGetMouseButton(window, static_cast<uint32_t>(button));
 
 		return state == GLFW_PRESS;
 	}

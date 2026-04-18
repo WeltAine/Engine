@@ -8,132 +8,287 @@
 //所以我们要有一个自己的输入映射宏，将这些底层的实现困在核心中，而不是暴露到客户端
 
 
-//来源于glfw3.h
-//我们直接使用GLFW的按键设置作为我们Ayin引擎的按键设置，至少在当下这个阶段，我们就不需要准备各种各样的转换辅助方法了
-//如果我们执意要自己来设置这些常量，那么我们就必须要实现一些辅助转换方法了 
+namespace Ayin {
 
-//按键流向抽象侧时变为AyinKeyCode，按键流向实现侧是转换为对应的KeyCode
+
+	enum class KeyCode : uint16_t {
+
+		//来源于glfw3.h
+		//我们直接使用GLFW的按键设置作为我们Ayin引擎的按键设置，至少在当下这个阶段，我们就不需要准备各种各样的转换辅助方法了
+		//如果我们执意要自己来设置这些常量，那么我们就必须要实现一些辅助转换方法了 
+
+		//按键流向抽象侧时变为AyinKeyCode，按键流向实现侧是转换为对应的KeyCode
+
+
+		Space		        = 32 ,
+		Apostrophe			= 39 , /* ' */
+		Comma				= 44 , /* , */
+		Minus				= 45 , /* - */
+		Period				= 46 , /* . */
+		Slash				= 47 , /* / */
+
+		D0                  = 48 , /* 0 */
+		D1                  = 49 , /* 1 */
+		D2                  = 50 , /* 2 */
+		D3                  = 51 , /* 3 */
+		D4                  = 52 , /* 4 */
+		D5                  = 53 , /* 5 */
+		D6                  = 54 , /* 6 */
+		D7                  = 55 , /* 7 */
+		D8                  = 56 , /* 8 */
+		D9                  = 57 , /* 9 */
+
+		Semicolon			= 59 , /* ; */
+		Equal				= 61 , /* = */
+
+		A					= 65 ,
+		B					= 66 ,
+		C					= 67 ,
+		D					= 68 ,
+		E					= 69 ,
+		F					= 70 ,
+		G					= 71 ,
+		H					= 72 ,
+		I					= 73 ,
+		J					= 74 ,
+		K					= 75 ,
+		L					= 76 ,
+		M					= 77 ,
+		N					= 78 ,
+		O					= 79 ,
+		P					= 80 ,
+		Q					= 81 ,
+		R					= 82 ,
+		S					= 83 ,
+		T					= 84 ,
+		U					= 85 ,
+		V					= 86 ,
+		W					= 87 ,
+		X					= 88 ,
+		Y					= 89 ,
+		Z					= 90 ,
+
+		Left_bracket		= 91 , /* [ */
+		Backslash			= 92 , /* \ */
+		Right_bracket		= 93 , /* ] */
+		Grave_accent		= 96 , /* ` */
+
+		World_1				= 161, /* non-US #1 */
+		World_2				= 162, /* non-US #2 */
+		
+		/* Function keys */
+		Escape				= 256,
+		Enter				= 257,
+		Tab					= 258,
+		Backspace			= 259,
+		Insert				= 260,
+		Delete				= 261,
+		Right				= 262,
+		Left				= 263,
+		Down				= 264,
+		Up					= 265,
+		Page_up				= 266,
+		Page_down			= 267,
+		Home				= 268,
+		End					= 269,
+		Caps_lock			= 280,
+		Scroll_lock			= 281,
+		Num_lock			= 282,
+		Print_screen		= 283,
+		Pause				= 284,
+		F1					= 290,
+		F2					= 291,
+		F3					= 292,
+		F4					= 293,
+		F5					= 294,
+		F6					= 295,
+		F7					= 296,
+		F8					= 297,
+		F9					= 298,
+		F10					= 299,
+		F11					= 300,
+		F12					= 301,
+		F13					= 302,
+		F14					= 303,
+		F15					= 304,
+		F16					= 305,
+		F17					= 306,
+		F18					= 307,
+		F19					= 308,
+		F20					= 309,
+		F21					= 310,
+		F22					= 311,
+		F23					= 312,
+		F24					= 313,
+		F25					= 314,
+
+		/* Keypad */
+		KP_0				= 320,
+		KP_1				= 321,
+		KP_2				= 322,
+		KP_3				= 323,
+		KP_4				= 324,
+		KP_5				= 325,
+		KP_6				= 326,
+		KP_7				= 327,
+		KP_8				= 328,
+		KP_9				= 329,
+		Kp_Decimal			= 330,
+		Kp_Divide			= 331,
+		Kp_Multiply			= 332,
+		Kp_Subtract			= 333,
+		Kp_Add				= 334,
+		Kp_Enter			= 335,
+		Kp_Equal			= 336,
+
+		Left_Shift			= 340,
+		Left_Control		= 341,
+		Left_Alt			= 342,
+		Left_Super			= 343,
+		Right_Shift			= 344,
+		Right_Control		= 345,
+		Right_Alt			= 346,
+		Right_Super			= 347,
+		Menu				= 348, 
+
+		MAX					= 999,
+	};
+
+	AYIN_API inline std::ostream& operator<< (std::ostream& os, KeyCode keyCode) {
+
+		os << static_cast<uint32_t>(keyCode);
+		return os;
+
+	}
+
+}
+
 
 /* Printable keys */
-#define AYIN_KEY_SPACE              32
-#define AYIN_KEY_APOSTROPHE         39  /* ' */
-#define AYIN_KEY_COMMA              44  /* , */
-#define AYIN_KEY_MINUS              45  /* - */
-#define AYIN_KEY_PERIOD             46  /* . */
-#define AYIN_KEY_SLASH              47  /* / */
-#define AYIN_KEY_0                  48
-#define AYIN_KEY_1                  49
-#define AYIN_KEY_2                  50
-#define AYIN_KEY_3                  51
-#define AYIN_KEY_4                  52
-#define AYIN_KEY_5                  53
-#define AYIN_KEY_6                  54
-#define AYIN_KEY_7                  55
-#define AYIN_KEY_8                  56
-#define AYIN_KEY_9                  57
-#define AYIN_KEY_SEMICOLON          59  /* ; */
-#define AYIN_KEY_EQUAL              61  /* = */
-#define AYIN_KEY_A                  65
-#define AYIN_KEY_B                  66
-#define AYIN_KEY_C                  67
-#define AYIN_KEY_D                  68
-#define AYIN_KEY_E                  69
-#define AYIN_KEY_F                  70
-#define AYIN_KEY_G                  71
-#define AYIN_KEY_H                  72
-#define AYIN_KEY_I                  73
-#define AYIN_KEY_J                  74
-#define AYIN_KEY_K                  75
-#define AYIN_KEY_L                  76
-#define AYIN_KEY_M                  77
-#define AYIN_KEY_N                  78
-#define AYIN_KEY_O                  79
-#define AYIN_KEY_P                  80
-#define AYIN_KEY_Q                  81
-#define AYIN_KEY_R                  82
-#define AYIN_KEY_S                  83
-#define AYIN_KEY_T                  84
-#define AYIN_KEY_U                  85
-#define AYIN_KEY_V                  86
-#define AYIN_KEY_W                  87
-#define AYIN_KEY_X                  88
-#define AYIN_KEY_Y                  89
-#define AYIN_KEY_Z                  90
-#define AYIN_KEY_LEFT_BRACKET       91  /* [ */
-#define AYIN_KEY_BACKSLASH          92  /* \ */
-#define AYIN_KEY_RIGHT_BRACKET      93  /* ] */
-#define AYIN_KEY_GRAVE_ACCENT       96  /* ` */
-#define AYIN_KEY_WORLD_1            161 /* non-US #1 */
-#define AYIN_KEY_WORLD_2            162 /* non-US #2 */
+#define AYIN_KEY_SPACE					::Ayin::KeyCode::Space		    
+#define AYIN_KEY_APOSTROPHE         	::Ayin::KeyCode::Apostrophe		
+#define AYIN_KEY_COMMA              	::Ayin::KeyCode::Comma			
+#define AYIN_KEY_MINUS              	::Ayin::KeyCode::Minus			
+#define AYIN_KEY_PERIOD             	::Ayin::KeyCode::Period			
+#define AYIN_KEY_SLASH              	::Ayin::KeyCode::Slash			
+#define AYIN_KEY_0                  	::Ayin::KeyCode::D0              
+#define AYIN_KEY_1                  	::Ayin::KeyCode::D1              
+#define AYIN_KEY_2                  	::Ayin::KeyCode::D2              
+#define AYIN_KEY_3                  	::Ayin::KeyCode::D3              
+#define AYIN_KEY_4                  	::Ayin::KeyCode::D4              
+#define AYIN_KEY_5                  	::Ayin::KeyCode::D5              
+#define AYIN_KEY_6                  	::Ayin::KeyCode::D6              
+#define AYIN_KEY_7                  	::Ayin::KeyCode::D7              
+#define AYIN_KEY_8                  	::Ayin::KeyCode::D8              
+#define AYIN_KEY_9                  	::Ayin::KeyCode::D9              
+#define AYIN_KEY_SEMICOLON          	::Ayin::KeyCode::Semicolon		
+#define AYIN_KEY_EQUAL              	::Ayin::KeyCode::Equal			
+#define AYIN_KEY_A                  	::Ayin::KeyCode::A				
+#define AYIN_KEY_B                  	::Ayin::KeyCode::B				
+#define AYIN_KEY_C                  	::Ayin::KeyCode::C				
+#define AYIN_KEY_D                  	::Ayin::KeyCode::D				
+#define AYIN_KEY_E                  	::Ayin::KeyCode::E				
+#define AYIN_KEY_F                  	::Ayin::KeyCode::F				
+#define AYIN_KEY_G                  	::Ayin::KeyCode::G				
+#define AYIN_KEY_H                  	::Ayin::KeyCode::H				
+#define AYIN_KEY_I                  	::Ayin::KeyCode::I				
+#define AYIN_KEY_J                  	::Ayin::KeyCode::J				
+#define AYIN_KEY_K                  	::Ayin::KeyCode::K				
+#define AYIN_KEY_L                  	::Ayin::KeyCode::L				
+#define AYIN_KEY_M                  	::Ayin::KeyCode::M				
+#define AYIN_KEY_N                  	::Ayin::KeyCode::N				
+#define AYIN_KEY_O                  	::Ayin::KeyCode::O				
+#define AYIN_KEY_P                  	::Ayin::KeyCode::P				
+#define AYIN_KEY_Q                  	::Ayin::KeyCode::Q				
+#define AYIN_KEY_R                  	::Ayin::KeyCode::R				
+#define AYIN_KEY_S                  	::Ayin::KeyCode::S				
+#define AYIN_KEY_T                  	::Ayin::KeyCode::T				
+#define AYIN_KEY_U                  	::Ayin::KeyCode::U				
+#define AYIN_KEY_V                  	::Ayin::KeyCode::V				
+#define AYIN_KEY_W                  	::Ayin::KeyCode::W				
+#define AYIN_KEY_X                  	::Ayin::KeyCode::X				
+#define AYIN_KEY_Y                  	::Ayin::KeyCode::Y				
+#define AYIN_KEY_Z                  	::Ayin::KeyCode::Z				
+#define AYIN_KEY_LEFT_BRACKET       	::Ayin::KeyCode::Left_bracket	
+#define AYIN_KEY_BACKSLASH          	::Ayin::KeyCode::Backslash		
+#define AYIN_KEY_RIGHT_BRACKET      	::Ayin::KeyCode::Right_bracket	
+#define AYIN_KEY_GRAVE_ACCENT       	::Ayin::KeyCode::Grave_accent	
+#define AYIN_KEY_WORLD_1            	::Ayin::KeyCode::World_1			
+#define AYIN_KEY_WORLD_2            	::Ayin::KeyCode::World_2			
+										
+/* Function keys */						
+#define AYIN_KEY_ESCAPE             	::Ayin::KeyCode::Escape			
+#define AYIN_KEY_ENTER              	::Ayin::KeyCode::Enter			
+#define AYIN_KEY_TAB                	::Ayin::KeyCode::Tab				
+#define AYIN_KEY_BACKSPACE          	::Ayin::KeyCode::Backspace		
+#define AYIN_KEY_INSERT             	::Ayin::KeyCode::Insert			
+#define AYIN_KEY_DELETE             	::Ayin::KeyCode::Delete			
+#define AYIN_KEY_RIGHT              	::Ayin::KeyCode::Right			
+#define AYIN_KEY_LEFT               	::Ayin::KeyCode::Left			
+#define AYIN_KEY_DOWN               	::Ayin::KeyCode::Down			
+#define AYIN_KEY_UP                 	::Ayin::KeyCode::Up				
+#define AYIN_KEY_PAGE_UP            	::Ayin::KeyCode::Page_up			
+#define AYIN_KEY_PAGE_DOWN          	::Ayin::KeyCode::Page_down		
+#define AYIN_KEY_HOME               	::Ayin::KeyCode::Home			
+#define AYIN_KEY_END                	::Ayin::KeyCode::End				
+#define AYIN_KEY_CAPS_LOCK          	::Ayin::KeyCode::Caps_lock		
+#define AYIN_KEY_SCROLL_LOCK        	::Ayin::KeyCode::Scroll_lock		
+#define AYIN_KEY_NUM_LOCK           	::Ayin::KeyCode::Num_lock		
+#define AYIN_KEY_PRINT_SCREEN       	::Ayin::KeyCode::Print_screen	
+#define AYIN_KEY_PAUSE              	::Ayin::KeyCode::Pause			
+#define AYIN_KEY_F1                 	::Ayin::KeyCode::F1				
+#define AYIN_KEY_F2                 	::Ayin::KeyCode::F2				
+#define AYIN_KEY_F3                 	::Ayin::KeyCode::F3				
+#define AYIN_KEY_F4                 	::Ayin::KeyCode::F4				
+#define AYIN_KEY_F5                 	::Ayin::KeyCode::F5				
+#define AYIN_KEY_F6                 	::Ayin::KeyCode::F6				
+#define AYIN_KEY_F7                 	::Ayin::KeyCode::F7				
+#define AYIN_KEY_F8                 	::Ayin::KeyCode::F8				
+#define AYIN_KEY_F9                 	::Ayin::KeyCode::F9				
+#define AYIN_KEY_F10                	::Ayin::KeyCode::F10				
+#define AYIN_KEY_F11                	::Ayin::KeyCode::F11				
+#define AYIN_KEY_F12                	::Ayin::KeyCode::F12				
+#define AYIN_KEY_F13                	::Ayin::KeyCode::F13				
+#define AYIN_KEY_F14                	::Ayin::KeyCode::F14				
+#define AYIN_KEY_F15                	::Ayin::KeyCode::F15				
+#define AYIN_KEY_F16                	::Ayin::KeyCode::F16				
+#define AYIN_KEY_F17                	::Ayin::KeyCode::F17				
+#define AYIN_KEY_F18                	::Ayin::KeyCode::F18				
+#define AYIN_KEY_F19                	::Ayin::KeyCode::F19				
+#define AYIN_KEY_F20                	::Ayin::KeyCode::F20				
+#define AYIN_KEY_F21                	::Ayin::KeyCode::F21				
+#define AYIN_KEY_F22                	::Ayin::KeyCode::F22				
+#define AYIN_KEY_F23                	::Ayin::KeyCode::F23				
+#define AYIN_KEY_F24                	::Ayin::KeyCode::F24				
+#define AYIN_KEY_F25                	::Ayin::KeyCode::F25		
+										
+#define AYIN_KEY_KP_0               	::Ayin::KeyCode::KP_0
+#define AYIN_KEY_KP_1               	::Ayin::KeyCode::KP_1			
+#define AYIN_KEY_KP_2               	::Ayin::KeyCode::KP_2			
+#define AYIN_KEY_KP_3               	::Ayin::KeyCode::KP_3			
+#define AYIN_KEY_KP_4               	::Ayin::KeyCode::KP_4			
+#define AYIN_KEY_KP_5               	::Ayin::KeyCode::KP_5			
+#define AYIN_KEY_KP_6               	::Ayin::KeyCode::KP_6			
+#define AYIN_KEY_KP_7               	::Ayin::KeyCode::KP_7			
+#define AYIN_KEY_KP_8               	::Ayin::KeyCode::KP_8			
+#define AYIN_KEY_KP_9               	::Ayin::KeyCode::KP_9			
+#define AYIN_KEY_KP_DECIMAL         	::Ayin::KeyCode::Kp_Decimal		
+#define AYIN_KEY_KP_DIVIDE          	::Ayin::KeyCode::Kp_Divide		
+#define AYIN_KEY_KP_MULTIPLY        	::Ayin::KeyCode::Kp_Multiply		
+#define AYIN_KEY_KP_SUBTRACT        	::Ayin::KeyCode::Kp_Subtract		
+#define AYIN_KEY_KP_ADD             	::Ayin::KeyCode::Kp_Add		
+#define AYIN_KEY_KP_ENTER           	::Ayin::KeyCode::Kp_Enter			
+#define AYIN_KEY_KP_EQUAL           	::Ayin::KeyCode::Kp_Equal		
 
-/* Function keys */
-#define AYIN_KEY_ESCAPE             256
-#define AYIN_KEY_ENTER              257
-#define AYIN_KEY_TAB                258
-#define AYIN_KEY_BACKSPACE          259
-#define AYIN_KEY_INSERT             260
-#define AYIN_KEY_DELETE             261
-#define AYIN_KEY_RIGHT              262
-#define AYIN_KEY_LEFT               263
-#define AYIN_KEY_DOWN               264
-#define AYIN_KEY_UP                 265
-#define AYIN_KEY_PAGE_UP            266
-#define AYIN_KEY_PAGE_DOWN          267
-#define AYIN_KEY_HOME               268
-#define AYIN_KEY_END                269
-#define AYIN_KEY_CAPS_LOCK          280
-#define AYIN_KEY_SCROLL_LOCK        281
-#define AYIN_KEY_NUM_LOCK           282
-#define AYIN_KEY_PRINT_SCREEN       283
-#define AYIN_KEY_PAUSE              284
-#define AYIN_KEY_F1                 290
-#define AYIN_KEY_F2                 291
-#define AYIN_KEY_F3                 292
-#define AYIN_KEY_F4                 293
-#define AYIN_KEY_F5                 294
-#define AYIN_KEY_F6                 295
-#define AYIN_KEY_F7                 296
-#define AYIN_KEY_F8                 297
-#define AYIN_KEY_F9                 298
-#define AYIN_KEY_F10                299
-#define AYIN_KEY_F11                300
-#define AYIN_KEY_F12                301
-#define AYIN_KEY_F13                302
-#define AYIN_KEY_F14                303
-#define AYIN_KEY_F15                304
-#define AYIN_KEY_F16                305
-#define AYIN_KEY_F17                306
-#define AYIN_KEY_F18                307
-#define AYIN_KEY_F19                308
-#define AYIN_KEY_F20                309
-#define AYIN_KEY_F21                310
-#define AYIN_KEY_F22                311
-#define AYIN_KEY_F23                312
-#define AYIN_KEY_F24                313
-#define AYIN_KEY_F25                314
-#define AYIN_KEY_KP_0               320
-#define AYIN_KEY_KP_1               321
-#define AYIN_KEY_KP_2               322
-#define AYIN_KEY_KP_3               323
-#define AYIN_KEY_KP_4               324
-#define AYIN_KEY_KP_5               325
-#define AYIN_KEY_KP_6               326
-#define AYIN_KEY_KP_7               327
-#define AYIN_KEY_KP_8               328
-#define AYIN_KEY_KP_9               329
-#define AYIN_KEY_KP_DECIMAL         330
-#define AYIN_KEY_KP_DIVIDE          331
-#define AYIN_KEY_KP_MULTIPLY        332
-#define AYIN_KEY_KP_SUBTRACT        333
-#define AYIN_KEY_KP_ADD             334
-#define AYIN_KEY_KP_ENTER           335
-#define AYIN_KEY_KP_EQUAL           336
-#define AYIN_KEY_LEFT_SHIFT         340
-#define AYIN_KEY_LEFT_CONTROL       341
-#define AYIN_KEY_LEFT_ALT           342
-#define AYIN_KEY_LEFT_SUPER         343
-#define AYIN_KEY_RIGHT_SHIFT        344
-#define AYIN_KEY_RIGHT_CONTROL      345
-#define AYIN_KEY_RIGHT_ALT          346
-#define AYIN_KEY_RIGHT_SUPER        347
-#define AYIN_KEY_MENU               348
+#define AYIN_KEY_LEFT_SHIFT         	::Ayin::KeyCode::Left_Shift		
+#define AYIN_KEY_LEFT_CONTROL       	::Ayin::KeyCode::Left_Control		
+#define AYIN_KEY_LEFT_ALT           	::Ayin::KeyCode::Left_Alt	
+#define AYIN_KEY_LEFT_SUPER         	::Ayin::KeyCode::Left_Super		
+#define AYIN_KEY_RIGHT_SHIFT        	::Ayin::KeyCode::Right_Shift		
+#define AYIN_KEY_RIGHT_CONTROL      	::Ayin::KeyCode::Right_Control		
+#define AYIN_KEY_RIGHT_ALT          	::Ayin::KeyCode::Right_Alt	
+#define AYIN_KEY_RIGHT_SUPER        	::Ayin::KeyCode::Right_Super		
+#define AYIN_KEY_MENU               	::Ayin::KeyCode::Menu		
+												
+
+											

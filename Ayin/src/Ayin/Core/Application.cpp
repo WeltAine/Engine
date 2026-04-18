@@ -40,6 +40,12 @@ namespace Ayin {
 
 	};
 
+	Application::~Application() {
+
+		Renderer::Shutdown();
+
+	}
+
 
 	void Application::Run() {
 
@@ -89,9 +95,9 @@ namespace Ayin {
 		dispatcher.Dispatch<WindowResizeEvent>(AYIN_BIND_EVENT_FUN(Application::OnWindowResize));
 
 		//从后往前逐层通知事件
-		for (auto iterator = m_LayerStack.end(); iterator != m_LayerStack.begin(); ) {
+		for (auto iterator = m_LayerStack.rbegin(); iterator != m_LayerStack.rend(); iterator++) {
 
-			(*--iterator)->OnEvent(e);
+			(*iterator)->OnEvent(e);
 			if (e.handled) {
 				break;
 			}

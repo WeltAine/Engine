@@ -33,7 +33,7 @@ namespace Ayin {
 	public:
 		inline static Application& Get() { return *s_Instance; };
 
-		inline virtual ~Application() = default;
+		virtual ~Application();
 
 		void Run();
 
@@ -58,7 +58,7 @@ namespace Ayin {
 		bool m_Running = true;
 
 		LayerStack m_LayerStack;					//栈层
-		ImGuiLayer* m_ImGuiLayer;//！！！没有释放
+		ImGuiLayer* m_ImGuiLayer;					//! 交由栈层来释放，只要在LayerStack中，那么就由其管理生命周期
 
 		float m_LastFrameTime = 0.0f;
 

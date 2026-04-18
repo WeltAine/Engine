@@ -89,34 +89,34 @@ namespace Ayin {
 		
 		#pragma region GLFW事件回调设置
 		//发送键盘事件
-		glfwSetKeyCallback(m_Window, [](GLFWwindow* window, int key, int scancode, int action, int mods)//按键，不认识，动作，修饰（应该是类似ctrl这类的）
+		glfwSetKeyCallback(m_Window, [](GLFWwindow* window, int key, int scancode, int action, int mods)//按键GLFW编号（GLFW\src\win32_init.c中可见，由scancode转换而来），按键物理编号，动作，修饰（应该是类似ctrl这类的）
 			{
 				switch (action) {
 					case GLFW_PRESS: {
-						WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);//可以看一看glfwSetWindowUserPointer(m_Window, &m_Data)处的猜想
+						WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);				//可以看一看glfwSetWindowUserPointer(m_Window, &m_Data)处的猜想
 
-						KeyPressedEvent event(key, scancode, 0);
+						KeyPressedEvent event(static_cast<KeyCode>(key), scancode, 0);
 						data.EventCallback(event);
 						break;
 					}
 					case GLFW_REPEAT: {
-						WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);//可以看一看glfwSetWindowUserPointer(m_Window, &m_Data)处的猜想
+						WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);				//可以看一看glfwSetWindowUserPointer(m_Window, &m_Data)处的猜想
 
-						KeyPressedEvent event(key, scancode, 1);
+						KeyPressedEvent event(static_cast<KeyCode>(key), scancode, 1);
 						data.EventCallback(event);
 						break;
 					}
 					case GLFW_RELEASE: {
-						WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);//可以看一看glfwSetWindowUserPointer(m_Window, &m_Data)处的猜想
+						WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);				//可以看一看glfwSetWindowUserPointer(m_Window, &m_Data)处的猜想
 
-						KeyReleasedEvent event(key, scancode);
+						KeyReleasedEvent event(static_cast<KeyCode>(key), scancode);
 						data.EventCallback(event);
 						break;
 					}
 				}
 			});
 
-		glfwSetCharCallback(m_Window, [](GLFWwindow* window, unsigned int codepoint)
+		glfwSetCharCallback(m_Window, [](GLFWwindow* window, unsigned int codepoint)					//! 操作系统基于- Shift/CapsLock 大小写转换 - 输入法（IME）输入（中文 / 日文等）- 组合键字符生成（Unicode 码点（UTF-32）） （codepoint与GLFW无关）
 			{
 				WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 
@@ -144,14 +144,14 @@ namespace Ayin {
 					case GLFW_PRESS: {
 						WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);//可以看一看glfwSetWindowUserPointer(m_Window, &m_Data)处的猜想
 
-						MouseButtonPressedEvent event(button);
+						MouseButtonPressedEvent event(static_cast<MouseCode>(button));
 						data.EventCallback(event);
 						break;
 					}
 					case GLFW_RELEASE: {
 						WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);//可以看一看glfwSetWindowUserPointer(m_Window, &m_Data)处的猜想
 
-						MouseButtonReleasedEvent event(button);
+						MouseButtonReleasedEvent event(static_cast<MouseCode>(button));
 						data.EventCallback(event);
 						break;
 					}
