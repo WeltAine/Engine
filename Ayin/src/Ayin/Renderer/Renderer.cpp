@@ -11,6 +11,8 @@ namespace Ayin {
 
 	void Renderer::Init() {
 
+		AYIN_PROFILE_FUNCTION();
+
 		Renderer2D::Init();
 		RenderCommand::Init();
 

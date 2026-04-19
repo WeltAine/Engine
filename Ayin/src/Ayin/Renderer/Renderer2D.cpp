@@ -12,6 +12,8 @@ namespace Ayin {
 	Renderer2DStroage* Renderer2D::s_Data;
 
 	void Renderer2D::Init() {
+
+		AYIN_PROFILE_FUNCTION();
 	
 		s_Data = new Renderer2DStroage;
 
@@ -49,20 +51,28 @@ namespace Ayin {
 
 	void Renderer2D::Shutdown() {
 	
+		AYIN_PROFILE_FUNCTION();
+
 		delete s_Data;
 
 	};
 
 	void Renderer2D::BeginScene(const Camera& camera) {
+
+		AYIN_PROFILE_FUNCTION();
 	
 		s_Data->QuadShader->SetMat4("u_ProjectionViewMatrix", camera.GetProjecttionViewMatrix());
 
 	};
-	void Renderer2D::EndScene() {};
+	void Renderer2D::EndScene() {
+		AYIN_PROFILE_FUNCTION();
+	};
 
 
 	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& size) {
 	
+		AYIN_PROFILE_FUNCTION();
+
 		glm::mat4 transform{1.0f};
 		transform = glm::translate(transform, position);
 		transform = glm::scale(transform, size);
@@ -84,6 +94,8 @@ namespace Ayin {
 
 	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& size, const Ref<Texture2D>& texture) {
 		
+		AYIN_PROFILE_FUNCTION();
+
 		glm::mat4 transform{ 1.0f };
 		transform = glm::translate(transform, position);
 		transform = glm::scale(transform, size);

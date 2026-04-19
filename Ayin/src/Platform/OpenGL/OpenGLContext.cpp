@@ -14,6 +14,7 @@ namespace Ayin {
 
 	void OpenGLContext::Init()
 	{
+		AYIN_PROFILE_FUNCTION();
 		 
 		// 将 OpenGL 上下文设置为当前上下文
 		// 在使用 OpenGL API 之前，必须先创建一个当前的 OpenGL 上下文（Context）。该上下文将一直保持当前状态，直到你切换到另一个上下文，或者该上下文所属的窗口被销毁。
@@ -54,6 +55,8 @@ namespace Ayin {
 
 	void OpenGLContext::SwapBuffer()
 	{
+		AYIN_PROFILE_FUNCTION();
+		
 		glfwSwapBuffers(static_cast<GLFWwindow*>(m_WindowHandle->GetNativeWindow()));//交换前后台缓冲（双缓冲方案）
 		// 前台缓冲区用于显示当前图像，而后台缓冲区则用于执行渲染操作。
 	}

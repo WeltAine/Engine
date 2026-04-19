@@ -8,19 +8,22 @@ SandBox2D::SandBox2D()
 
 void SandBox2D::OnAttach() {
 
+	AYIN_PROFILE_FUNCTION();
+
 	m_Texture = Ayin::Texture2D::Create("O:/CppProgram/Ayin/assets/textures/blendTexture.png");
 
 };
-void SandBox2D::OnDetach() {};
+void SandBox2D::OnDetach() {
+
+	AYIN_PROFILE_FUNCTION();
+
+};
 
 void SandBox2D::OnUpdate(Ayin::Timestep deltaTime) {
 
 	AYIN_PROFILE_FUNCTION();
 
-	{
-		AYIN_PROFILE_SCOPE("CameraController::OnUpdate");
-		m_CamreaController.OnUpdate(deltaTime);
-	}
+	m_CamreaController.OnUpdate(deltaTime);
 
 	{
 		AYIN_PROFILE_SCOPE("Renderer Prep");

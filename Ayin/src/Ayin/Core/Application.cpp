@@ -23,6 +23,8 @@ namespace Ayin {
 	/// </summary>
 	Application::Application()
 	{
+		AYIN_PROFILE_FUNCTION();
+
 		AYIN_ASSERT(!s_Instance, "Application already exists!");//断言，防止破坏单例
 		s_Instance = this;
 
@@ -42,6 +44,8 @@ namespace Ayin {
 
 	Application::~Application() {
 
+		AYIN_PROFILE_FUNCTION();
+
 		Renderer::Shutdown();
 
 	}
@@ -49,39 +53,57 @@ namespace Ayin {
 
 	void Application::Run() {
 
+		AYIN_PROFILE_FUNCTION();
+
 		while (m_Running)
 		{
 			// 时间更新
 			Timestep runTime = (float)glfwGetTime();//已经运行的时间长度
 			Timestep frameInterval = runTime - m_LastFrameTime;
+			m_LastFrameTime = runTime;
 			//? 这个过程我觉得应该单独设置一个Time外观来完成，甚至是单独弄一个为其弄一个计时层和ImGui一样，一起更新
 			//? glfwGetTime这类底层API应该封在一个Platform中，像Input和WindowsInput那样
 			AYIN_CORE_INFO("FrameInterval:{0}s  ({1}ms)", float(frameInterval), frameInterval.GetMilliseconds());
 
+			{
+				// 层更新
+				AYIN_PROFILE_SCOPE("LayerStack OnUpdate");
 
-			// 层更新
-			for (Layer* layer : m_LayerStack) {
-				layer->OnUpdate(frameInterval);
+				for (Layer* layer : m_LayerStack) {
+					layer->OnUpdate(frameInterval);
+				}
+
 			}
 
+			
 			// 渲染ImGui（之后会单独放到渲染线程上，所以不会在Layer的OnUpdate中执行）
 			// m_ImGuiLauer的Begin和End中为ImGui上下文的相关设置，详情可查看函数
 			// 这里应该接收的是上一帧的情况（因为事件本帧事件会在Window的OnUpdate中触发）
 			m_ImGuiLayer->Begin();
-			for (Layer* layer : m_LayerStack) {
-				layer->OnImGuiRender();
+			{
+
+				AYIN_PROFILE_SCOPE("LayerStack OnImGuiRender");
+
+				for (Layer* layer : m_LayerStack) {
+					layer->OnImGuiRender();
+				}
+
 			}
 			m_ImGuiLayer->End();
+
 			
+
+
 			// 窗口更新
 			m_Window->OnUpdate();
 
-			m_LastFrameTime = runTime;
 
 		}
 	}
 
 	void Application::OnEvent(Event& e) {
+
+		AYIN_PROFILE_FUNCTION();
 
 		//输出日志（除关闭以外的事件先这么处理）
 		AYIN_CORE_TRACE("{0}", e);
@@ -114,6 +136,8 @@ namespace Ayin {
 
 	bool Application::OnWindowResize(const WindowResizeEvent& e) {
 
+		AYIN_PROFILE_FUNCTION();
+
 		if (e.GetWidth() <= 0 || e.GetHeight() <= 0) {
 			m_IsVisible = false;
 			return false;
@@ -122,16 +146,21 @@ namespace Ayin {
 		Renderer::OnWindowResize(e.GetWidth(), e.GetHeight());
 		return false;
 
-		return true;
 
 	}
 
 
 	void Application::PushLayer(Layer* layer) {
+
+		AYIN_PROFILE_FUNCTION();
+
 		m_LayerStack.PushLayer(layer);
 	}
 
 	void Application::PushOverlay(Layer* overLayer) {
+
+		AYIN_PROFILE_FUNCTION();
+
 		m_LayerStack.PushOverlay(overLayer);
 	}
 

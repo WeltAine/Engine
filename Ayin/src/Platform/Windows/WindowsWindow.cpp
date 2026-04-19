@@ -26,10 +26,14 @@ namespace Ayin {
 
 	WindowsWindow::WindowsWindow(const WindowProps& props) 
 	{
+		AYIN_PROFILE_FUNCTION();
+
 		Init(props);
 	}
 
 	void WindowsWindow::Init(const WindowProps& props) {
+
+		AYIN_PROFILE_FUNCTION();
 
 		//存储窗口数据
 		m_Data.Title = props.Title;
@@ -40,6 +44,9 @@ namespace Ayin {
 		// GLWL初始化
 		#pragma region GLFW初始化与相关配置（OpenGL版本以及错误回调）
 		if (s_GLFWWindowCount == 0) {
+
+			AYIN_PROFILE_SCOPE("glfwInit");
+
 			glfwSetErrorCallback(GLFWErrorCallback);
 
 			AYIN_CORE_INFO("Initializing GLFW");
@@ -58,13 +65,17 @@ namespace Ayin {
 		}
 		#pragma endregion
 
-		// 创建窗口
-		m_Window = glfwCreateWindow(m_Data.Width, m_Data.Height, m_Data.Title.c_str(), nullptr, nullptr);
-		// 只需调用一次 glfwCreateWindow 函数即可创建窗口及其 OpenGL 上下文，该函数会返回一个指向窗口与上下文组合（对没错，是组合模式）对象的句柄
-		// 当不再需要窗口和上下文时，请使用glfwDestroyWindow(window)将其销毁。
-		// GLFW在创建窗口时也会创建OpenGL/Vulkan上下文（这是让GPU运作的关键之一，类似我们在shader编程中提及的渲染状态信息）
-		// 另一件重要的事情是，操作系统只有在创建了窗口（准确的来说是窗口的设备上下文）后才会给与访问显卡驱动的可能（这些驱动由硬件厂商编写，遵循特定规范，比如OpenGL就是一种规范）
-		// 而我们的Glad库核心是加载器和一堆函数指针（加载器用于将驱动中的方法记录到函数指针中，而查找驱动方法的手段有GLFW提供，可能是因为窗口是它创建的，它知道如何访问驱动）
+		{
+			AYIN_PROFILE_SCOPE("glfwCreateWindow");
+
+			// 创建窗口
+			m_Window = glfwCreateWindow(m_Data.Width, m_Data.Height, m_Data.Title.c_str(), nullptr, nullptr);
+			// 只需调用一次 glfwCreateWindow 函数即可创建窗口及其 OpenGL 上下文，该函数会返回一个指向窗口与上下文组合（对没错，是组合模式）对象的句柄
+			// 当不再需要窗口和上下文时，请使用glfwDestroyWindow(window)将其销毁。
+			// GLFW在创建窗口时也会创建OpenGL/Vulkan上下文（这是让GPU运作的关键之一，类似我们在shader编程中提及的渲染状态信息）
+			// 另一件重要的事情是，操作系统只有在创建了窗口（准确的来说是窗口的设备上下文）后才会给与访问显卡驱动的可能（这些驱动由硬件厂商编写，遵循特定规范，比如OpenGL就是一种规范）
+			// 而我们的Glad库核心是加载器和一堆函数指针（加载器用于将驱动中的方法记录到函数指针中，而查找驱动方法的手段有GLFW提供，可能是因为窗口是它创建的，它知道如何访问驱动）
+		}
 
 
 		// 创建渲染上下文并初始化
@@ -191,6 +202,8 @@ namespace Ayin {
 
 	void WindowsWindow::OnUpdate()
 	{
+		AYIN_PROFILE_FUNCTION();
+
 		glfwPollEvents();//在代码运行过程中（甚至是在 glfwPollEvents 期间），GLFW 都会触发回调函数。（异步机制）！！？？？
 		// 为了接收事件并证明程序未陷入死锁，GLFW 需要定期与窗口系统进行通信。只要窗口处于可见状态，就必须定期处理事件，通常在每一帧完成缓冲区交换后进行。
 		// 处理待处理事件有两种方式：轮询和等待。这里采用事件轮询（Polling）机制，它仅处理当前已收到的事件并立即返回。
@@ -203,6 +216,9 @@ namespace Ayin {
 	}
 
 	void WindowsWindow::Shutdown() {
+
+		AYIN_PROFILE_FUNCTION();
+
 		glfwDestroyWindow(m_Window);
 		if (--s_GLFWWindowCount == 0) {
 			AYIN_CORE_INFO("Terminating GLFW");
@@ -211,11 +227,16 @@ namespace Ayin {
 	}
 
 	WindowsWindow::~WindowsWindow() {
+
+		AYIN_PROFILE_FUNCTION();
+
 		Shutdown();//不会导致重复触发么？？？
 	}
 
 	void WindowsWindow::SetVSync(bool enabled) 
 	{ 
+		AYIN_PROFILE_FUNCTION();
+
 		//通过调节前后台缓冲的交替间隔（交换缓冲前所需等待的帧数）来实现垂直同步
 		if (enabled) {
 			glfwSwapInterval(1);

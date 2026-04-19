@@ -29,6 +29,8 @@ namespace Ayin {
 
 	void ImGuiLayer::OnAttach()
 	{
+		AYIN_PROFILE_FUNCTION();
+
 		//我对Imgui的感受就是一个UI框架，平台后端和渲染后端组成，它是一套基于实际平台和渲染的图形框架
 		//就是我们现在在做的引擎一样，但是它只负责自己的UI，利用具体的事件系统，利用具体的图形API
 		
@@ -59,6 +61,8 @@ namespace Ayin {
 	}
 
 	void ImGuiLayer::OnDetach() {
+
+		AYIN_PROFILE_FUNCTION();
 		
 		ImGui_ImplOpenGL3_Shutdown();
 		ImGui_ImplGlfw_Shutdown();//简单来说清理ImGui在初始化时创建的GLFW资源，关闭回调，关闭光标，接触window与UIContext的绑定
@@ -113,6 +117,9 @@ namespace Ayin {
 	}
 
 	void ImGuiLayer::Begin() {
+
+		AYIN_PROFILE_FUNCTION();
+
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		// 总的来说更新UIContext；获取窗口（大小，屏幕缩放）数据，更新（检查）显示器设置，更新deltatime，更新鼠标状态，光标状态，更新（检查）手柄设置
@@ -125,6 +132,8 @@ namespace Ayin {
 	}
 
 	void ImGuiLayer::End() {
+
+		AYIN_PROFILE_FUNCTION();
 
 		ImGuiIO& io = ImGui::GetIO();
 

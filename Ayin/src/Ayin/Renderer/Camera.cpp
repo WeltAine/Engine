@@ -57,6 +57,8 @@ namespace Ayin {
 
 	void Camera::SetProjection(const CameraProp& cameraProp){
 
+		AYIN_PROFILE_FUNCTION();
+
 		m_CameraType = cameraProp.Type;
 
 		switch (cameraProp.Type) {
@@ -95,6 +97,8 @@ namespace Ayin {
 
 	void Camera::RecalculateViewMatrix()
 	{
+		AYIN_PROFILE_FUNCTION();
+
 		glm::mat4 pitch = glm::rotate(glm::identity<glm::mat4>(), glm::radians(m_Rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
 		glm::mat4 yaw = glm::rotate(glm::identity<glm::mat4>(), glm::radians(m_Rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
 		glm::mat4 roll = glm::rotate(glm::identity<glm::mat4>(), glm::radians(m_Rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
