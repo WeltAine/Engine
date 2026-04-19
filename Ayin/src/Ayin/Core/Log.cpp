@@ -38,7 +38,7 @@ namespace Ayin {
 		s_CoreLogger->set_level(spdlog::level::trace);//设置输出的最低等级
 
 
-		s_CoreLogger = std::make_shared<spdlog::async_logger>(
+		s_ClientLogger = std::make_shared<spdlog::async_logger>(
 			"App",
 			sinks.begin(),
 			sinks.end(),
