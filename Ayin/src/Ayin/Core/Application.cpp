@@ -65,56 +65,37 @@ namespace Ayin {
 			//? glfwGetTime这类底层API应该封在一个Platform中，像Input和WindowsInput那样
 			AYIN_CORE_INFO("FrameInterval:{0}s  ({1}ms)", float(frameInterval), frameInterval.GetMilliseconds());
 
-			{
-				// 层更新
-				AYIN_PROFILE_SCOPE("LayerStack OnUpdate");
-
-				for (Layer* layer : m_LayerStack) {
-					layer->OnUpdate(frameInterval);
-				}
-
-			}
-
-			
-			// 渲染ImGui（之后会单独放到渲染线程上，所以不会在Layer的OnUpdate中执行）
-			// m_ImGuiLauer的Begin和End中为ImGui上下文的相关设置，详情可查看函数
-			// 这里应该接收的是上一帧的情况（因为事件本帧事件会在Window的OnUpdate中触发）
-			m_ImGuiLayer->Begin();
-			{
-
-				AYIN_PROFILE_SCOPE("LayerStack OnImGuiRender");
-
-				for (Layer* layer : m_LayerStack) {
-					layer->OnImGuiRender();
-				}
-
-			}
-			m_ImGuiLayer->End();
-
-			
-
-
-			// 窗口更新
-			m_Window->OnUpdate();
-
 
 			if (m_IsVisible) {
 
-				// 层更新
-				for (Layer* layer : m_LayerStack) {
-					layer->OnUpdate(frameInterval);
+				{
+					// 层更新
+					AYIN_PROFILE_SCOPE("LayerStack OnUpdate");
+
+					for (Layer* layer : m_LayerStack) {
+						layer->OnUpdate(frameInterval);
+					}
+
 				}
+
 
 				// 渲染ImGui（之后会单独放到渲染线程上，所以不会在Layer的OnUpdate中执行）
 				// m_ImGuiLauer的Begin和End中为ImGui上下文的相关设置，详情可查看函数
 				// 这里应该接收的是上一帧的情况（因为事件本帧事件会在Window的OnUpdate中触发）
 				m_ImGuiLayer->Begin();
-				for (Layer* layer : m_LayerStack) {
-					layer->OnImGuiRender();
+				{
+
+					AYIN_PROFILE_SCOPE("LayerStack OnImGuiRender");
+
+					for (Layer* layer : m_LayerStack) {
+						layer->OnImGuiRender();
+					}
+
 				}
 				m_ImGuiLayer->End();
 
 			}
+
 
 			// 窗口更新
 			m_Window->OnUpdate();
