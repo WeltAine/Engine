@@ -26,6 +26,10 @@ namespace Ayin {
 		auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
 		auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("Ayin.log", true);
 
+		console_sink->set_pattern("%^[%T] %n: %v%$");
+		file_sink->set_pattern("[%T] [%l] %n: %v");
+
+
 		std::vector<spdlog::sink_ptr> sinks{console_sink, file_sink};
 
 		s_CoreLogger = std::make_shared<spdlog::async_logger>(
@@ -51,7 +55,6 @@ namespace Ayin {
 		// 注册到全局（可选），并设置统一格式
 		spdlog::register_logger(s_CoreLogger);
 		spdlog::register_logger(s_ClientLogger);
-		spdlog::set_pattern("&^[%T] %n: %v%$");//设置日志格式
 
 	}
 
