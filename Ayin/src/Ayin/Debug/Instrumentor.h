@@ -74,8 +74,16 @@ namespace Ayin {
 
 	public:
 
-		InstrumentationSession(const std::string& sessionName, const std::string& filePath = "results.json")
-			:m_SessionName{ sessionName } {
+		enum class Mode {
+
+			Inherit, NewRoot
+
+		};
+
+
+		InstrumentationSession(const std::string& sessionName, const std::string& filePath = "results.json", Mode mode = Mode::Inherit)
+			:m_SessionName{ sessionName }, m_Mode{mode}
+		{
 
 			// spdlog异步线程池初始化（保证整个程序只初始化一次）
 			static bool s_ThreadPoolInitialized = []() {
@@ -150,7 +158,7 @@ namespace Ayin {
 			m_Logger->info(",{}", result);
 
 			// 对嵌套Session的递归输出
-			if (m_ParentSession) {
+			if (m_ParentSession && m_Mode == Mode::Inherit) {
 
 				m_ParentSession->WriteProfile(result);
 
@@ -191,6 +199,8 @@ namespace Ayin {
 		InstrumentationSession* m_ParentSession = nullptr;
 
 		std::shared_ptr<spdlog::logger> m_Logger;
+
+		Mode m_Mode = Mode::Inherit; 
 
 		bool m_isEnd = false;
 
@@ -273,10 +283,11 @@ namespace Ayin {
 
 #define AYIN_PROFILE 1
 #if AYIN_PROFILE
-#define AYIN_PROFILE_BEGIN_SESSION(name, filepath)	::Ayin::InstrumentationSession AYIN_CAT(session_, __LINE__) (name, filepath)
-#define AYIN_PROFILE_END_SESSION()					::Ayin::InstrumentationSession::GetCurrentSession()->EndSession()
-#define AYIN_PROFILE_SCOPE(name)					::Ayin::InstrumentationTimer AYIN_CAT(time_, __LINE__) (name);
-#define AYIN_PROFILE_FUNCTION()						AYIN_PROFILE_SCOPE(__FUNCSIG__)
+#define AYIN_PROFILE_BEGIN_ROOT_SESSION(name, filepath)	::Ayin::InstrumentationSession AYIN_CAT(session_, __LINE__) (name, filepath, ::Ayin::InstrumentationSession::Mode::NewRoot)
+#define AYIN_PROFILE_BEGIN_SESSION(name, filepath)		::Ayin::InstrumentationSession AYIN_CAT(session_, __LINE__) (name, filepath)
+#define AYIN_PROFILE_END_SESSION()						::Ayin::InstrumentationSession::GetCurrentSession()->EndSession()
+#define AYIN_PROFILE_SCOPE(name)						::Ayin::InstrumentationTimer AYIN_CAT(time_, __LINE__) (name);
+#define AYIN_PROFILE_FUNCTION()							AYIN_PROFILE_SCOPE(__FUNCSIG__)
 #else
 #define AYIN_PROFILE_BEGIN_SESSION(name, filepath)
 #define AYIN_PROFILE_END_SESSION()
