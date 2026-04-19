@@ -17,6 +17,10 @@
 
 #include "Ayin/ImGui/ImGuiLayer.h"
 
+
+
+int main(int args, char** argv);
+
 namespace Ayin {
 
 	//负责更新循环，层管理（层的更新，层的如栈出栈），窗口管理，事件处理（接收，处理和向各层分发）
@@ -35,7 +39,6 @@ namespace Ayin {
 
 		virtual ~Application();
 
-		void Run();
 
 		void OnEvent(Event& e);
 		
@@ -50,9 +53,12 @@ namespace Ayin {
 		Application();
 
 	private:
+		void Run();
 		bool OnWindowClose(const WindowCloseEvent& e);
 		bool OnWindowResize(const WindowResizeEvent& e);
 
+
+	private:
 		std::unique_ptr<Window> m_Window;
 		bool m_IsVisible = true;					//窗口内容是否可见（好像没什么必要的样子，或者说这个字段应该移动到Window本身中）
 		bool m_Running = true;
@@ -63,9 +69,11 @@ namespace Ayin {
 		float m_LastFrameTime = 0.0f;
 
 		
-	
 	private:
 		static Application* s_Instance;				//应用单例实例
+
+
+		friend int ::main(int argc, char** argv);
 
 	};
 
