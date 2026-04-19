@@ -21,6 +21,7 @@ namespace Ayin {
 		Input& operator=(const Input&) = delete;
 
 	public:
+
 		inline static bool IsKeyPressed(KeyCode keyCode) { return s_Instance->IsKeyPressedImpl(keyCode); };
 
 		inline static bool GetMouseButton(MouseCode button) { return s_Instance->GetMouseButtonImpl(button); };
@@ -39,6 +40,8 @@ namespace Ayin {
 
 
 	private:
+		static Scope<Input> Create();
+
 		static Scope<Input> s_Instance;//单例的保证（本身是抽象类无法直接构造实例），同时实现侧的指针
 	};
 

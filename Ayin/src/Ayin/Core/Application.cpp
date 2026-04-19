@@ -75,12 +75,10 @@ namespace Ayin {
 				}
 				m_ImGuiLayer->End();
 
-
 			}
 
 			// 窗口更新
 			m_Window->OnUpdate();
-
 
 		}
 	}
