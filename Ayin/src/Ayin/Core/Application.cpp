@@ -98,6 +98,27 @@ namespace Ayin {
 			m_Window->OnUpdate();
 
 
+			if (m_IsVisible) {
+
+				// 层更新
+				for (Layer* layer : m_LayerStack) {
+					layer->OnUpdate(frameInterval);
+				}
+
+				// 渲染ImGui（之后会单独放到渲染线程上，所以不会在Layer的OnUpdate中执行）
+				// m_ImGuiLauer的Begin和End中为ImGui上下文的相关设置，详情可查看函数
+				// 这里应该接收的是上一帧的情况（因为事件本帧事件会在Window的OnUpdate中触发）
+				m_ImGuiLayer->Begin();
+				for (Layer* layer : m_LayerStack) {
+					layer->OnImGuiRender();
+				}
+				m_ImGuiLayer->End();
+
+			}
+
+			// 窗口更新
+			m_Window->OnUpdate();
+
 		}
 	}
 
@@ -155,6 +176,7 @@ namespace Ayin {
 		AYIN_PROFILE_FUNCTION();
 
 		m_LayerStack.PushLayer(layer);
+		layer->OnAttach();
 	}
 
 	void Application::PushOverlay(Layer* overLayer) {
@@ -162,6 +184,7 @@ namespace Ayin {
 		AYIN_PROFILE_FUNCTION();
 
 		m_LayerStack.PushOverlay(overLayer);
+		overLayer->OnAttach();
 	}
 
 }

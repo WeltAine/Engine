@@ -19,11 +19,6 @@ namespace Ayin {
 	}
 
 
-
-	Window* Window::Create(const WindowProps& props) {
-		return  new WindowsWindow(props);
-	}
-
 	WindowsWindow::WindowsWindow(const WindowProps& props) 
 	{
 		AYIN_PROFILE_FUNCTION();
@@ -56,7 +51,6 @@ namespace Ayin {
 			// 在使用完 GLFW 后，通常在应用程序退出前，你需要调用终止函数glfwTerminate()来释放 GLFW 资源。
 
 			AYIN_CORE_ASSERT(success, "Could not initialize GLFW!");//断言宏
-			s_GLFWWindowCount++;
 
 			// OpenGL上下文版本，与配置文件
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -76,6 +70,14 @@ namespace Ayin {
 			// 另一件重要的事情是，操作系统只有在创建了窗口（准确的来说是窗口的设备上下文）后才会给与访问显卡驱动的可能（这些驱动由硬件厂商编写，遵循特定规范，比如OpenGL就是一种规范）
 			// 而我们的Glad库核心是加载器和一堆函数指针（加载器用于将驱动中的方法记录到函数指针中，而查找驱动方法的手段有GLFW提供，可能是因为窗口是它创建的，它知道如何访问驱动）
 		}
+		// 创建窗口
+		m_Window = glfwCreateWindow(m_Data.Width, m_Data.Height, m_Data.Title.c_str(), nullptr, nullptr);
+		// 只需调用一次 glfwCreateWindow 函数即可创建窗口及其 OpenGL 上下文，该函数会返回一个指向窗口与上下文组合（对没错，是组合模式）对象的句柄
+		// 当不再需要窗口和上下文时，请使用glfwDestroyWindow(window)将其销毁。
+		// GLFW在创建窗口时也会创建OpenGL/Vulkan上下文（这是让GPU运作的关键之一，类似我们在shader编程中提及的渲染状态信息）
+		// 另一件重要的事情是，操作系统只有在创建了窗口（准确的来说是窗口的设备上下文）后才会给与访问显卡驱动的可能（这些驱动由硬件厂商编写，遵循特定规范，比如OpenGL就是一种规范）
+		// 而我们的Glad库核心是加载器和一堆函数指针（加载器用于将驱动中的方法记录到函数指针中，而查找驱动方法的手段有GLFW提供，可能是因为窗口是它创建的，它知道如何访问驱动）
+		++s_GLFWWindowCount;
 
 
 		// 创建渲染上下文并初始化
