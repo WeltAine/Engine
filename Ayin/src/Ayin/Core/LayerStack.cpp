@@ -17,7 +17,6 @@ namespace Ayin {
 
 		 m_Layers.emplace(m_Layers.begin() + m_LayerInsertIndex, layer);
 		 m_LayerInsertIndex++;
-		 layer->OnAttach();
 
 	}
 
@@ -25,7 +24,6 @@ namespace Ayin {
 
 		//？？？我想我们是不是要约束一下防止有多个覆盖层
 		m_Layers.emplace_back(overLayer);
-		overLayer->OnAttach();
 
 	}
 

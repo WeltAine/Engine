@@ -49,7 +49,6 @@ namespace Ayin {
 			// 在使用完 GLFW 后，通常在应用程序退出前，你需要调用终止函数glfwTerminate()来释放 GLFW 资源。
 
 			AYIN_CORE_ASSERT(success, "Could not initialize GLFW!");//断言宏
-			s_GLFWWindowCount++;
 
 			// OpenGL上下文版本，与配置文件
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -65,6 +64,7 @@ namespace Ayin {
 		// GLFW在创建窗口时也会创建OpenGL/Vulkan上下文（这是让GPU运作的关键之一，类似我们在shader编程中提及的渲染状态信息）
 		// 另一件重要的事情是，操作系统只有在创建了窗口（准确的来说是窗口的设备上下文）后才会给与访问显卡驱动的可能（这些驱动由硬件厂商编写，遵循特定规范，比如OpenGL就是一种规范）
 		// 而我们的Glad库核心是加载器和一堆函数指针（加载器用于将驱动中的方法记录到函数指针中，而查找驱动方法的手段有GLFW提供，可能是因为窗口是它创建的，它知道如何访问驱动）
+		++s_GLFWWindowCount;
 
 
 		// 创建渲染上下文并初始化
