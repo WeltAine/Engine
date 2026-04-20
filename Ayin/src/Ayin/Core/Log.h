@@ -5,6 +5,11 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
 
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/fmt/bundled/format.h>
+#include <spdlog/async.h> // Required for async features
+
+
 namespace Ayin {
 
 	class AYIN_API Log

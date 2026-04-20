@@ -6,7 +6,7 @@
 #include "Ayin/Events/KeyEvent.h"
 #include "Ayin/Events/MouseEvent.h"
 #include "Ayin/Events/ApplicationEvent.h"
-
+#include "Ayin/Renderer/Renderer.h"
 
 //#include "Ayin/ImGui/imgui_impl_glfw.h"
 
@@ -52,10 +52,19 @@ namespace Ayin {
 
 			AYIN_CORE_ASSERT(success, "Could not initialize GLFW!");//断言宏
 
-			// OpenGL上下文版本，与配置文件
-			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+			if (Renderer::GetAPI() == RendererAPI::API::OpenGL) {
+
+				// OpenGL上下文版本，与配置文件
+				glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+				glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+				glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+#if AYIN_DEBUG
+				glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);//要求 GLFW创建窗口时创建一个带调试功能的 OpenGL 上下文。
+#endif
+
+			}
+
 		}
 		#pragma endregion
 

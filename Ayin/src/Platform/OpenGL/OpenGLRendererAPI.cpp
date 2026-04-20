@@ -6,6 +6,37 @@
 
 namespace Ayin{
 
+
+	static void OpenGLMessageCallback(
+		GLenum source, GLenum type, GLuint id, GLenum severity, //事件（消息）来源，消息类型，消息ID（可自定义），严重等级
+		GLsizei length, const GLchar* message,					//字符串长度（为-1则一直读到null），消息字符串
+		const void* userParam)									//用户指针（类似Ayin::Window类中的用户数据指针）
+	{
+	
+		switch (severity) {
+
+			case(GL_DEBUG_SEVERITY_HIGH):			AYIN_CORE_CRITICAL(message); return;
+			case(GL_DEBUG_SEVERITY_MEDIUM):			AYIN_CORE_ERROR(message); return;
+			case(GL_DEBUG_SEVERITY_LOW):			AYIN_CORE_WARN(message); return;
+			case(GL_DEBUG_SEVERITY_NOTIFICATION):	AYIN_CORE_TRACE(message); return;
+
+		}
+
+	}
+	// OpenGL提供的调试是将消息（或者说是事件触发时产生的记录）存储到OpenGL自己的日志缓冲中，而非直接输出到屏幕上，我们需要插入自己的回调来输出
+	// 消息由特定部分组成——来源，类别，严重情况，消息id（有点像消息字符串的Key），严重等级，消息
+	// 相关调试API
+	// void glDebugMessageCallback(DEBUGPROC callback, const void *userParam)																设置回调
+	// void glDebugMessageControl(GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint *ids, GLboolean enabled)			消息过滤
+	// void glDebugMessageInsert(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *buf)					插入（产生）一条自定义消息
+	// void glObjectLabel(GLenum identifier, GLuint name, GLsizei length, const char *label)												对象赋名（在RenderDoc中就可以看到为对象设置的名字而非对象id）
+	// glObjectPtrLabel和glGetObjectPtrLabel																								不知道
+	// void glPushDebugGroup(GLenum source, GLuint id, GLsizei length, const char *message);												栈过程（组）开启消息（我们可以把一段代码逻辑包装为一个“组”，组开启时发出消息）
+	// void glPopDebugGroup(void);																											栈过程（组）结束
+	//GLuint glGetDebugMessageLog(GLuint count, GLsizei bufSize, GLenum *sources, GLenum* types, GLuint* ids, GLenum* severities, GLsizei* lengths, GLchar* messageLog);	从日志缓冲中获取消息，获取的消息将其各个部分填入参数所指向数组中，返回实际获取量
+
+
+
 	void OpenGLRendererAPI::Init() {
 
 		AYIN_PROFILE_FUNCTION();
@@ -15,6 +46,15 @@ namespace Ayin{
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		glEnable(GL_DEPTH_TEST);
+
+#if AYIN_DEBUG
+		glEnable(GL_DEBUG_OUTPUT);
+		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+
+		glDebugMessageCallback(OpenGLMessageCallback, nullptr);
+		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
+#endif
+
 	}
 
 	void OpenGLRendererAPI::SetViewport(int x, int y, int width, int height) {
