@@ -119,11 +119,7 @@ namespace Ayin {
 
 	void OpenGLTexture2D::Bind(int slot) const
 	{
-		//glActiveTexture(GL_TEXTURE0);
-		//glBindTexture(GL_TEXTURE_2D, m_TextureID);
 		
-		//glBindTextures();
-		//glBindImageTexture();
 		//! SampleGPU只能读
 		//! ImageGPU可随机读写（用于GPU生成纹理）
 
@@ -138,10 +134,6 @@ namespace Ayin {
 		glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureUnits);
 
 		
-		//int currentActiveUint;
-		//glGetIntegerv(GL_ACTIVE_TEXTURE, &currentActiveUint);
-		//! 这里返回的是枚举转换后的数值
-
 		for(int unit = 0; unit < maxTextureUnits; unit++) {
 
 			int unitTextureID = 0;//单元中的纹理对象
@@ -149,11 +141,6 @@ namespace Ayin {
 			glGetIntegeri_v(GL_TEXTURE_BINDING_2D, unit, &unitTextureID);//针对带槽位的查询
 			// 现代 DSA 查询函数
 			// 专门用于查询索引化的状态（比如纹理单元、UBO 绑定点等）
-
-			//glGetIntegerv(GL_TEXTURE_BINDING_2D, &unitTextureID);
-			////这个目前没有很好的查询API，倒是有办法查到纹理单元下所用的所有API
-			////! 之前一直以为TEXTURE_2D下头是n个纹理单元槽
-			////! 实际上是每个纹理单元下头有TEXTURE_XX槽，每个槽用于记录纹理引用
 
 			if (unitTextureID != m_TextureID)
 				continue;
