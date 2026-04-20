@@ -32,10 +32,10 @@ namespace Ayin {
 		//我对Imgui的感受就是一个UI框架，平台后端和渲染后端组成，它是一套基于实际平台和渲染的图形框架
 		//就是我们现在在做的引擎一样，但是它只负责自己的UI，利用具体的事件系统，利用具体的图形API
 		
-		ImGui::CreateContext();//创建ImGuiContext
-		ImGui::StyleColorsDark();//设置风格
+		ImGui::CreateContext();								//创建全局ImGuiContext上下文
+		ImGui::StyleColorsDark();							//设置风格（经典黑色主题）
 
-		ImGuiIO& io = ImGui::GetIO();//通过io向ImGui提供数据
+		ImGuiIO& io = ImGui::GetIO();						//通过io向ImGui提供数据
 		//ConfigFlags是ImGui的功能设置选项（想怎么用ImGui），而BackendFlags则是告知ImGui实际的后端支持什么能力
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard
 			| ImGuiConfigFlags_NavEnableGamepad
@@ -43,17 +43,17 @@ namespace Ayin {
 			| ImGuiConfigFlags_ViewportsEnable
 			;
 		//cherno旧版本的最后两个ConfigFlags枚举在新版本中的这个位置
-		io.ConfigViewportsNoAutoMerge = true;               // 替代原ImGuiConfigFlags_ViewportsNoMerge
-		io.ConfigViewportsNoTaskBarIcon = true;				// 替换原ImGuiConfigFlags_ViewportsNoTaskBarIcons
+		io.ConfigViewportsNoAutoMerge = true;               // 替代原ImGuiConfigFlags_ViewportsNoMerge			防止 ImGui 自动把拖出去的窗口又 “吸” 回来合并
+		io.ConfigViewportsNoTaskBarIcon = true;				// 替换原ImGuiConfigFlags_ViewportsNoTaskBarIcons	不让这些独立的 ImGui 小窗口在系统任务栏上显示图标（避免任务栏变乱）
 		
-		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {//???
+		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
 			ImGuiStyle& style = ImGui::GetStyle();
-			style.WindowRounding = 0.0f;
-			style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+			style.WindowRounding = 0.0f;					//窗口圆角
+			style.Colors[ImGuiCol_WindowBg].w = 1.0f;		//背景不透明
 		}
 
 		GLFWwindow* windos = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
-		ImGui_ImplGlfw_InitForOpenGL(windos, true);//该方法主要配置ImGui中的后端上下文，简单来说就是接入（取得）GLFW的数据（大概，哈哈哈）
+		ImGui_ImplGlfw_InitForOpenGL(windos, true);			//该方法主要配置ImGui中的后端上下文，简单来说就是接入（取得）GLFW的数据（大概，哈哈哈）
 		// 负责编译 ImGui 用于自身渲染的着色器。告知 GPU 如何绘制构成窗口和按钮的三角形。
 		ImGui_ImplOpenGL3_Init("#version 410");
 	}
