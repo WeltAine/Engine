@@ -5,6 +5,11 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
 
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/fmt/bundled/format.h>
+#include <spdlog/async.h> // Required for async features
+
+
 namespace Ayin {
 
 	class AYIN_API Log
@@ -38,6 +43,6 @@ namespace Ayin {
 #define AYIN_INFO(...)			Ayin::Log::GetClientLogger()->info(__VA_ARGS__)
 #define AYIN_WARN(...)			Ayin::Log::GetClientLogger()->warn(__VA_ARGS__)
 #define AYIN_ERROR(...)			Ayin::Log::GetClientLogger()->error(__VA_ARGS__)
-#define AYIN_CRITICAL(...)			Ayin::Log::GetClientLogger()->critical(__VA_ARGS__)
+#define AYIN_CRITICAL(...)		Ayin::Log::GetClientLogger()->critical(__VA_ARGS__)
 
 
