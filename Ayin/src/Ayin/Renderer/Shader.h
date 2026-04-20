@@ -56,9 +56,12 @@ namespace Ayin {
 		//x 这些过程会被封装在核心内部，使用方不应干涉
 
 		virtual void SetInt(const std::string& name, int value) = 0;
+
 		virtual void SetFloat(const std::string& name, float value) = 0;
+		virtual void SetFloat2(const std::string& name, const glm::vec2& vertex) = 0;
 		virtual void SetFloat3(const std::string& name, const glm::vec3& vertex) = 0;
 		virtual void SetFloat4(const std::string& name, const glm::vec4& vertex) = 0;
+
 		virtual void SetMat3(const std::string& name, const glm::mat3& matrix) = 0;
 		virtual void SetMat4(const std::string& name, const glm::mat4& matrix) = 0;
 	};

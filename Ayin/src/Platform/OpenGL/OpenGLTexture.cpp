@@ -99,7 +99,7 @@ namespace Ayin {
 	
 		//上传数据
 		glTextureSubImage2D(m_TextureID, 0, 0, 0, m_Width, m_Height, m_DataFormat, GL_UNSIGNED_BYTE, data);
-		delete data;
+		delete[] data;
 	}
 
 
@@ -128,7 +128,7 @@ namespace Ayin {
 		//! ImageGPU可随机读写（用于GPU生成纹理）
 
 		glBindTextureUnit(slot, m_TextureID);
-		GL_TEXTURE0;
+
 	}
 
 	void OpenGLTexture2D::UnBind() const
@@ -136,27 +136,32 @@ namespace Ayin {
 
 		int maxTextureUnits;
 		glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureUnits);
-		int currentActiveUint;
-		glGetIntegerv(GL_ACTIVE_TEXTURE, &currentActiveUint);
 
-		for(int uint = 0; uint < maxTextureUnits; uint++) {
+		
+		//int currentActiveUint;
+		//glGetIntegerv(GL_ACTIVE_TEXTURE, &currentActiveUint);
+		//! 这里返回的是枚举转换后的数值
 
-			glActiveTexture(uint);//! 旧版API在使用是必须先激活槽，才能glGetIntegerv查询上头的纹理单元，没有可以替代的新版方案
+		for(int unit = 0; unit < maxTextureUnits; unit++) {
 
-			int uintTextureID = 0;//单元中的纹理对象
-			glGetIntegerv(GL_TEXTURE_BINDING_2D, &uintTextureID);
-			//这个目前没有很好的查询API，倒是有办法查到纹理单元下所用的所有API
-			//! 之前一直以为TEXTURE_2D下头是n个纹理单元槽
-			//! 实际上是每个纹理单元下头有TEXTURE_XX槽，每个槽用于记录纹理引用
+			int unitTextureID = 0;//单元中的纹理对象
 
-			if (uintTextureID != m_TextureID)
+			glGetIntegeri_v(GL_TEXTURE_BINDING_2D, unit, &unitTextureID);//针对带槽位的查询
+			// 现代 DSA 查询函数
+			// 专门用于查询索引化的状态（比如纹理单元、UBO 绑定点等）
+
+			//glGetIntegerv(GL_TEXTURE_BINDING_2D, &unitTextureID);
+			////这个目前没有很好的查询API，倒是有办法查到纹理单元下所用的所有API
+			////! 之前一直以为TEXTURE_2D下头是n个纹理单元槽
+			////! 实际上是每个纹理单元下头有TEXTURE_XX槽，每个槽用于记录纹理引用
+
+			if (unitTextureID != m_TextureID)
 				continue;
 
-			glBindTexture(GL_TEXTURE_2D, 0);//一个纹理可能被设定到了多个槽位中
+			glBindTextureUnit(unit, 0);//一个纹理可能被设定到了多个槽位中
 
 		};
 
-		glActiveTexture(currentActiveUint);
 
 	}
 

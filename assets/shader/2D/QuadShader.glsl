@@ -25,8 +25,11 @@ in vec2 v_UV;
 
 out vec4 color;
 
+uniform vec4 u_Color;           //无纹理时的颜色
+uniform vec2 u_TilingFactor;    //平铺系数
+
 layout(location = 0) uniform sampler2D ourTexture;
 
 void main(){
-    color = texture(ourTexture, v_UV);
+    color = texture(ourTexture, v_UV * u_TilingFactor) * u_Color;
 }

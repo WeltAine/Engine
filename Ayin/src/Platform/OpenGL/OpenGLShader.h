@@ -73,6 +73,7 @@ namespace Ayin{
 
 		virtual inline void SetInt(const std::string& name, int value) override { UploadUniformInt(name, value); };
 		virtual inline void SetFloat(const std::string& name, float value) override { UploadUniformFloat(name, value); };
+		virtual inline void SetFloat2(const std::string& name, const glm::vec2& vertex) override { UploadUniformFloat2(name, vertex); };
 		virtual inline void SetFloat3(const std::string& name, const glm::vec3& vertex) override { UploadUniformFloat3(name, vertex); };
 		virtual inline void SetFloat4(const std::string& name, const glm::vec4& vertex) override { UploadUniformFloat4(name, vertex); };
 		virtual inline void SetMat3(const std::string& name, const glm::mat3& matrix) override { UploadUniformMat3(name, matrix); };
