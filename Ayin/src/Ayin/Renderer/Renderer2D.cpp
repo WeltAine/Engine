@@ -49,7 +49,7 @@ namespace Ayin {
 			});
 		s_Data.m_QuadVAO->AddVertexBuffer(s_Data.m_QuadBuffer, 1);
 
-		//批处理数据准备
+		//批处理数据准备（空间准备）
 		s_Data.m_QuadBufferBase = new Quad[Renderer2D_Data::MaxQuads];
 		s_Data.m_QuadBufferPtr = s_Data.m_QuadBufferBase;
 
@@ -117,27 +117,6 @@ namespace Ayin {
 
 	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& size, const glm::vec4& color) {
 	
-		//glm::mat4 transform{1.0f};
-		//transform = glm::translate(transform, position);
-		//transform = glm::scale(transform, size);
-
-		//glm::mat4 pitch = glm::rotate(glm::identity<glm::mat4>(), glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-		//glm::mat4 yaw = glm::rotate(glm::identity<glm::mat4>(), glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-		//glm::mat4 roll = glm::rotate(glm::identity<glm::mat4>(), glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-
-		//s_Data->QuadShader->SetMat4("u_Transform", transform * pitch * yaw * roll);
-
-		//s_Data->QuadShader->SetFloat4("u_Color", color);
-		//s_Data->QuadShader->SetFloat2("u_TilingFactor", glm::vec2{1.0f, 1.0f});
-
-		//s_Data->QuadShader->Bind();
-		//s_Data->WhiteTexture->Bind(0);
-
-		//RenderCommand::DrawIndexed(s_Data->QuadVAO);
-
-		//s_Data->WhiteTexture->UnBind();
-		//s_Data->QuadShader->UnBind();
-
 		s_Data.m_QuadBufferPtr->Position = position;
 		s_Data.m_QuadBufferPtr->Rotation = rotation;
 		s_Data.m_QuadBufferPtr->Size = size;
@@ -152,27 +131,6 @@ namespace Ayin {
 
 	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& size, const Ref<Texture2D>& texture, const glm::vec2& tilingFactor) {
 		
-		//glm::mat4 transform{ 1.0f };
-		//transform = glm::translate(transform, position);
-		//transform = glm::scale(transform, size);
-
-		//glm::mat4 pitch = glm::rotate(glm::identity<glm::mat4>(), glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-		//glm::mat4 yaw = glm::rotate(glm::identity<glm::mat4>(), glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-		//glm::mat4 roll = glm::rotate(glm::identity<glm::mat4>(), glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-
-		//s_Data->QuadShader->SetMat4("u_Transform", transform * pitch * yaw * roll);
-
-		//s_Data->QuadShader->SetFloat4("u_Color", glm::vec4{1.0f, 1.0f, 1.0f, 1.0f});
-		//s_Data->QuadShader->SetFloat2("u_TilingFactor", tilingFactor);
-
-		//s_Data->QuadShader->Bind();
-		//texture->Bind(0);
-
-		//RenderCommand::DrawIndexed(s_Data->QuadVAO);
-
-		//texture->UnBind();
-		//s_Data->QuadShader->UnBind();
-
 		int textureIndex = 0;
 		for (int index = 0; index < s_Data.m_TextureSlotInsertIndex; index++) {
 

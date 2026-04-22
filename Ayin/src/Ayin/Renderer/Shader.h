@@ -46,7 +46,7 @@ namespace Ayin {
 		virtual void UnBind() = 0;
 
 
-		//TODO Shader所需数据的设置API（目前没有的原因详见OpenGLShader.h）
+		//TODO Shader所需数据的设置API（现在有了）
 		//x 不同的API的机制是不同的，vulkan和D3D是数据驱动而非OpenGL的状态设置
 		//x 简单来说UploadUniformMat4(const std::string& name, const glm::mat4& matrix)这样的接口设计（参数）对OpenGL是容易实现的
 		//x 但是对于另外两者，它们以内存映射为主，不太“习惯”通过名称的查询；当然，我们也有手段来实现，让其模仿OpenGL那样就行，但这可能很低效

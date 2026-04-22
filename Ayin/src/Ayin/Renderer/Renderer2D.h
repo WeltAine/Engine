@@ -45,12 +45,12 @@ namespace Ayin {
 
 		uint32_t m_QuadCount = 0;
 
-		Ref<Shader> m_QuadShader;				//默认Shader
+		Ref<Shader> m_QuadShader;			//默认Shader
 
 		Ref<Texture2D> m_WhiteTexture;		//默认纹理
 
-		std::array<Ref<Texture2D>, MaxTextureSlots> m_TextureSlots;//纹理单元与其纹理管理
-		uint32_t m_TextureSlotInsertIndex = 1;
+		std::array<Ref<Texture2D>, MaxTextureSlots> m_TextureSlots;	//纹理单元与其纹理管理
+		uint32_t m_TextureSlotInsertIndex = 1;						//纹理可插入位置
 
 	};
 

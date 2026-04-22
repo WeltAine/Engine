@@ -130,6 +130,7 @@ namespace Ayin {
 		UniformLayout m_UniformLayout;
 
 	private:
+		// 类似于Texture2D的插槽，一个UBO可以绑定到多个槽位上
 		static std::vector<int> s_BindingIndexs;
 
 	};

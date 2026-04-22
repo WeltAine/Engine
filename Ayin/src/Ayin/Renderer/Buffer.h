@@ -410,7 +410,7 @@ namespace Ayin{
 		/// <returns></returns>
 		virtual const UniformLayout& GetLayout() const = 0;
 		//! 一般来说我们不会返回const&，但当方法为const方法时，函数体中的所有成变会被加上const修饰
-		//! 这个方法dagailv也是返回成变，在这个函数体中就是返回const，那么你也要一个const返回类型来接
+		//! 这个方法也是返回成变，在这个函数体中就是返回const，那么你也要一个const返回类型来接
 		//! 至于&，是因为当下就两个选择T，const T，const T&，很显然最后一个可以避免拷贝
 
 		virtual void SetBindingIndexs(const std::initializer_list<int>& bindingIndexs) = 0;

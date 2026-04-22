@@ -115,6 +115,38 @@ namespace Ayin {
 
 	#pragma region DSA
 
+		//! AttribIndex根据配置从一个BindingIndex的吐出中读取数据，通过Fomat传递给Shader程序中的attribute 
+		//!		BindingIndex通过配置，按一定频率，从吧绑定的VBO中读取一定数据，吐出给AttribIndex
+		//! 					 
+		//!						  Index配对             VBO绑定
+		//!				AttribIndex			 BindingIndex
+		//!				   [0] -------\			 [0] <-----------|
+		//!				   [1]		   \		 [1] <---------	VBO
+		//!				   [2]			-------- [2] <-----------|
+		//!		VAO			*					  *				
+		//!				    *					  *
+		//!				    *					  *
+		//!				   [n] ----------------- [n] <--------- VBO
+		//! 
+		//!								吐出指针和指针移动频率
+		//! 
+		//!		  针对吐出的读取指针配置
+		//
+
+
+		////设置a_index和b_index的链接关系
+		//glVertexArrayAttribBinding(vao, a_index, b_index);
+		
+		////设置b_index对应的buffer对象，shader数据上传方式?
+		//glVertexArrayVertexBuffer(vao, b_index, buffer, offset, stride);
+
+		////设置b_index中VBO的数据吐出模式
+		//glVertexArrayBindingDivisor(vao, b_index, divisor);//不是glVertexBufferBindingDivisor
+		
+		////设置a_index的读取模式
+		//glVertexArrayAttribFormat(vao, a_index, size, type, normalized, offset);
+
+
 		int maxVAOBindingIndexs = 0, maxVAOAttribIndexs = 0;
 		glGetIntegerv(GL_MAX_VERTEX_ATTRIB_BINDINGS, &maxVAOBindingIndexs);
 		glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &maxVAOAttribIndexs);
@@ -154,8 +186,8 @@ namespace Ayin {
 				glVertexArrayAttribFormat(
 					m_VertexArrayID,							//目标VAO
 					element.LocationIndex,						//设置目标VAO的哪一个AttribIndex
-					element.GetComponentCount(),				//从缓冲吐出中的读取量（配合后一个参数）
-					ShaderDataTypeToBaseType(element.Type),		//从缓冲吐出中的读取量（配合前一个参数）
+					element.GetComponentCount(),				//从一次缓冲吐出中的读取量（配合后一个参数）
+					ShaderDataTypeToBaseType(element.Type),		//从一次缓冲吐出中的读取量（配合前一个参数）
 					element.Normalized,							//是否归一化()
 					element.Offset								//缓冲吐出块中的读取偏移
 				);
@@ -198,23 +230,6 @@ namespace Ayin {
 
 	void OpenGLVertexArray::SetIndexBuffer(const Ref<IndexBuffer>& indexBuffer)
 	{
-	#pragma region BTA
-		//// 收集上下文环境（用于恢复）
-		//int lastVertexArrayID = 0, lastIndexBufferID = 0;
-		//glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &lastVertexArrayID);
-		//glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &lastIndexBufferID);
-
-
-		//glBindVertexArray(m_VertexArrayID);
-		//indexBuffer->Bind();
-
-		//m_IndexBuffer = indexBuffer;
-		//
-		//// 恢复上下文环境
-		//glBindVertexArray(lastVertexArrayID);
-		//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, lastIndexBufferID);
-	#pragma endregion
-
 	#pragma region DSA
 		glVertexArrayElementBuffer(m_VertexArrayID, *indexBuffer);
 		m_IndexBuffer = indexBuffer;
