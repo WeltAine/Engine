@@ -75,7 +75,7 @@ namespace Ayin {
 	}
 
 	//? 有严重缺陷，如果vertexbuffer分开给的话，原先的方法会导致index冲突，我们先在BufferElement中添加一个locationIndex
-	void OpenGLVertexArray::AddVertexBuffer(const Ref<VertexBuffer>& vertexBuffer)
+	void OpenGLVertexArray::AddVertexBuffer(const Ref<VertexBuffer>& vertexBuffer, uint32_t divisor)
 	{
 		AYIN_CORE_ASSERT(vertexBuffer->GetLayout().GetElements().size(), "Vertex Buffer has no layout!");
 
@@ -132,7 +132,7 @@ namespace Ayin {
 		glVertexArrayBindingDivisor(
 			m_VertexArrayID,								//目标VAO 
 			m_BindingIndex,									//要设置VAO的哪一个BindingIndex的数据吐出频率（）直接作用在绑定于该BindingIndex的缓冲读指针，决定了指针何时移动（可用于批量渲染优化）
-			0												//设置吐出频率（实例的意思可以理解为一个模型）
+			divisor											//设置吐出频率（实例的意思可以理解为一个模型）
 		);
 
 		for (const auto& element : vertexBuffer->GetLayout()) {
@@ -148,16 +148,43 @@ namespace Ayin {
 				m_BindingIndex								//连接到哪一个BindingIndex以对缓冲进行数据访问
 			);
 
+			if (element.Type != ShaderDataType::Bool && element.Type != ShaderDataType::Int && element.Type != ShaderDataType::Int2 && element.Type != ShaderDataType::Int3 && element.Type != ShaderDataType::Int4) {
 
-			//AttribIndex读取设置（从bindingIndex中突出的数据中如何读取）
-			glVertexArrayAttribFormat(
-				m_VertexArrayID,							//目标VAO
-				element.LocationIndex,						//设置目标VAO的哪一个AttribIndex
-				element.GetComponentCount(),				//从缓冲吐出中的读取量（配合后一个参数）
-				ShaderDataTypeToBaseType(element.Type),		//从缓冲吐出中的读取量（配合前一个参数）
-				element.Normalized,							//是否归一化
-				element.Offset								//缓冲吐出块中的读取偏移
-			);
+				//AttribIndex读取设置（从bindingIndex中吐出的数据中如何读取）
+				glVertexArrayAttribFormat(
+					m_VertexArrayID,							//目标VAO
+					element.LocationIndex,						//设置目标VAO的哪一个AttribIndex
+					element.GetComponentCount(),				//从缓冲吐出中的读取量（配合后一个参数）
+					ShaderDataTypeToBaseType(element.Type),		//从缓冲吐出中的读取量（配合前一个参数）
+					element.Normalized,							//是否归一化()
+					element.Offset								//缓冲吐出块中的读取偏移
+				);
+
+			}
+			else {
+
+				glVertexArrayAttribIFormat(
+					m_VertexArrayID,
+					element.LocationIndex,
+					element.GetComponentCount(),
+					ShaderDataTypeToBaseType(element.Type),
+					element.Offset
+				);
+
+			}
+
+			// Format，IFormat，LFormat（这些API的关键是它们读取多少bit，它们如何看待原始bit，它们如何转换原始bit，它们会返回给shader什么）
+			//				读取多少bit				如何解读bit				如何转换			返回shader
+			// Format		取决于type参数			取决于type参数			含义等价转换		转后后的32bit
+			// IFormat		取决于type参数			取决于type参数			含义等价转换		转换后的32bit
+			// LFormat		取决于type参数			取决于type参数			含义等价转换		转换后的64bit（拼接两个float寄存器）
+			// 
+			//! 数据上传VRAM和上传Shader是两个过程
+			//! Format不在乎shader中是什么，它只是将产生的bit流放到shader的寄存器里（默认情况下bit流都是带符号的某种数值转换，type为无符号时则无符号转换）
+			//! float寄存器和int寄存器是分开的（因为ALU的逻辑不同），注意是寄存器不是显存
+			//! GLSL 着色器寄存器几乎无一例外都是 32 位的。无论你输入的是 8 位字节还是 32 位浮点数，硬件在读取数据时都会将其“拓宽（widen）”，从而填满一个 32 位槽位（通常是 IEEE-754 浮点数或 32 位有符号/无符号整数）。
+			//! Format内部的转换都是含义等价的转换，255会被转成255.0，Normalize是指在type的数值上下限范围转换到[0 - 1]或者[-1 - 1]
+
 
 		}
 
@@ -195,4 +222,4 @@ namespace Ayin {
 	}
 
 }
-
+ 

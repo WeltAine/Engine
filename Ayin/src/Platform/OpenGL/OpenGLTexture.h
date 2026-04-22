@@ -26,6 +26,7 @@ namespace Ayin {
 
 		virtual void UnBind() const override;
 
+		virtual bool operator == (const Texture& other) const override;
 
 	private:
 

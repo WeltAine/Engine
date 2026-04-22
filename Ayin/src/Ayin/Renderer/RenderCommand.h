@@ -31,6 +31,14 @@ namespace Ayin {
 		};
 
 
+		inline static void Draw2DIndexed(const Ref<VertexArray>& vertexArray, int count = 0) {
+
+			vertexArray->Bind();
+			s_RendererAPI->Draw2DIndexed(vertexArray, count);
+			vertexArray->UnBind();
+
+		}
+
 	private:
 		static Scope<RendererAPI> s_RendererAPI;
 

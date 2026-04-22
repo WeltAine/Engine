@@ -46,6 +46,7 @@ namespace Ayin {
 		/// </summary>
 		/// <param name="vertexArray">被渲染的VAO</param>
 		virtual void DrawIndexed(const Ref<VertexArray>& vertexArray) const = 0;
+		virtual void Draw2DIndexed(const Ref<VertexArray>& vertexArray, int count = 1) const = 0;
 
 
 		/// <summary>

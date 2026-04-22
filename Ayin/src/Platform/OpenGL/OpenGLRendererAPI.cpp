@@ -81,5 +81,13 @@ namespace Ayin{
 		//		GL_INT 并不是合法的参数值，绝大多数 OpenGL 驱动会直接忽略这个绘制调用，或触发错误。
 	}
 
+	void OpenGLRendererAPI::Draw2DIndexed(const Ref<VertexArray>& vertexArray, int count) const {
+
+
+		glDrawElementsInstanced(GL_TRIANGLES, vertexArray->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, (void*)0, count);
+
+	}
+
+
 }
 

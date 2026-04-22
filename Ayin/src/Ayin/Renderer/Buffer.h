@@ -154,6 +154,8 @@ namespace Ayin{
 
 	public:
 
+		static Ref<VertexBuffer> Create(size_t size);
+
 		/// <summary>
 		/// 根据Renderer中的当前API来创建顶点缓冲，并且创建即绑定（工厂模式创建）
 		/// </summary>
@@ -163,6 +165,13 @@ namespace Ayin{
 		static Ref<VertexBuffer> Create(float* vertices, size_t size);
 
 		virtual ~VertexBuffer() = default;
+		
+		/// <summary>
+		/// 数据设置
+		/// </summary>
+		/// <param name="data">数据指针</param>
+		/// <param name="size">数据大小</param>
+		virtual void SetData(const void* data, size_t size) = 0;
 
 		/// <summary>
 		/// 绑定顶点缓冲到当前上下文

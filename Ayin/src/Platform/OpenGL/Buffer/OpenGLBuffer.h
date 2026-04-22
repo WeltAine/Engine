@@ -16,10 +16,14 @@ namespace Ayin {
 
 	public:
 
+		OpenGLVertexBuffer(size_t size);
+
 		OpenGLVertexBuffer(float* vertices, size_t size);
 
 		// 通过 VertexBuffer 继承
 		virtual ~OpenGLVertexBuffer();
+
+		virtual void SetData(const void* data, size_t size) override;
 
 		virtual void Bind() const override;
 

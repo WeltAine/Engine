@@ -20,6 +20,7 @@ namespace Ayin {
 		virtual void Clear() const override;
 
 		virtual void DrawIndexed(const Ref<VertexArray>& vertexArray) const override;
+		virtual void Draw2DIndexed(const Ref<VertexArray>& vertexArray, int count) const override;
 
 	};
 

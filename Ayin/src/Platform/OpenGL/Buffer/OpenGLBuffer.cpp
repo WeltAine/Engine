@@ -11,6 +11,16 @@ namespace Ayin {
 	/// VertexBuffer /////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////////////////////
 
+
+	OpenGLVertexBuffer::OpenGLVertexBuffer(size_t size) {
+
+	#pragma region DSA
+		glCreateBuffers(1, &m_VertexBufferID);
+		glNamedBufferData(m_VertexBufferID, size, nullptr, GL_STATIC_DRAW);//只开辟空间不设置数据
+	#pragma endregion
+
+	}
+
 	OpenGLVertexBuffer::OpenGLVertexBuffer(float* vertices, size_t size) {
 
 	#pragma region DSA
@@ -26,6 +36,16 @@ namespace Ayin {
 		UnBind();
 		glDeleteBuffers(1, &m_VertexBufferID);
 	#pragma endregion
+
+	}
+
+
+	void OpenGLVertexBuffer::SetData(const void* data, size_t size) {
+
+	#pragma region DSA
+		glNamedBufferSubData(m_VertexBufferID, 0, size, data);
+	#pragma endregion
+
 
 	}
 

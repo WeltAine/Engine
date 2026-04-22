@@ -152,6 +152,12 @@ namespace Ayin {
 
 	}
 
+	bool OpenGLTexture2D::operator== (const Texture& other) const {
+
+		return (m_TextureID == ((OpenGLTexture2D&)other).m_TextureID);
+
+	}
 
 }
+
 

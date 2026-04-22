@@ -50,6 +50,7 @@ namespace Ayin{
 		void UploadUniformInt2(const std::string& name, const glm::ivec2& vector);
 		void UploadUniformInt3(const std::string& name, const glm::ivec3& vector);
 		void UploadUniformInt4(const std::string& name, const glm::ivec4& vector);
+		void UploadUniformIntArray(const std::string& name, int* values, uint32_t count);
 
 
 		void UploadUniformFloat(const std::string& name, float value);
@@ -72,6 +73,7 @@ namespace Ayin{
 
 
 		virtual inline void SetInt(const std::string& name, int value) override { UploadUniformInt(name, value); };
+		virtual inline void SetIntArray(const std::string& name, int* values, uint32_t count) { UploadUniformIntArray(name, values, count); };
 		virtual inline void SetFloat(const std::string& name, float value) override { UploadUniformFloat(name, value); };
 		virtual inline void SetFloat2(const std::string& name, const glm::vec2& vertex) override { UploadUniformFloat2(name, vertex); };
 		virtual inline void SetFloat3(const std::string& name, const glm::vec3& vertex) override { UploadUniformFloat3(name, vertex); };

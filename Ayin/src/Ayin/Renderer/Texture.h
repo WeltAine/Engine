@@ -22,6 +22,8 @@ namespace Ayin {
 
 		virtual void Bind(int slot) const = 0;
 		virtual void UnBind() const = 0;
+
+		virtual bool operator == (const Texture& other) const = 0;
 	};
 
 	class AYIN_API Texture2D : public Texture {
