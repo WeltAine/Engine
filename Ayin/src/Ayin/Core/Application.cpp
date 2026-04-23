@@ -99,10 +99,10 @@ namespace Ayin {
 		//从后往前逐层通知事件
 		for (auto iterator = m_LayerStack.rbegin(); iterator != m_LayerStack.rend(); iterator++) {
 
-			(*iterator)->OnEvent(e);
 			if (e.handled) {
 				break;
 			}
+			(*iterator)->OnEvent(e);
 		}
 
 	}

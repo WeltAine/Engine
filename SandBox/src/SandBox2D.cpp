@@ -3,6 +3,10 @@
 #include "SandBox2D.h"
 
 
+
+static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);//颜色
+
+
 SandBox2D::SandBox2D()
 	:Ayin::Layer("SandBox2DLayer"), m_CamreaController(Ayin::CameraProp{.Type = Ayin::Camera::CameraType::Orthogonal})
 {};
@@ -22,7 +26,10 @@ void SandBox2D::OnUpdate(Ayin::Timestep deltaTime) {
 	static float rotation = 0;
 	rotation += deltaTime * 50.0f;
 
+
 	Ayin::RenderCommand::Clear();
+
+	Ayin::Renderer2D::ResetStatistics();
 
 	Ayin::Renderer2D::BeginScene(m_CamreaController.GetCamera());
 
@@ -45,12 +52,22 @@ void SandBox2D::OnUpdate(Ayin::Timestep deltaTime) {
 
 	Ayin::Renderer2D::EndScene();
 
+	Ayin::RenderCommand::SetClearColor({ clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w });
 
 
 };
 
 void SandBox2D::OnImGuiRender() {
 	
+	Ayin::Renderer2D::Statistics statistics = Ayin::Renderer2D::GetStatistics();
+
+	ImGui::Begin("Renderer2D Statistics");
+	ImGui::Text("Draw Calls: %d", statistics.DrawCalls);
+	ImGui::Text("TotalQuadCount: %d", statistics.QuadCount);
+
+	ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+
+	ImGui::End();
 };
 
 void SandBox2D::OnEvent(Ayin::Event& event) {

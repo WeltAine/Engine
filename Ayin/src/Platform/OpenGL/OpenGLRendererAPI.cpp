@@ -83,7 +83,12 @@ namespace Ayin{
 
 	void OpenGLRendererAPI::Draw2DIndexed(const Ref<VertexArray>& vertexArray, int count) const {
 
-		glDrawElementsInstanced(GL_TRIANGLES, vertexArray->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, (void*)0, count);
+		if (count != 0) {
+			glDrawElementsInstanced(GL_TRIANGLES, vertexArray->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, (void*)0, count);
+			return;
+		}
+
+		glDrawElements(GL_TRIANGLES, vertexArray->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, (void*)0);
 
 	}
 

@@ -156,6 +156,9 @@ namespace Ayin {
 
 	void Renderer2D::Flush() {
 
+		if (s_Data.QuadCount == 0)
+			return;
+
 		for (int index = 0; index < s_Data.TextureSlotInsertIndex; index++) {
 			s_Data.TextureSlots[index]->Bind(index);
 		}
@@ -224,6 +227,10 @@ namespace Ayin {
 		}
 		// TextureSlots中没有就插入纹理
 		if (textureIndex == 0) {
+
+			if (s_Data.TextureSlotInsertIndex >= s_Data.MaxTextureSlots)
+				FlushAndReset();
+
 			texture->Bind(s_Data.TextureSlotInsertIndex);
 			s_Data.TextureSlots[s_Data.TextureSlotInsertIndex] = texture;
 			textureIndex = s_Data.TextureSlotInsertIndex++;

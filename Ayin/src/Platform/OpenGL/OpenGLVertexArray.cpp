@@ -180,7 +180,17 @@ namespace Ayin {
 				m_BindingIndex								//连接到哪一个BindingIndex以对缓冲进行数据访问
 			);
 
-			if (element.Type != ShaderDataType::Bool && element.Type != ShaderDataType::Int && element.Type != ShaderDataType::Int2 && element.Type != ShaderDataType::Int3 && element.Type != ShaderDataType::Int4) {
+
+			if (
+				(int)element.Type 
+				& 
+				[]() constexpr -> int {
+					return (int)ShaderDataType::Float
+						| (int)ShaderDataType::Float2
+						| (int)ShaderDataType::Float3
+						| (int)ShaderDataType::Float4;}()
+				) 
+			{
 
 				//AttribIndex读取设置（从bindingIndex中吐出的数据中如何读取）
 				glVertexArrayAttribFormat(
@@ -193,7 +203,17 @@ namespace Ayin {
 				);
 
 			}
-			else {
+			else if(
+				(int)element.Type
+				&
+				[]() constexpr -> int {
+					return (int)ShaderDataType::Bool
+						| (int)ShaderDataType::Int
+						| (int)ShaderDataType::Int2
+						| (int)ShaderDataType::Int3
+						| (int)ShaderDataType::Int4; }()
+				) 
+			{
 
 				glVertexArrayAttribIFormat(
 					m_VertexArrayID,
@@ -202,6 +222,42 @@ namespace Ayin {
 					ShaderDataTypeToBaseType(element.Type),
 					element.Offset
 				);
+
+			}
+			else if(
+				(int)element.Type
+				&
+				[]() constexpr -> int {
+					return (int)ShaderDataType::Mat3
+						| (int)ShaderDataType::Mat4; }()
+				) 
+			{
+
+				//! 从历史发展来看，GPU 计算的基本单位曾是 128 位寄存器。由于 3D 图形是基于齐次坐标 $(x, y, z, w)$ 和颜色值 $(r, g, b, a)$ 构建的。
+				//! GPU 厂商针对性地优化了硬件设计，使其能够在一个时钟周期内同时处理四个 32 位浮点数（即一个向量）。
+				//! 
+				//! SIMD 架构：早期的 GPU 采用专门针对四维向量设计的 SIMD（单指令多数据）单元。
+				//! 在物理硬件层面，一个“顶点属性槽”被直接布线为 128 位宽的端口。
+				//! 
+				//! 在 GLSL 中，声明 layout(location = 0) in mat4 modelMatrix; 本质上是编译器的一种语法糖。它会自动占用 0、1、2 和 3 号插槽。
+				//! 虽然为了数学计算方便，语言允许你将其视为一个整体矩阵，但在硬件层面，它仍然被视作四个独立的四维向量。
+				//! 
+				//! 在固定函数渲染管线（OpenGL 1.x）时代，还没有现代意义上的“属性（Attributes）”概念，而是为 GL_VERTEX_ARRAY 、 GL_NORMAL_ARRAY 等数据预留了特定插槽。
+				//! 随着可编程管线的出现，工程师需要一种通用的数据传递方式。
+				//! 他们之所以沿用 4 分量限制，是为了保持与现有硬件设计的向后兼容性，因为当时的硬件已经针对 $(x, y, z, w)$ 运算进行了深度优化。
+
+				int count = element.GetComponentCount();
+
+				for (int index = 0; index < count; index++) {
+					glVertexArrayAttribFormat(
+						m_VertexArrayID,
+						element.LocationIndex + index,
+						element.GetComponentCount(),
+						ShaderDataTypeToBaseType(element.Type),
+						element.Normalized,
+						element.GetComponentCount() * index
+					);
+				}
 
 			}
 

@@ -45,9 +45,8 @@ namespace Ayin {
 	void OpenGLVertexBuffer::SetData(const void* data, size_t size) {
 
 	#pragma region DSA
-		glNamedBufferSubData(m_VertexBufferID, 0, size, data);
+		glNamedBufferSubData(m_VertexBufferID, 0, static_cast<GLsizeiptr>(size), data);
 	#pragma endregion
-
 
 	}
 

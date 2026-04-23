@@ -68,13 +68,22 @@
 
 
 #ifdef AYIN_DEBUG
+	#if defined(AYIN_PLATFORM_WINDOWS)
+		#define AYIN_DEBUGBREAK() __debugbreak()
+	#elif
+		#include <signal.h>
+		#define AYIN_DEBUGBREAK() raise(SIGTRAP)
+	#else
+		#error "Platform doesn't support debugbreak yet!"
+	#endif
+		
 	#define AYIN_ENABLE_ASSERT
 #endif
 
 //断言宏（宏里套宏，我也成为了自己讨厌的样子，不过这至少是正经封装。微软！变量类型也分平台么？啊！回答我！）
 #ifdef AYIN_ENABLE_ASSERT
-	#define AYIN_ASSERT(condition, ...) if(!(condition)) { AYIN_ERROR("Assertion Failed: "), AYIN_ERROR(__VA_ARGS__); __debugbreak(); }
-	#define AYIN_CORE_ASSERT(condition, ...) if(!(condition)) { AYIN_CORE_ERROR("Assertion Failed: "), AYIN_CORE_ERROR(__VA_ARGS__); __debugbreak(); }
+	#define AYIN_ASSERT(condition, ...) if(!(condition)) { AYIN_ERROR("Assertion Failed: "), AYIN_ERROR(__VA_ARGS__); AYIN_DEBUGBREAK(); }
+	#define AYIN_CORE_ASSERT(condition, ...) if(!(condition)) { AYIN_CORE_ERROR("Assertion Failed: "), AYIN_CORE_ERROR(__VA_ARGS__); AYIN_DEBUGBREAK(); }
 #else
 	#define AYIN_ASSERT(condition, ...)
 	#define AYIN_CORE_ASSERT(condition, ...)
