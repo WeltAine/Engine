@@ -67,6 +67,7 @@ namespace Ayin {
 
 
 	void ImGuiLayer::OnImGuiRender() {
+
 		ImGuiIO& io = ImGui::GetIO();
 
 		static bool show = true;

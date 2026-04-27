@@ -103,6 +103,15 @@ namespace Ayin {
 	}
 
 
+	OpenGLTexture2D::OpenGLTexture2D(uint32_t textureID, int width, int height)
+		:m_TextureID{ textureID }, m_Width{ width }, m_Height{height}
+	{
+		m_InternalFormat = GL_RGBA8;
+		m_DataFormat = GL_RGBA;
+
+		m_Components = 4;
+	}
+
 	OpenGLTexture2D::~OpenGLTexture2D() {
 
 		glDeleteTextures(1, &m_TextureID);

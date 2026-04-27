@@ -4,6 +4,8 @@
 
 #include "Glad/glad.h"
 
+#include "Platform/OpenGL/OpenGLTexture.h"
+
 
 namespace Ayin {
 
@@ -18,46 +20,48 @@ namespace Ayin {
 
 	OpenGLFramebuffer::~OpenGLFramebuffer() {
 
-		glDeleteFramebuffers(1, &m_FramebufferID);
-		glDeleteTextures(1, &m_ColorAttachment);
+		uint32_t framebuffers[] = { m_FramebufferID , m_ResolveFramebufferID };
+		glDeleteFramebuffers(2, framebuffers);
 		glDeleteRenderbuffers(1, &m_DepthAndStencilAttachment);
-
 
 	}
 
 
 	void OpenGLFramebuffer::Init() {
 
+
+
 		if (m_FramebufferID != 0) {
 
-			glDeleteFramebuffers(1, &m_FramebufferID);
-			glDeleteTextures(1, &m_ColorAttachment);
 			glDeleteRenderbuffers(1, &m_DepthAndStencilAttachment);
-
-			m_ColorAttachment = 0;
-			m_DepthAndStencilAttachment = 0;
 
 		}
 
 		glCreateFramebuffers(1, &m_FramebufferID);
+		glCreateFramebuffers(1, &m_ResolveFramebufferID);
+
+		uint32_t colorAttachment = 0;//颜色附件纹理
 
 		switch (m_FramebufferSpecification.Samples) {
 
 			case(1): {
 
 				//颜色附件（0号位附件）
-				glCreateTextures(GL_TEXTURE_2D, 1, &m_ColorAttachment);
-				glTextureStorage2D(m_ColorAttachment, 1, GL_RGBA8, m_FramebufferSpecification.Width, m_FramebufferSpecification.Height);
+				glCreateTextures(GL_TEXTURE_2D, 1, &colorAttachment);
+				glTextureStorage2D(colorAttachment, 1, GL_RGBA8, m_FramebufferSpecification.Width, m_FramebufferSpecification.Height);
 
 				//参数设置
-				glTextureParameteri(m_ColorAttachment, GL_TEXTURE_MIN_FILTER, GL_LINEAR);//缩小时是使用临近的四个像素加权平均
-				glTextureParameteri(m_ColorAttachment, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				glTextureParameteri(colorAttachment, GL_TEXTURE_MIN_FILTER, GL_LINEAR);//缩小时是使用临近的四个像素加权平均
+				glTextureParameteri(colorAttachment, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-				glTextureParameteri(m_ColorAttachment, GL_TEXTURE_WRAP_S, GL_REPEAT);
-				glTextureParameteri(m_ColorAttachment, GL_TEXTURE_WRAP_T, GL_REPEAT);
+				glTextureParameteri(colorAttachment, GL_TEXTURE_WRAP_S, GL_REPEAT);
+				glTextureParameteri(colorAttachment, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-				glNamedFramebufferTexture(m_FramebufferID, GL_COLOR_ATTACHMENT0, m_ColorAttachment, 0);//多重采样纹理是没有minmip的，所以最后一个参数选0
+				m_ColorAttachmentTexture = std::make_shared<OpenGLTexture2D>(colorAttachment, m_FramebufferSpecification.Width, m_FramebufferSpecification.Height);
 
+				glNamedFramebufferTexture(m_FramebufferID, GL_COLOR_ATTACHMENT0, colorAttachment, 0);//多重采样纹理是没有minmip的，所以最后一个参数选0
+
+				
 
 				//深度和模板附件（采用RBO）
 				glCreateRenderbuffers(1, &m_DepthAndStencilAttachment);
@@ -70,6 +74,12 @@ namespace Ayin {
 
 				glNamedFramebufferRenderbuffer(m_FramebufferID, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_DepthAndStencilAttachment);
 				glNamedFramebufferRenderbuffer(m_FramebufferID, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_DepthAndStencilAttachment);
+
+
+				//解析帧缓冲
+				m_ResolveAttachmentTexture = m_ColorAttachmentTexture;
+				glNamedFramebufferTexture(m_ResolveFramebufferID, GL_COLOR_ATTACHMENT0, *m_ResolveAttachmentTexture, 0);
+
 				break;
 
 			}
@@ -77,9 +87,9 @@ namespace Ayin {
 			default: {
 
 				//颜色附件（0号位附件）
-				glCreateTextures(GL_TEXTURE_2D_MULTISAMPLE, 1, &m_ColorAttachment);
+				glCreateTextures(GL_TEXTURE_2D_MULTISAMPLE, 1, &colorAttachment);
 				glTextureStorage2DMultisample(
-					m_ColorAttachment,							//纹理
+					colorAttachment,							//纹理
 					m_FramebufferSpecification.Samples,			//采样数（虚拟分辨率）
 					GL_RGBA8,									//纹理格式
 					m_FramebufferSpecification.Width,			//纹理宽度
@@ -88,8 +98,10 @@ namespace Ayin {
 				);
 
 				//! 多重采样纹理是不需要设置纹理参数的
+				m_ColorAttachmentTexture = std::make_shared<OpenGLTexture2D>(colorAttachment, m_FramebufferSpecification.Width, m_FramebufferSpecification.Height);
+				
 
-				glNamedFramebufferTexture(m_FramebufferID, GL_COLOR_ATTACHMENT0, m_ColorAttachment, 0);//多重采样纹理是没有minmip的，所以最后一个参数选0
+				glNamedFramebufferTexture(m_FramebufferID, GL_COLOR_ATTACHMENT0, colorAttachment, 0);//多重采样纹理是没有minmip的，所以最后一个参数选0
 
 
 				//深度和模板附件（采用RBO）
@@ -104,6 +116,14 @@ namespace Ayin {
 
 				glNamedFramebufferRenderbuffer(m_FramebufferID, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_DepthAndStencilAttachment);
 				glNamedFramebufferRenderbuffer(m_FramebufferID, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_DepthAndStencilAttachment);
+
+
+				//解析帧缓冲
+				//附件
+				m_ResolveAttachmentTexture = Texture2D::Create(m_FramebufferSpecification.Width, m_FramebufferSpecification.Height);
+
+				glNamedFramebufferTexture(m_ResolveFramebufferID, GL_COLOR_ATTACHMENT0, *m_ResolveAttachmentTexture, 0);
+
 				break;
 			}
 
@@ -160,45 +180,24 @@ namespace Ayin {
 
 
 	Ref<Texture2D> OpenGLFramebuffer::GetColorAttachment(int index) const {
-	
-		FramebufferSpecification specification{ .Width{m_FramebufferSpecification.Width},
-												.Height{m_FramebufferSpecification.Height},
-												.Samples = 1};
-		OpenGLFramebuffer fbo(specification);
+		
 
+		if (m_FramebufferSpecification.Samples > 1) {
 
-		//! 因为一个帧缓冲可以有多个颜色附件，所需需要指定是那个颜色附件和那个颜色附件之间进行传递
-		glNamedFramebufferReadBuffer(m_FramebufferID, GL_COLOR_ATTACHMENT0);
-		glNamedFramebufferDrawBuffer(fbo.m_FramebufferID, GL_COLOR_ATTACHMENT0);
+			glNamedFramebufferReadBuffer(m_FramebufferID, GL_COLOR_ATTACHMENT0 + index);
+			glNamedFramebufferDrawBuffer(m_ResolveFramebufferID, GL_COLOR_ATTACHMENT0);
 
-		glBlitNamedFramebuffer(
-			m_FramebufferID, fbo.m_FramebufferID,
-			0, 0, m_FramebufferSpecification.Width, m_FramebufferSpecification.Height,
-			0, 0, m_FramebufferSpecification.Width, m_FramebufferSpecification.Height,
-			GL_COLOR_BUFFER_BIT, 
-			GL_LINEAR
-		);
-
-		//! 而帧缓冲只有一个模板和深度附件，不用glNamedFramebufferReadBuffer来定位，最后一个参数必须是GL_NEAREST
-		glBlitNamedFramebuffer(
-			m_FramebufferID, fbo.m_FramebufferID,
-			0, 0, m_FramebufferSpecification.Width, m_FramebufferSpecification.Height,
-			0, 0, m_FramebufferSpecification.Width, m_FramebufferSpecification.Height,
-			GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, 
-			GL_NEAREST
-		);
-
-
-		Ref<Texture2D> texture = Texture2D::Create(m_FramebufferSpecification.Width, m_FramebufferSpecification.Height);
-		glCopyImageSubData(
-			fbo.m_ColorAttachment, GL_TEXTURE_2D, 0, 
-			0, 0, 0, 
-			*texture, GL_TEXTURE_2D, 0, 
-			0, 0, 0,
-			m_FramebufferSpecification.Width, m_FramebufferSpecification.Height, 1
+			glBlitNamedFramebuffer(
+				m_FramebufferID, m_ResolveFramebufferID,
+				0, 0, m_FramebufferSpecification.Width, m_FramebufferSpecification.Height,
+				0, 0, m_FramebufferSpecification.Width, m_FramebufferSpecification.Height,
+				GL_COLOR_BUFFER_BIT,
+				GL_LINEAR
 			);
 
-		return texture;
+		}
+
+		return m_ResolveAttachmentTexture;
 	
 	};
 

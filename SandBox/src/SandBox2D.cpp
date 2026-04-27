@@ -63,16 +63,27 @@ void SandBox2D::OnUpdate(Ayin::Timestep deltaTime) {
 	m_Framebuffer->UnBind();
 };
 
+
 void SandBox2D::OnImGuiRender() {
 
 
 	Ayin::Renderer2D::Statistics statistics = Ayin::Renderer2D::GetStatistics();
 
 
+	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration
+		| ImGuiWindowFlags_NoMove
+		| ImGuiWindowFlags_NoBackground
+		| ImGuiWindowFlags_MenuBar
+		| ImGuiWindowFlags_NoDocking
+		| ImGuiWindowFlags_NoBringToFrontOnFocus
+		| ImGuiWindowFlags_NoNavFocus;
+
 	ImGuiViewport* viewport = ImGui::GetMainViewport();
-	ImGui::SetNextWindowPos(viewport->Pos);
-	ImGui::SetNextWindowSize(viewport->Size);
-	ImGui::SetNextWindowViewport(viewport->ID);
+	bool dockSpaceOpen = true;
+	ImGuiID dockspaceID = ImGui::GetID("##ui.dock_space");
+
+	ImGui::DockSpaceOverViewport(dockspaceID, viewport, ImGuiDockNodeFlags_PassthruCentralNode);
+
 
 	ImGui::Begin("Viewport");
 
