@@ -46,6 +46,10 @@ namespace Ayin {
 
 	}
 
+	void Application::Close() {
+		m_Running = false;
+	}
+
 
 	void Application::Run() {
 

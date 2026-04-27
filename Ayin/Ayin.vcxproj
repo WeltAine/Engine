@@ -602,6 +602,7 @@ copy /B /Y ..\bin\Dist-windows-x86_64\Ayin\Ayin.lib ..\bin\Dist-windows-x86_64\S
     <ClInclude Include="src\Ayin\ImGui\ImGuiLayer.h" />
     <ClInclude Include="src\Ayin\Renderer\Buffer.h" />
     <ClInclude Include="src\Ayin\Renderer\Camera.h" />
+    <ClInclude Include="src\Ayin\Renderer\Framebuffer.h" />
     <ClInclude Include="src\Ayin\Renderer\GraphicsContext.h" />
     <ClInclude Include="src\Ayin\Renderer\RenderCommand.h" />
     <ClInclude Include="src\Ayin\Renderer\Renderer.h" />
@@ -613,6 +614,7 @@ copy /B /Y ..\bin\Dist-windows-x86_64\Ayin\Ayin.lib ..\bin\Dist-windows-x86_64\S
     <ClInclude Include="src\AyinPch.h" />
     <ClInclude Include="src\Platform\OpenGL\Buffer\OpenGLBuffer.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLContext.h" />
+    <ClInclude Include="src\Platform\OpenGL\OpenGLFramebuffer.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLRendererAPI.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLShader.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLTexture.h" />
@@ -633,6 +635,7 @@ copy /B /Y ..\bin\Dist-windows-x86_64\Ayin\Ayin.lib ..\bin\Dist-windows-x86_64\S
     <ClCompile Include="src\Ayin\ImGui\ImGuiLayer.cpp" />
     <ClCompile Include="src\Ayin\Renderer\Buffer.cpp" />
     <ClCompile Include="src\Ayin\Renderer\Camera.cpp" />
+    <ClCompile Include="src\Ayin\Renderer\Framebuffer.cpp" />
     <ClCompile Include="src\Ayin\Renderer\GraphicsContext.cpp" />
     <ClCompile Include="src\Ayin\Renderer\RenderCommand.cpp" />
     <ClCompile Include="src\Ayin\Renderer\Renderer.cpp" />
@@ -646,6 +649,7 @@ copy /B /Y ..\bin\Dist-windows-x86_64\Ayin\Ayin.lib ..\bin\Dist-windows-x86_64\S
     </ClCompile>
     <ClCompile Include="src\Platform\OpenGL\Buffer\OpenGLBuffer.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLContext.cpp" />
+    <ClCompile Include="src\Platform\OpenGL\OpenGLFramebuffer.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLRendererAPI.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLShader.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLTexture.cpp" />

@@ -25,6 +25,8 @@
 
 #include "Ayin/Renderer/Buffer.h"
 #include "Ayin/Renderer/VertexArray.h"
+
+#include "Ayin/Renderer/Framebuffer.h"
 // -----------------------------------
 
 

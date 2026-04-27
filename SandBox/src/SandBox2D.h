@@ -22,7 +22,13 @@ public:
 
 private:
 
-	Ayin::CameraController m_CamreaController;		//相机控制器
+	Ayin::CameraController m_CameraController;		//相机控制器
 
 	Ayin::Ref<Ayin::Texture2D> m_Texture;			//测试用纹理
+
+	Ayin::Ref<Ayin::Framebuffer> m_Framebuffer;
+
+	Ayin::Ref<Ayin::Texture2D> m_ViewTexture;
+
+	glm::vec2 m_ViewportSize;
 };

@@ -8,7 +8,7 @@ static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);//颜色
 
 
 SandBox2D::SandBox2D()
-	:Ayin::Layer("SandBox2DLayer"), m_CamreaController(Ayin::CameraProp{.Type = Ayin::Camera::CameraType::Orthogonal})
+	:Ayin::Layer("SandBox2DLayer"), m_CameraController(Ayin::CameraProp{.Type = Ayin::Camera::CameraType::Orthogonal})
 {};
 
 
@@ -16,22 +16,28 @@ void SandBox2D::OnAttach() {
 
 	m_Texture = Ayin::Texture2D::Create("O:/CppProgram/Ayin/assets/textures/blendTexture.png");
 
+	Ayin::FramebufferSpecification specification{.Width = 1280 , .Height = 720, .Samples = 1};
+	m_Framebuffer = Ayin::Framebuffer::Create(specification);
+	m_ViewportSize.x = 1280;
+	m_ViewportSize.y = 720;
+
 };
 void SandBox2D::OnDetach() {};
 
 void SandBox2D::OnUpdate(Ayin::Timestep deltaTime) {
 
-	m_CamreaController.OnUpdate(deltaTime);
+	m_CameraController.OnUpdate(deltaTime);
 
 	static float rotation = 0;
 	rotation += deltaTime * 50.0f;
 
+	m_Framebuffer->Bind();
 
 	Ayin::RenderCommand::Clear();
 
 	Ayin::Renderer2D::ResetStatistics();
 
-	Ayin::Renderer2D::BeginScene(m_CamreaController.GetCamera());
+	Ayin::Renderer2D::BeginScene(m_CameraController.GetCamera());
 
 	for (float y = -5.0f; y < 5.0f; y += 0.5f)
 	{
@@ -45,7 +51,7 @@ void SandBox2D::OnUpdate(Ayin::Timestep deltaTime) {
 	Ayin::Renderer2D::EndScene();
 
 
-	Ayin::Renderer2D::BeginScene(m_CamreaController.GetCamera());
+	Ayin::Renderer2D::BeginScene(m_CameraController.GetCamera());
 
 	Ayin::Renderer2D::DrawQuad(glm::vec3{ 0.0f, 0.0f, -5.0f }, glm::vec3{ 0.0f, 0.0f, rotation }, glm::vec3{ 1.0f, 1.0f, 1.0f }, m_Texture, glm::vec2{2.0f, 2.0f});
 	Ayin::Renderer2D::DrawQuad(glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 60.0f }, glm::vec3{ 1.0f, 1.0f, 1.0f }, glm::vec4{0.8f, 0.2f, 0.5f, 0.5f});
@@ -54,12 +60,37 @@ void SandBox2D::OnUpdate(Ayin::Timestep deltaTime) {
 
 	Ayin::RenderCommand::SetClearColor({ clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w });
 
-
+	m_Framebuffer->UnBind();
 };
 
 void SandBox2D::OnImGuiRender() {
-	
+
+
 	Ayin::Renderer2D::Statistics statistics = Ayin::Renderer2D::GetStatistics();
+
+
+	ImGuiViewport* viewport = ImGui::GetMainViewport();
+	ImGui::SetNextWindowPos(viewport->Pos);
+	ImGui::SetNextWindowSize(viewport->Size);
+	ImGui::SetNextWindowViewport(viewport->ID);
+
+	ImGui::Begin("Viewport");
+
+	ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
+	if (m_ViewportSize != *((glm::vec2*)&viewportPanelSize))
+	{
+		m_Framebuffer->Resize((uint32_t)viewportPanelSize.x, (uint32_t)viewportPanelSize.y);
+		m_ViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
+
+		Ayin::WindowResizeEvent resizeEvent { (unsigned int)viewportPanelSize.x, (unsigned int)viewportPanelSize.y };
+		m_CameraController.OnEvent(resizeEvent);
+	}
+
+	m_ViewTexture = m_Framebuffer->GetColorAttachment();
+	ImGui::Image((void*)(long long int)(uint32_t)(*m_ViewTexture), ImVec2{ m_ViewportSize.x, m_ViewportSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+
+	ImGui::End();
+
 
 	ImGui::Begin("Renderer2D Statistics");
 	ImGui::Text("Draw Calls: %d", statistics.DrawCalls);
@@ -68,8 +99,13 @@ void SandBox2D::OnImGuiRender() {
 	ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
 
 	ImGui::End();
+
+
+
+
+
 };
 
 void SandBox2D::OnEvent(Ayin::Event& event) {
-	m_CamreaController.OnEvent(event);
+	m_CameraController.OnEvent(event);
 };
