@@ -111,10 +111,6 @@ void SandBox2D::OnImGuiRender() {
 
 	ImGui::End();
 
-
-
-
-
 };
 
 void SandBox2D::OnEvent(Ayin::Event& event) {

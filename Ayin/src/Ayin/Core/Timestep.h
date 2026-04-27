@@ -9,7 +9,7 @@ namespace Ayin {
 	AYIN_API struct Timestep {
 
 	public:
-		Timestep(float time) 
+		Timestep(float time = 0.0f) 
 			: m_TimeDuration(time)
 		{}
 

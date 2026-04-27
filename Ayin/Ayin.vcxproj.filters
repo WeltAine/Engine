@@ -1430,6 +1430,8 @@
     </ClInclude>
     <ClInclude Include="src\Ayin\Renderer\Framebuffer.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLFramebuffer.h" />
+    <ClInclude Include="src\Ayin\Core\Time.h" />
+    <ClInclude Include="src\Platform\Windows\WindowsTime.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Dependency\stb_image\stb_image.cpp">
@@ -1521,5 +1523,7 @@
     </ClCompile>
     <ClCompile Include="src\Ayin\Renderer\Framebuffer.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLFramebuffer.cpp" />
+    <ClCompile Include="src\Ayin\Core\Time.cpp" />
+    <ClCompile Include="src\Platform\Windows\WindowsTime.cpp" />
   </ItemGroup>
 </Project>

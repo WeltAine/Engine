@@ -28,6 +28,8 @@ namespace Ayin {
 		inline static std::pair<float, float> GetMousePosition() { return s_Instance->GetMousePositionImpl(); };
 		inline static float GetMouseX() { return s_Instance->GetMouseXImpl(); };
 		inline static float GetMouseY() { return s_Instance->GetMouseYImpl(); };
+		inline static float GetScrollYoffset() { return s_Instance->GetScrollYoffsetImpl(); }
+		inline static float GetScrollXoffset() { return s_Instance->GetScrollXoffsetImpl(); }
 
 	protected:
 		//实现侧实现下面这些接口
@@ -37,11 +39,13 @@ namespace Ayin {
 		virtual std::pair<float, float> GetMousePositionImpl() const = 0;
 		virtual float GetMouseXImpl() const = 0;
 		virtual float GetMouseYImpl() const = 0;
-
+		virtual float GetScrollYoffsetImpl() const = 0;
+		virtual float GetScrollXoffsetImpl() const = 0;
 
 	private:
 		static Scope<Input> Create();
 
+	protected:
 		static Scope<Input> s_Instance;//单例的保证（本身是抽象类无法直接构造实例），同时实现侧的指针
 	};
 

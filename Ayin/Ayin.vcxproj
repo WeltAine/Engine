@@ -593,6 +593,7 @@ copy /B /Y ..\bin\Dist-windows-x86_64\Ayin\Ayin.lib ..\bin\Dist-windows-x86_64\S
     <ClInclude Include="src\Ayin\Core\LayerStack.h" />
     <ClInclude Include="src\Ayin\Core\Log.h" />
     <ClInclude Include="src\Ayin\Core\MouseButtonCodes.h" />
+    <ClInclude Include="src\Ayin\Core\Time.h" />
     <ClInclude Include="src\Ayin\Core\Timestep.h" />
     <ClInclude Include="src\Ayin\Core\Window.h" />
     <ClInclude Include="src\Ayin\Events\ApplicationEvent.h" />
@@ -620,6 +621,7 @@ copy /B /Y ..\bin\Dist-windows-x86_64\Ayin\Ayin.lib ..\bin\Dist-windows-x86_64\S
     <ClInclude Include="src\Platform\OpenGL\OpenGLTexture.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLVertexArray.h" />
     <ClInclude Include="src\Platform\Windows\WindowsInput.h" />
+    <ClInclude Include="src\Platform\Windows\WindowsTime.h" />
     <ClInclude Include="src\Platform\Windows\WindowsWindow.h" />
   </ItemGroup>
   <ItemGroup>
@@ -630,6 +632,7 @@ copy /B /Y ..\bin\Dist-windows-x86_64\Ayin\Ayin.lib ..\bin\Dist-windows-x86_64\S
     <ClCompile Include="src\Ayin\Core\Layer.cpp" />
     <ClCompile Include="src\Ayin\Core\LayerStack.cpp" />
     <ClCompile Include="src\Ayin\Core\Log.cpp" />
+    <ClCompile Include="src\Ayin\Core\Time.cpp" />
     <ClCompile Include="src\Ayin\Core\Window.cpp" />
     <ClCompile Include="src\Ayin\ImGui\ImGuiBuild.cpp" />
     <ClCompile Include="src\Ayin\ImGui\ImGuiLayer.cpp" />
@@ -655,6 +658,7 @@ copy /B /Y ..\bin\Dist-windows-x86_64\Ayin\Ayin.lib ..\bin\Dist-windows-x86_64\S
     <ClCompile Include="src\Platform\OpenGL\OpenGLTexture.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLVertexArray.cpp" />
     <ClCompile Include="src\Platform\Windows\WindowsInput.cpp" />
+    <ClCompile Include="src\Platform\Windows\WindowsTime.cpp" />
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
