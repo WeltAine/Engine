@@ -195,6 +195,8 @@ namespace Ayin {
 
 	void WindowsWindow::OnUpdate()
 	{
+		//! 每一帧的末尾调用该函数，所以下一帧处理上一帧的事件，下一帧显示上一帧的画面
+
 		glfwPollEvents();//在代码运行过程中（甚至是在 glfwPollEvents 期间），GLFW 都会触发回调函数。（异步机制）！！？？？
 		// 为了接收事件并证明程序未陷入死锁，GLFW 需要定期与窗口系统进行通信。只要窗口处于可见状态，就必须定期处理事件，通常在每一帧完成缓冲区交换后进行。
 		// 处理待处理事件有两种方式：轮询和等待。这里采用事件轮询（Polling）机制，它仅处理当前已收到的事件并立即返回。
@@ -204,6 +206,7 @@ namespace Ayin {
 		// 所以只是在PollEvents时才会开始处理时间，而在此之外则是记录事件，之前遇到的持续接受现象（拉动窗口时Applicatioin没有更新循环），可能就是这样，队列一直在被处理，而队列却又同时在被填充，进一步猜测，窗口大小的拖动可能是一个阻塞的实现
 
 		m_GraphicsContext->SwapBuffer();
+
 	}
 
 	void WindowsWindow::Shutdown() {
