@@ -85,7 +85,8 @@ void SandBox2D::OnImGuiRender() {
 
 	ImGui::Begin("Viewport");
 
-	m_CameraController.OnUpdate(Ayin::Time::GetFrameInterval());
+	if(ImGui::IsWindowFocused())
+		m_CameraController.OnUpdate(Ayin::Time::GetFrameInterval());
 
 
 	ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
