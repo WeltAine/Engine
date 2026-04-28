@@ -16,11 +16,6 @@ void SandBox2D::OnAttach() {
 
 	m_Texture = Ayin::Texture2D::Create("O:/CppProgram/Ayin/assets/textures/blendTexture.png");
 
-	Ayin::FramebufferSpecification specification{.Width = 1280 , .Height = 720, .Samples = 1};
-	m_Framebuffer = Ayin::Framebuffer::Create(specification);
-	m_ViewportSize.x = 1280;
-	m_ViewportSize.y = 720;
-
 };
 void SandBox2D::OnDetach() {};
 
@@ -29,7 +24,6 @@ void SandBox2D::OnUpdate(Ayin::Timestep deltaTime) {
 	static float rotation = 0;
 	rotation += deltaTime * 50.0f;
 
-	m_Framebuffer->Bind();
 
 	Ayin::RenderCommand::Clear();
 
@@ -58,7 +52,6 @@ void SandBox2D::OnUpdate(Ayin::Timestep deltaTime) {
 
 	Ayin::RenderCommand::SetClearColor({ clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w });
 
-	m_Framebuffer->UnBind();
 };
 
 
@@ -66,49 +59,6 @@ void SandBox2D::OnImGuiRender() {
 
 
 	Ayin::Renderer2D::Statistics statistics = Ayin::Renderer2D::GetStatistics();
-
-
-	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration
-		| ImGuiWindowFlags_NoMove
-		| ImGuiWindowFlags_NoBackground
-		| ImGuiWindowFlags_MenuBar
-		| ImGuiWindowFlags_NoDocking
-		| ImGuiWindowFlags_NoBringToFrontOnFocus
-		| ImGuiWindowFlags_NoNavFocus;
-
-	ImGuiViewport* viewport = ImGui::GetMainViewport();
-	bool dockSpaceOpen = true;
-	ImGuiID dockspaceID = ImGui::GetID("##ui.dock_space");
-
-	ImGui::DockSpaceOverViewport(dockspaceID, viewport, ImGuiDockNodeFlags_PassthruCentralNode);
-
-
-	ImGui::Begin("Viewport");
-
-	if(ImGui::IsWindowFocused())
-		m_CameraController.OnUpdate(Ayin::Time::GetFrameInterval());
-
-
-	ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
-	if (m_ViewportSize != *((glm::vec2*)&viewportPanelSize))
-	{
-		m_Framebuffer->Resize((uint32_t)viewportPanelSize.x, (uint32_t)viewportPanelSize.y);
-		m_ViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
-
-		Ayin::WindowResizeEvent resizeEvent { (unsigned int)viewportPanelSize.x, (unsigned int)viewportPanelSize.y };
-		m_CameraController.OnEvent(resizeEvent);
-
-		Ayin::Renderer::OnWindowResize(viewportPanelSize.x, viewportPanelSize.y);
-		//! Application::OnWindowsResize()中的调整并没有删去
-		//! 我们已知，两帧之间处理事件，且处理的是上一帧的，指令-》ImGui-》事件-》输出画面-》。。。
-		//! 事件只会影响下一次循环的渲染，而主窗口变化的下一帧才会触发ImGui窗口的变换事件，所以主窗口缩放只会存在一帧
-	}
-
-	m_ViewTexture = m_Framebuffer->GetColorAttachment();
-	ImGui::Image((void*)(long long int)(uint32_t)(*m_ViewTexture), ImVec2{ m_ViewportSize.x, m_ViewportSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
-
-	ImGui::End();
-
 
 	ImGui::Begin("Renderer2D Statistics");
 	ImGui::Text("Draw Calls: %d", statistics.DrawCalls);
@@ -120,4 +70,6 @@ void SandBox2D::OnImGuiRender() {
 
 };
 
-void SandBox2D::OnEvent(Ayin::Event& event) {};
+void SandBox2D::OnEvent(Ayin::Event& event) {
+	m_CameraController.OnEvent(event);
+};
