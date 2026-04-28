@@ -60,6 +60,8 @@ namespace Ayin {
 		bool handled = false;//事件是否被处理过了，可以用于后续阻断在Layer中的传递
 
 	public:
+		virtual ~Event() = default;
+
 		virtual EventType GetEventType() const = 0;//事件类型，虚函数，保证在多态时也能获得正确的原本事件类型
 		virtual const char* GetName() const = 0;//事件名称
 		virtual int GetCategoryFlags() const = 0;//事件类别

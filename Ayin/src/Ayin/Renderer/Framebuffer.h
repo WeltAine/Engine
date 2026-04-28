@@ -35,6 +35,8 @@ namespace Ayin {
 
 		virtual Ref<Texture2D> GetColorAttachment(int index = 0) const = 0;
 
+		const FramebufferSpecification& GetSpecification() { return m_FramebufferSpecification; };
+
 	protected:
 
 		inline Framebuffer(const FramebufferSpecification& specification)

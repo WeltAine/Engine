@@ -22,6 +22,7 @@ namespace Ayin {
 		Input& operator=(const Input&) = delete;
 
 	public:
+		virtual ~Input() = default;
 
 		inline static void ProcessEvent(Event& e) { s_Instance->OnEvent(e); };
 
