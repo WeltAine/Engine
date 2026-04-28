@@ -26,8 +26,6 @@ void SandBox2D::OnDetach() {};
 
 void SandBox2D::OnUpdate(Ayin::Timestep deltaTime) {
 
-	m_CameraController.OnUpdate(deltaTime);
-
 	static float rotation = 0;
 	rotation += deltaTime * 50.0f;
 
@@ -87,6 +85,9 @@ void SandBox2D::OnImGuiRender() {
 
 	ImGui::Begin("Viewport");
 
+	m_CameraController.OnUpdate(Ayin::Time::GetFrameInterval());
+
+
 	ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
 	if (m_ViewportSize != *((glm::vec2*)&viewportPanelSize))
 	{
@@ -95,6 +96,11 @@ void SandBox2D::OnImGuiRender() {
 
 		Ayin::WindowResizeEvent resizeEvent { (unsigned int)viewportPanelSize.x, (unsigned int)viewportPanelSize.y };
 		m_CameraController.OnEvent(resizeEvent);
+
+		Ayin::Renderer::OnWindowResize(viewportPanelSize.x, viewportPanelSize.y);
+		//! Application::OnWindowsResize()中的调整并没有删去
+		//! 我们已知，两帧之间处理事件，且处理的是上一帧的，指令-》ImGui-》事件-》输出画面-》。。。
+		//! 事件只会影响下一次循环的渲染，而主窗口变化的下一帧才会触发ImGui窗口的变换事件，所以主窗口缩放只会存在一帧
 	}
 
 	m_ViewTexture = m_Framebuffer->GetColorAttachment();
@@ -113,6 +119,4 @@ void SandBox2D::OnImGuiRender() {
 
 };
 
-void SandBox2D::OnEvent(Ayin::Event& event) {
-	m_CameraController.OnEvent(event);
-};
+void SandBox2D::OnEvent(Ayin::Event& event) {};

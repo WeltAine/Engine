@@ -26,6 +26,7 @@ namespace Ayin{
 
     private:
         bool OnMouseScrolled(MouseSrolledEvent& e);
+        bool OnMouseScrolled(Timestep deltaTime);
         bool OnMouseMidButtonPressed(MouseButtonPressedEvent& e);
         bool OnMouseMidButtonReleased(MouseButtonReleasedEvent& e);
         bool OnWindowResize(WindowResizeEvent& e);
