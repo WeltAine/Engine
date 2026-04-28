@@ -8,6 +8,34 @@
 namespace Ayin {
 
 
+	void WindowsInput::OnEvent(Event& e) {
+	
+		EventDispatcher dispatcher(e);
+
+		dispatcher.Dispatch<MouseSrolledEvent>(AYIN_BIND_EVENT_FUN(WindowsInput::OnScrollEvent));
+
+	};
+	void WindowsInput::TransitionToNextFrameImpl() {
+	
+		m_MouseScrollXoffset = 0.0f, m_MouseScrollYoffset = 0.0f;
+
+	};
+
+
+
+	bool WindowsInput::OnScrollEvent(MouseSrolledEvent& e) {
+
+		m_MouseScrollXoffset = e.GetXoffset();
+		m_MouseScrollYoffset = e.GetYoffset();
+
+		m_ScrollXAccumulator += m_MouseScrollXoffset;
+		m_ScrollYAccumulator += m_MouseScrollYoffset;
+
+		return false;
+	};
+
+
+
 	bool WindowsInput::IsKeyPressedImpl(KeyCode keyCode) const
 	{
 		GLFWwindow* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
@@ -49,5 +77,7 @@ namespace Ayin {
 
 		return y;
 	}
+
+
 }
 

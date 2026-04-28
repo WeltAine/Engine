@@ -76,6 +76,9 @@ namespace Ayin {
 
 			}
 
+			//输入系统更新
+			Input::TransitionToNextFrame();
+
 			// 窗口更新
 			m_Window->OnUpdate();
 
@@ -94,6 +97,11 @@ namespace Ayin {
 
 		//窗口尺寸事件
 		dispatcher.Dispatch<WindowResizeEvent>(AYIN_BIND_EVENT_FUN(Application::OnWindowResize));
+
+
+		//输入系统
+		Input::ProcessEvent(e);
+
 
 		//从后往前逐层通知事件
 		for (auto iterator = m_LayerStack.rbegin(); iterator != m_LayerStack.rend(); iterator++) {
