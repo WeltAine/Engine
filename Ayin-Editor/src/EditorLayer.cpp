@@ -15,6 +15,8 @@ EditorLayer::EditorLayer()
 
 void EditorLayer::OnAttach() {
 
+	AYIN_PROFILE_FUNCTION();
+
 	m_Texture = Ayin::Texture2D::Create("O:/CppProgram/Ayin/assets/textures/blendTexture.png");
 
 	Ayin::FramebufferSpecification specification{ .Width = 1280 , .Height = 720, .Samples = 1 };
@@ -23,9 +25,11 @@ void EditorLayer::OnAttach() {
 	m_ViewportSize.y = 720;
 
 };
-void EditorLayer::OnDetach() {};
+void EditorLayer::OnDetach() { AYIN_PROFILE_FUNCTION(); };
 
 void EditorLayer::OnUpdate(Ayin::Timestep deltaTime) {
+
+	AYIN_PROFILE_FUNCTION();
 
 	//? 关于viewpoint在缩放时（主窗口不缩放），的黑屏问题
 	//! 原因在于原先是在OnImGuiRender中改变帧缓冲大小
@@ -52,36 +56,42 @@ void EditorLayer::OnUpdate(Ayin::Timestep deltaTime) {
 	static float rotation = 0;
 	rotation += deltaTime * 50.0f;
 
-	m_Framebuffer->Bind();
-
-	Ayin::RenderCommand::Clear();
-
-	Ayin::Renderer2D::ResetStatistics();
-
-	Ayin::Renderer2D::BeginScene(m_CameraController.GetCamera());
-
-	for (float y = -5.0f; y < 5.0f; y += 0.5f)
 	{
-		for (float x = -5.0f; x < 5.0f; x += 0.5f)
+		AYIN_PROFILE_SCOPE("Renderer Draw");
+
+
+		m_Framebuffer->Bind();
+
+		Ayin::RenderCommand::Clear();
+
+		Ayin::Renderer2D::ResetStatistics();
+
+		Ayin::Renderer2D::BeginScene(m_CameraController.GetCamera());
+
+		for (float y = -5.0f; y < 5.0f; y += 0.5f)
 		{
-			glm::vec4 color = { (x + 5.0f) / 10.0f, 0.4f, (y + 5.0f) / 10.0f, 0.7f };
-			Ayin::Renderer2D::DrawQuad(glm::vec3{ x, y, -10.0f }, glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 1.0f, 1.0f, 1.0f }, color);
+			for (float x = -5.0f; x < 5.0f; x += 0.5f)
+			{
+				glm::vec4 color = { (x + 5.0f) / 10.0f, 0.4f, (y + 5.0f) / 10.0f, 0.7f };
+				Ayin::Renderer2D::DrawQuad(glm::vec3{ x, y, -10.0f }, glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 1.0f, 1.0f, 1.0f }, color);
+			}
 		}
+
+		Ayin::Renderer2D::EndScene();
+
+
+		Ayin::Renderer2D::BeginScene(m_CameraController.GetCamera());
+
+		Ayin::Renderer2D::DrawQuad(glm::vec3{ 0.0f, 0.0f, -5.0f }, glm::vec3{ 0.0f, 0.0f, rotation }, glm::vec3{ 1.0f, 1.0f, 1.0f }, m_Texture, glm::vec2{ 2.0f, 2.0f });
+		Ayin::Renderer2D::DrawQuad(glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 60.0f }, glm::vec3{ 1.0f, 1.0f, 1.0f }, glm::vec4{ 0.8f, 0.2f, 0.5f, 0.5f });
+
+		Ayin::Renderer2D::EndScene();
+
+		Ayin::RenderCommand::SetClearColor({ clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w });
+
+		m_Framebuffer->UnBind();
+
 	}
-
-	Ayin::Renderer2D::EndScene();
-
-
-	Ayin::Renderer2D::BeginScene(m_CameraController.GetCamera());
-
-	Ayin::Renderer2D::DrawQuad(glm::vec3{ 0.0f, 0.0f, -5.0f }, glm::vec3{ 0.0f, 0.0f, rotation }, glm::vec3{ 1.0f, 1.0f, 1.0f }, m_Texture, glm::vec2{ 2.0f, 2.0f });
-	Ayin::Renderer2D::DrawQuad(glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 60.0f }, glm::vec3{ 1.0f, 1.0f, 1.0f }, glm::vec4{ 0.8f, 0.2f, 0.5f, 0.5f });
-
-	Ayin::Renderer2D::EndScene();
-
-	Ayin::RenderCommand::SetClearColor({ clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w });
-
-	m_Framebuffer->UnBind();
 };
 
 
