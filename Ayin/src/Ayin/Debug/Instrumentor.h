@@ -68,7 +68,8 @@ struct fmt::formatter<Ayin::ProfileResult> {
 namespace Ayin {
 
 	/// <summary>
-	/// 插桩输出控制
+	/// 插桩输出控制，每一个Session对应一个输出文件
+	/// 支持嵌套Session，以及递归写入嵌套文件
 	/// </summary>
 	AYIN_API class InstrumentationSession {
 
@@ -144,7 +145,14 @@ namespace Ayin {
 
 		inline void WriteProfile(const ProfileResult& result) {
 
-			m_Logger->info(",{}", result);
+			if (m_isFirestProfilr) {
+				m_isFirestProfilr = false;
+				m_Logger->info("{}", result);
+			}
+			else {
+				m_Logger->info(",{}", result);
+			}
+
 
 			// 对嵌套Session的递归输出
 			if (m_ParentSession && m_Mode == Mode::Inherit) {
@@ -192,6 +200,8 @@ namespace Ayin {
 		Mode m_Mode = Mode::Inherit; 
 
 		bool m_isEnd = false;
+
+		bool m_isFirestProfilr = true;
 
 	private:
 
