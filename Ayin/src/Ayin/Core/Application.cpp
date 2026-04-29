@@ -100,7 +100,7 @@ namespace Ayin {
 
 
 		//输入系统
-		Input::ProcessEvent(e);
+		Input::OnEvent(e);
 
 
 		//从后往前逐层通知事件

@@ -1451,9 +1451,6 @@
     <ClCompile Include="src\Ayin\Core\Application.cpp">
       <Filter>src\Ayin\Core</Filter>
     </ClCompile>
-    <ClCompile Include="src\Ayin\Core\Input.cpp">
-      <Filter>src\Ayin\Core</Filter>
-    </ClCompile>
     <ClCompile Include="src\Ayin\Core\Layer.cpp">
       <Filter>src\Ayin\Core</Filter>
     </ClCompile>

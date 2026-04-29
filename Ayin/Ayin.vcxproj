@@ -628,7 +628,6 @@ copy /B /Y ..\bin\Dist-windows-x86_64\Ayin\Ayin.lib ..\bin\Dist-windows-x86_64\S
     <ClCompile Include="Dependency\stb_image\stb_image.cpp" />
     <ClCompile Include="src\Ayin\CameraController.cpp" />
     <ClCompile Include="src\Ayin\Core\Application.cpp" />
-    <ClCompile Include="src\Ayin\Core\Input.cpp" />
     <ClCompile Include="src\Ayin\Core\Layer.cpp" />
     <ClCompile Include="src\Ayin\Core\LayerStack.cpp" />
     <ClCompile Include="src\Ayin\Core\Log.cpp" />

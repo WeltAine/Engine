@@ -9,32 +9,51 @@ namespace Ayin {
 
 	class WindowsInput : public Input
 	{
+		friend class Input;
 
 	protected:
+
+		static void TransitionToNextFrame();
+
+		static bool IsKeyPressed(KeyCode keyCode);
+
+		static bool GetMouseButton(MouseCode button);
+		static std::pair<float, float> GetMousePosition();
+		static float GetMouseX();
+		static float GetMouseY();
+		static float GetScrollXoffset();
+		static float GetScrollYoffset();
+		static float GetScrollX();
+		static float GetScrollY();
+
+
+
+	public:
 
 		//x GLFW没有访问鼠标滚轮的轮询，我们得自己写, 接入到回调中
-		bool OnScrollEvent(MouseSrolledEvent& e);
+		static bool OnScrollEvent(MouseSrolledEvent& e);
 
-	protected:
+
 		// 通过 Input 继承
-		virtual void OnEvent(Event& e) override;
-		virtual void TransitionToNextFrameImpl() override;
+		static void OnEventImpl(Event& e);
+		static void TransitionToNextFrameImpl();
+	
+		static bool IsKeyPressedImpl(KeyCode keyCode);
 
-		virtual bool IsKeyPressedImpl(KeyCode keyCode) const override;
+		static bool GetMouseButtonImpl(MouseCode button);
+		static std::pair<float, float> GetMousePositionImpl();
+		static float GetMouseXImpl();
+		static float GetMouseYImpl();
+		static float GetScrollXoffsetImpl() { return s_MouseScrollXoffset; };
+		static float GetScrollYoffsetImpl() { return s_MouseScrollYoffset; };
+		static float GetScrollXImpl() { return s_ScrollXAccumulator; };
+		static float GetScrollYImpl() { return s_ScrollYAccumulator; };
 
-		virtual bool GetMouseButtonImpl(MouseCode button) const override;
-		virtual std::pair<float, float> GetMousePositionImpl() const override;
-		virtual float GetMouseXImpl() const override;
-		virtual float GetMouseYImpl() const override;
-		virtual float GetScrollXoffsetImpl() const override { return m_MouseScrollXoffset; };
-		virtual float GetScrollYoffsetImpl() const override { return m_MouseScrollYoffset; };
-		virtual float GetScrollXImpl() const override { return m_ScrollXAccumulator; };
-		virtual float GetScrollYImpl() const override { return m_ScrollYAccumulator; };
 
 
 	private:
-		float m_MouseScrollXoffset = 0.0f, m_MouseScrollYoffset = 0.0f;				//鼠标滚轮
-		float m_ScrollXAccumulator = 0.0f, m_ScrollYAccumulator = 0.0f;				//鼠标滚轮累计值
+		static float s_MouseScrollXoffset, s_MouseScrollYoffset;				//鼠标滚轮
+		static float s_ScrollXAccumulator, s_ScrollYAccumulator;				//鼠标滚轮累计值
 
 
 	};
