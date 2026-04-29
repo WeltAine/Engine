@@ -10,6 +10,7 @@ namespace Ayin {
 	OpenGLTexture2D::OpenGLTexture2D(const std::string& path) 
 		: m_Path(path)
 	{
+		AYIN_PROFILE_FUNCTION();
 
 		stbi_set_flip_vertically_on_load(1);//设置stb_image的读取顺序
 
@@ -75,6 +76,7 @@ namespace Ayin {
 	OpenGLTexture2D::OpenGLTexture2D(int width, int height, void* data) 
 		:m_Width{ width }, m_Height{ height }
 	{
+		AYIN_PROFILE_FUNCTION();
 	
 		m_InternalFormat = GL_RGBA8, m_DataFormat = GL_RGBA;
 		m_Components = 4;
@@ -113,6 +115,8 @@ namespace Ayin {
 	}
 
 	OpenGLTexture2D::~OpenGLTexture2D() {
+		
+		AYIN_PROFILE_FUNCTION();
 
 		glDeleteTextures(1, &m_TextureID);
 
@@ -121,6 +125,8 @@ namespace Ayin {
 
 	void OpenGLTexture2D::SetData(int width, int height, void* data) {
 
+		AYIN_PROFILE_FUNCTION();
+
 		glTextureSubImage2D(m_TextureID, 1 , 0, 0, width, height, m_DataFormat, GL_UNSIGNED_BYTE, data);
 
 	}
@@ -128,6 +134,7 @@ namespace Ayin {
 
 	void OpenGLTexture2D::Bind(int slot) const
 	{
+		AYIN_PROFILE_FUNCTION();
 		
 		//! SampleGPU只能读
 		//! ImageGPU可随机读写（用于GPU生成纹理）
@@ -138,6 +145,7 @@ namespace Ayin {
 
 	void OpenGLTexture2D::UnBind() const
 	{
+		AYIN_PROFILE_FUNCTION();
 
 		int maxTextureUnits;
 		glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureUnits);

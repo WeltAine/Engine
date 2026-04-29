@@ -23,6 +23,8 @@ namespace Ayin {
 	/// </summary>
 	Application::Application()
 	{
+		AYIN_PROFILE_FUNCTION();
+
 		AYIN_ASSERT(!s_Instance, "Application already exists!");//断言，防止破坏单例
 		s_Instance = this;
 
@@ -42,6 +44,8 @@ namespace Ayin {
 
 	Application::~Application() {
 
+		AYIN_PROFILE_FUNCTION();
+
 		Renderer::Shutdown();
 
 	}
@@ -53,24 +57,36 @@ namespace Ayin {
 
 	void Application::Run() {
 
+		AYIN_PROFILE_FUNCTION();
+
 		while (m_Running)
 		{
 
 			Time::OnUpdate();
 
+
 			if (m_IsVisible) {
 
-				// 层更新
-				for (Layer* layer : m_LayerStack) {
-					layer->OnUpdate(Time::GetFrameInterval());
+				{
+					AYIN_PROFILE_SCOPE("LayerStack OnUpdate");
+					// 层更新
+					for (Layer* layer : m_LayerStack) {
+						layer->OnUpdate(Time::GetFrameInterval());
+					}
 				}
 
 				// 渲染ImGui（之后会单独放到渲染线程上，所以不会在Layer的OnUpdate中执行）
 				// m_ImGuiLauer的Begin和End中为ImGui上下文的相关设置，详情可查看函数
 				// 这里应该接收的是上一帧的情况（因为事件本帧事件会在Window的OnUpdate中触发）
 				m_ImGuiLayer->Begin();
-				for (Layer* layer : m_LayerStack) {
-					layer->OnImGuiRender();
+				{
+
+					AYIN_PROFILE_SCOPE("LayerStack OnImGuiRender");
+
+					for (Layer* layer : m_LayerStack) {
+						layer->OnImGuiRender();
+					}
+
 				}
 				m_ImGuiLayer->End();
 
@@ -86,6 +102,8 @@ namespace Ayin {
 	}
 
 	void Application::OnEvent(Event& e) {
+
+		AYIN_PROFILE_FUNCTION();
 
 		//输出日志（除关闭以外的事件先这么处理）
 		AYIN_CORE_TRACE("{0}", e);
@@ -123,6 +141,8 @@ namespace Ayin {
 
 	bool Application::OnWindowResize(const WindowResizeEvent& e) {
 
+		AYIN_PROFILE_FUNCTION();
+
 		if (e.GetWidth() <= 0 || e.GetHeight() <= 0) {
 			m_IsVisible = false;
 			return false;
@@ -131,17 +151,22 @@ namespace Ayin {
 		Renderer::OnWindowResize(e.GetWidth(), e.GetHeight());
 		return false;
 
-		return true;
 
 	}
 
 
 	void Application::PushLayer(Layer* layer) {
+
+		AYIN_PROFILE_FUNCTION();
+
 		m_LayerStack.PushLayer(layer);
 		layer->OnAttach();
 	}
 
 	void Application::PushOverlay(Layer* overLayer) {
+
+		AYIN_PROFILE_FUNCTION();
+
 		m_LayerStack.PushOverlay(overLayer);
 		overLayer->OnAttach();
 	}

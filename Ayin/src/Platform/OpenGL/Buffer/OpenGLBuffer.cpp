@@ -25,6 +25,8 @@ namespace Ayin {
 
 	OpenGLVertexBuffer::OpenGLVertexBuffer(float* vertices, size_t size) {
 
+		AYIN_PROFILE_FUNCTION();
+
 	#pragma region DSA
 		glCreateBuffers(1, &m_VertexBufferID);
 		glNamedBufferData(m_VertexBufferID, size, vertices, GL_STATIC_DRAW);
@@ -33,6 +35,8 @@ namespace Ayin {
 	}
 
 	OpenGLVertexBuffer::~OpenGLVertexBuffer() {
+
+		AYIN_PROFILE_FUNCTION();
 
 	#pragma region BTA/DSA
 		UnBind();
@@ -52,6 +56,8 @@ namespace Ayin {
 
 	void OpenGLVertexBuffer::Bind() const { 
 
+		AYIN_PROFILE_FUNCTION();
+
 	#pragma region BTA/DSA
 		glBindBuffer(GL_ARRAY_BUFFER, m_VertexBufferID); 
 	#pragma endregion
@@ -59,6 +65,8 @@ namespace Ayin {
 	}
 
 	void OpenGLVertexBuffer::UnBind() const {
+
+		AYIN_PROFILE_FUNCTION();
 
 	#pragma region BTA/DSA
 
@@ -81,6 +89,7 @@ namespace Ayin {
 	OpenGLIndexBuffer::OpenGLIndexBuffer(uint32_t* indices, uint32_t count) 
 		: m_Count(count)
 	{
+		AYIN_PROFILE_FUNCTION();
 
 	#pragma region BTA（该注释具备参考意义，暂不删除）
 
@@ -123,6 +132,8 @@ namespace Ayin {
 
 	OpenGLIndexBuffer::~OpenGLIndexBuffer() {
 
+		AYIN_PROFILE_FUNCTION();
+
 	#pragma region BTA/DSA
 		UnBind();
 		glDeleteBuffers(1, &m_IndexBufferID);
@@ -132,6 +143,8 @@ namespace Ayin {
 
 	void OpenGLIndexBuffer::Bind() const { 
 
+		AYIN_PROFILE_FUNCTION();
+
 	#pragma region BTA/DSA
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IndexBufferID); 
 	#pragma endregion
@@ -140,6 +153,8 @@ namespace Ayin {
 
 	void OpenGLIndexBuffer::UnBind() const {
 	
+		AYIN_PROFILE_FUNCTION();
+
 	#pragma region BTA/DSA
 
 		int currentIndexBufferID;
@@ -163,6 +178,7 @@ namespace Ayin {
 
 	OpenGLUniformBuffer::OpenGLUniformBuffer(void* uniformData, size_t size)
 	{
+		AYIN_PROFILE_FUNCTION();
 
 		//glBufferData(目标，大小，数据，用法);
 		//glBindBufferBase(目标，索引（bind）, 对象);	//也可以不指定（注意不会设置当前活跃的UBO，只是指定，shader中没有这个block块也没关系）
@@ -177,6 +193,8 @@ namespace Ayin {
 	}
 
 	OpenGLUniformBuffer::~OpenGLUniformBuffer() {
+
+		AYIN_PROFILE_FUNCTION();
 
 	#pragma region BTA/DSA
 		UnBind();
@@ -194,13 +212,19 @@ namespace Ayin {
 
 	void OpenGLUniformBuffer::Set(void* data)
 	{
+
+		AYIN_PROFILE_FUNCTION();
+
 	#pragma region DSA
 		// 设置UBO对应数据块整个区域数据
 		glNamedBufferSubData(m_UniformBufferID, 0, m_UniformLayout.GetSize(), data);
 	#pragma endregion
+
 	}
 
 	void OpenGLUniformBuffer::SetBindingIndexs(const std::initializer_list<int>& bindingIndexs) {
+
+		AYIN_PROFILE_FUNCTION();
 
 	#pragma region BTA/DSA
 		for (const int& index : bindingIndexs) {
@@ -214,6 +238,8 @@ namespace Ayin {
 
 	void OpenGLUniformBuffer::Bind() const {
 
+		AYIN_PROFILE_FUNCTION();
+
 	#pragma region BTA/DSA
 		glBindBuffer(GL_UNIFORM_BUFFER, m_UniformBufferID);
 	#pragma endregion
@@ -223,6 +249,9 @@ namespace Ayin {
 
 	void OpenGLUniformBuffer::UnBind() const
 	{
+
+		AYIN_PROFILE_FUNCTION();
+
 	#pragma region BTA/DSA
 		int currentUniformBufferID = 0;
 		glGetIntegerv(GL_UNIFORM_BUFFER, &currentUniformBufferID);
@@ -239,6 +268,8 @@ namespace Ayin {
 
 	void OpenGLUniformBuffer::UploadBool(const std::string& paramName, bool value) {
 
+		AYIN_PROFILE_FUNCTION();
+
 	#pragma region DSA
 		auto it = std::find_if(m_UniformLayout.begin(), m_UniformLayout.end(), [&paramName](const UniformElement& element) {
 			return element.Name == paramName;
@@ -254,6 +285,8 @@ namespace Ayin {
 
 	void OpenGLUniformBuffer::UploadInt(const std::string& paramName, int value) {
 
+		AYIN_PROFILE_FUNCTION();
+
 	#pragma region DSA
 		auto it = std::find_if(m_UniformLayout.begin(), m_UniformLayout.end(), [&paramName](const UniformElement& element) {
 			return element.Name == paramName;
@@ -266,6 +299,8 @@ namespace Ayin {
 
 	}
 	void OpenGLUniformBuffer::UploadInt2(const std::string& paramName, const glm::ivec2& vector) {
+
+		AYIN_PROFILE_FUNCTION();
 
 	#pragma region DSA
 		auto it = std::find_if(m_UniformLayout.begin(), m_UniformLayout.end(), [&paramName](const UniformElement& element) {
@@ -280,6 +315,8 @@ namespace Ayin {
 	}
 	void OpenGLUniformBuffer::UploadInt3(const std::string& paramName, const glm::ivec3& vector) {
 
+		AYIN_PROFILE_FUNCTION();
+
 	#pragma region DSA
 		auto it = std::find_if(m_UniformLayout.begin(), m_UniformLayout.end(), [&paramName](const UniformElement& element) {
 			return element.Name == paramName;
@@ -292,6 +329,8 @@ namespace Ayin {
 
 	}
 	void OpenGLUniformBuffer::UploadInt4(const std::string& paramName, const glm::ivec4& vector) {
+
+		AYIN_PROFILE_FUNCTION();
 
 	#pragma region DSA
 		auto it = std::find_if(m_UniformLayout.begin(), m_UniformLayout.end(), [&paramName](const UniformElement& element) {
@@ -308,6 +347,8 @@ namespace Ayin {
 
 	void OpenGLUniformBuffer::UploadFloat(const std::string& paramName, float value) {
 
+		AYIN_PROFILE_FUNCTION();
+
 	#pragma region DSA
 		auto it = std::find_if(m_UniformLayout.begin(), m_UniformLayout.end(), [&paramName](const UniformElement& element) {
 			return element.Name == paramName;
@@ -321,6 +362,8 @@ namespace Ayin {
 	}
 	void OpenGLUniformBuffer::UploadFloat2(const std::string& paramName, const glm::vec2& vector) {
 	
+		AYIN_PROFILE_FUNCTION();
+
 	#pragma region DSA
 		auto it = std::find_if(m_UniformLayout.begin(), m_UniformLayout.end(), [&paramName](const UniformElement& element) {
 			return element.Name == paramName;
@@ -334,6 +377,8 @@ namespace Ayin {
 	}
 	void OpenGLUniformBuffer::UploadFloat3(const std::string& paramName, const glm::vec3& vector) {
 
+		AYIN_PROFILE_FUNCTION();
+
 	#pragma region DSA
 		auto it = std::find_if(m_UniformLayout.begin(), m_UniformLayout.end(), [&paramName](const UniformElement& element) {
 			return element.Name == paramName;
@@ -346,6 +391,8 @@ namespace Ayin {
 
 	}
 	void OpenGLUniformBuffer::UploadFloat4(const std::string& paramName, const glm::vec4& vector) {
+
+		AYIN_PROFILE_FUNCTION();
 
 	#pragma region DSA
 		auto it = std::find_if(m_UniformLayout.begin(), m_UniformLayout.end(), [&paramName](const UniformElement& element) {
@@ -362,6 +409,8 @@ namespace Ayin {
 
 	void OpenGLUniformBuffer::UploadMat3(const std::string& paramName, const glm::mat3& matrix) {
 
+		AYIN_PROFILE_FUNCTION();
+
 	#pragma region DSA
 		auto it = std::find_if(m_UniformLayout.begin(), m_UniformLayout.end(), [&paramName](const UniformElement& element) {
 			return element.Name == paramName;
@@ -374,6 +423,8 @@ namespace Ayin {
 
 	}
 	void OpenGLUniformBuffer::UploadMat4(const std::string& paramName, const glm::mat4& matrix) {
+
+		AYIN_PROFILE_FUNCTION();
 
 	#pragma region DSA
 		auto it = std::find_if(m_UniformLayout.begin(), m_UniformLayout.end(), [&paramName](const UniformElement& element) {

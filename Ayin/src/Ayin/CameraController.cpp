@@ -22,6 +22,8 @@ namespace Ayin{
 
         void CameraController::OnUpdate(Timestep deltaTime){
 
+            AYIN_PROFILE_FUNCTION();
+
             OnAxisKeyPressed(deltaTime);
             OnMouseMoved(deltaTime);
             OnMouseScrolled(deltaTime);
@@ -29,6 +31,8 @@ namespace Ayin{
 
 
         void CameraController::OnEvent(Event& e){
+
+            AYIN_PROFILE_FUNCTION();
 
             EventDispatcher dispatcher{ e };
 
@@ -40,6 +44,8 @@ namespace Ayin{
         }
 
         bool CameraController::OnMouseScrolled(MouseSrolledEvent& e){
+
+            AYIN_PROFILE_FUNCTION();
 
             m_ZoomLevel -= e.GetYoffset() * 0.25f;// 减法，窗口范围越小，看见的物体越大
             m_ZoomLevel = std::clamp(m_ZoomLevel, 0.25f, 10.0f);
@@ -84,6 +90,8 @@ namespace Ayin{
 
         bool CameraController::OnMouseMidButtonPressed(MouseButtonPressedEvent& e){
 
+            AYIN_PROFILE_FUNCTION();
+
             if(e.GetMouseButton() == AYIN_MOUSE_BUTTON_MIDDLE){
                 m_isRotate = true;
             }
@@ -94,6 +102,8 @@ namespace Ayin{
 
         bool CameraController::OnMouseMidButtonReleased(MouseButtonReleasedEvent& e){
 
+            AYIN_PROFILE_FUNCTION();
+
             if(e.GetMouseButton() == AYIN_MOUSE_BUTTON_MIDDLE){
                 m_isRotate = false;
             }
@@ -102,6 +112,8 @@ namespace Ayin{
         }
 
         bool CameraController::OnWindowResize(WindowResizeEvent& e){
+
+            AYIN_PROFILE_FUNCTION();
 
             if (e.GetWidth() <= 0 || e.GetHeight() <= 0) {
                 return false;
@@ -126,6 +138,9 @@ namespace Ayin{
 
     
         void CameraController::OnAxisKeyPressed( Ayin::Timestep deltaTime ) {
+
+            AYIN_PROFILE_FUNCTION();
+
 		    //原点-》平移量 -》逆矩阵
 
             glm::vec3 distance{ 0.0f };
@@ -156,6 +171,8 @@ namespace Ayin{
         }
 
         void CameraController::OnMouseMoved( Ayin::Timestep deltaTime ) {
+
+            AYIN_PROFILE_FUNCTION();
 
             //正交相机（我们使用按键）或者非旋转状态无法使用鼠标发出旋转指令
             if (m_CameraProp.Type == Camera::CameraType::Orthogonal || !m_isRotate) {

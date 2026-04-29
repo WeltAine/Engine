@@ -65,6 +65,8 @@ namespace Ayin {
 
 
 	void Renderer2D::Init() {
+
+		AYIN_PROFILE_FUNCTION();
 	
 		s_Data.QuadVAO = VertexArray::Create();
 
@@ -128,12 +130,16 @@ namespace Ayin {
 	};
 
 	void Renderer2D::Shutdown() {
-	
+        
+        AYIN_PROFILE_FUNCTION();
+        
 		delete[] s_Data.QuadBatchBufferBase;
 
 	};
 
 	void Renderer2D::BeginScene(const Camera& camera) {
+
+		AYIN_PROFILE_FUNCTION();
 	
 		s_Data.QuadShader->SetMat4("u_ProjectionViewMatrix", camera.GetProjecttionViewMatrix());
 
@@ -145,6 +151,8 @@ namespace Ayin {
 	};
 	void Renderer2D::EndScene() {
 		
+        AYIN_PROFILE_FUNCTION();
+
 		size_t dataSize = (s_Data.QuadBatchBufferPtr - s_Data.QuadBatchBufferBase) * sizeof(Quad);
 		// 指针相减，得到的是基于指针类型的偏移量，并不是字节
 		s_Data.QuadBatchBuffer->SetData(s_Data.QuadBatchBufferBase, dataSize);
@@ -155,6 +163,8 @@ namespace Ayin {
 
 
 	void Renderer2D::Flush() {
+
+        AYIN_PROFILE_FUNCTION();
 
 		if (s_Data.QuadCount == 0)
 			return;
@@ -187,6 +197,7 @@ namespace Ayin {
 
 	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& size, const glm::vec4& color) {
 	
+        AYIN_PROFILE_FUNCTION();
 
 		if (s_Data.QuadCount >= s_Data.MaxQuads)
 			FlushAndReset();
@@ -212,6 +223,8 @@ namespace Ayin {
 
 	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& size, const Ref<Texture2D>& texture, const glm::vec2& tilingFactor) {
 		
+        AYIN_PROFILE_FUNCTION();
+
 		if (s_Data.QuadCount >= s_Data.MaxQuads)
 			FlushAndReset();
 

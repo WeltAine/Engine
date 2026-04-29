@@ -18,6 +18,6 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include <algorithm>
-
 #include "Ayin/Core/Log.h"
+
+#include "Ayin/Debug/Instrumentor.h"

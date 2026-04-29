@@ -596,6 +596,7 @@ copy /B /Y ..\bin\Dist-windows-x86_64\Ayin\Ayin.lib ..\bin\Dist-windows-x86_64\S
     <ClInclude Include="src\Ayin\Core\Time.h" />
     <ClInclude Include="src\Ayin\Core\Timestep.h" />
     <ClInclude Include="src\Ayin\Core\Window.h" />
+    <ClInclude Include="src\Ayin\Debug\Instrumentor.h" />
     <ClInclude Include="src\Ayin\Events\ApplicationEvent.h" />
     <ClInclude Include="src\Ayin\Events\Event.h" />
     <ClInclude Include="src\Ayin\Events\KeyEvent.h" />

@@ -26,13 +26,22 @@ int main(int argc, char** argv) {
 	//Ayin::Log::GetCoreLogger()->warn("Initialized Log");
 	//Ayin::Log::GetClientLogger()->info("Hello");
 
+
 	AYIN_CORE_WARN("Initialized Log");
 	AYIN_INFO("Hello");
 
 
+	AYIN_PROFILE_BEGIN_SESSION("Startup", "AyinProfile-Startup.json");
 	Ayin::Application* app = Ayin::CreatApplication();
+	AYIN_PROFILE_END_SESSION();
+
+	AYIN_PROFILE_BEGIN_SESSION("Runtime", "AyinProfile-Reuntime.json");
 	app->Run();
+	AYIN_PROFILE_END_SESSION();
+
+	AYIN_PROFILE_BEGIN_SESSION("Shudown", "AyinProfile-Shudown.json");
 	delete app;
+	AYIN_PROFILE_END_SESSION();
 
 }
 

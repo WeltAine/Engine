@@ -44,6 +44,8 @@ namespace Ayin {
 
 	OpenGLShader::OpenGLShader(const std::string& filePath) {
 
+		AYIN_PROFILE_FUNCTION();
+
 		// 查找名称
 		size_t lastSlash = filePath.find_last_of("/\\");//找"/"或者"\"
 		//! 该方法的含义为，查找字符串中最后出现过参数字符串中任意一个字符的位置（就像拿着一系列嫌疑人画像（参数），在监控里（对象）查找最后一个出现的嫌疑人）
@@ -67,6 +69,7 @@ namespace Ayin {
 	OpenGLShader::OpenGLShader(const std::string& name, const std::string& vertexShaderSrc, const std::string& fragmentShaderSrc) 
 		:m_Name{name}
 	{
+		AYIN_PROFILE_FUNCTION();
 
 		std::unordered_map<GLenum, std::string> shaderSources;
 		shaderSources[GL_VERTEX_SHADER] = vertexShaderSrc;
@@ -76,6 +79,8 @@ namespace Ayin {
 	}
 
 	std::string OpenGLShader::ReadFile(const std::string& filePath) {
+
+		AYIN_PROFILE_FUNCTION();
 
 		std::string source;
 		std::ifstream in(filePath, std::ios::in | std::ios::binary);
@@ -88,18 +93,25 @@ namespace Ayin {
 			//! 一个Bug，缓冲区不会在初始化时填充，而是在第一次读操作时填充
 			//! 所以初始化后的buf里什么都没有，导致source.resize(in.rdbuf()->in_avail());中的长度被设置为0
 			
-			in.seekg(0, std::ios::end);				//设置输入流读位置（不是读操作）
-			source.resize(in.tellg());				//获取输入流读位置
-			in.seekg(0, std::ios::beg);				//输入流读位置复位（放置到开头）
+			in.seekg(0, std::ios::end);					//设置输入流读位置（不是读操作）
+			size_t fileSize = in.tellg();
 
-			in.read(source.data(), source.size());	//读操作
+			if (fileSize != -1) {							//之前的寻找文件末尾的操作可能失败，或者发现文件大到超过存储上限时不要读取内容
 			
+				source.resize(fileSize);				//获取输入流读位置
+				in.seekg(0, std::ios::beg);				//输入流读位置复位（放置到开头）
+
+				in.read(source.data(), source.size());	//读操作
+
+			}
+			else {
+				AYIN_CORE_ERROR("Could not read file '{0}'", filePath);
+			}
+
 		}
 		else {
 
 			AYIN_CORE_ERROR("Could not open file '{0}'", filePath);
-			//! 不使用断言是因为我们允许这样的错误发生，window上的缓冲大小比较小，所以有可能因为文本过大而导致无法读取?
-			//? 真的这样么，感觉in不至于因为太大一次都不完而报错
 
 		}
 
@@ -108,6 +120,8 @@ namespace Ayin {
 	}
 
 	std::unordered_map<GLenum, std::string> OpenGLShader::PreProcess(const std::string& source) {
+
+		AYIN_PROFILE_FUNCTION();
 
 		std::unordered_map<GLenum, std::string> shaderSources;
 
@@ -147,6 +161,8 @@ namespace Ayin {
 
 
 	void OpenGLShader::Compile(const std::unordered_map<GLenum, std::string>& shaderSources) {
+
+		AYIN_PROFILE_FUNCTION();
 
 		GLint programID = glCreateProgram();
 
@@ -237,14 +253,23 @@ namespace Ayin {
 
 
 	OpenGLShader::~OpenGLShader() {
+
+		AYIN_PROFILE_FUNCTION();
+
 		glDeleteProgram(m_ProgramID);
 	}
 
 	void OpenGLShader::Bind() {
+
+		AYIN_PROFILE_FUNCTION();
+
 		glUseProgram(m_ProgramID);
 	}
 
 	void OpenGLShader::UnBind() {
+
+		AYIN_PROFILE_FUNCTION();
+
 		int currentProgram = 0;
 		glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgram);
 
@@ -254,6 +279,9 @@ namespace Ayin {
 
 
 	void OpenGLShader::UploadUniformBool(const std::string& name, bool value) {
+
+		AYIN_PROFILE_FUNCTION();
+
 	#pragma region DSA
 		int location = glGetUniformLocation(m_ProgramID, name.c_str());
 		glProgramUniform1i(m_ProgramID, location, value);
@@ -262,18 +290,27 @@ namespace Ayin {
 
 
 	void OpenGLShader::UploadUniformInt(const std::string& name, int value) {
+
+		AYIN_PROFILE_FUNCTION();
+
 	#pragma region DSA
 		int location = glGetUniformLocation(m_ProgramID, name.c_str());
 		glProgramUniform1i(m_ProgramID, location,value);
 	#pragma endregion
 	}
 	void OpenGLShader::UploadUniformInt2(const std::string& name, const glm::ivec2& vector) {
+
+		AYIN_PROFILE_FUNCTION();
+
 	#pragma region DSA
 		int location = glGetUniformLocation(m_ProgramID, name.c_str());
 		glProgramUniform2iv(m_ProgramID, location, 1, glm::value_ptr(vector));
 	#pragma endregion
 	}
 	void OpenGLShader::UploadUniformInt3(const std::string& name, const glm::ivec3& vector) {
+
+		AYIN_PROFILE_FUNCTION();
+
 	#pragma region DSA
 		int location = glGetUniformLocation(m_ProgramID, name.c_str());
 		glProgramUniform3iv(m_ProgramID, location, 1, glm::value_ptr(vector));
@@ -281,6 +318,9 @@ namespace Ayin {
 
 	}
 	void OpenGLShader::UploadUniformInt4(const std::string& name, const glm::ivec4& vector) {
+
+		AYIN_PROFILE_FUNCTION();
+
 	#pragma region DSA
 		int location = glGetUniformLocation(m_ProgramID, name.c_str());
 		glProgramUniform4iv(m_ProgramID, location, 1, glm::value_ptr(vector));
@@ -297,6 +337,9 @@ namespace Ayin {
 
 
 	void OpenGLShader::UploadUniformFloat(const std::string& name, float value) {
+
+		AYIN_PROFILE_FUNCTION();
+
 	#pragma region DSA
 		int location = glGetUniformLocation(m_ProgramID, name.c_str());
 		glProgramUniform1f(m_ProgramID, location, value);
@@ -304,6 +347,9 @@ namespace Ayin {
 
 	}
 	void OpenGLShader::UploadUniformFloat2(const std::string& name, const glm::vec2& vector) {
+
+		AYIN_PROFILE_FUNCTION();
+
 	#pragma region DSA
 		int location = glGetUniformLocation(m_ProgramID, name.c_str());
 		glProgramUniform2fv(m_ProgramID, location, 1, glm::value_ptr(vector));
@@ -311,12 +357,18 @@ namespace Ayin {
 
 	}
 	void OpenGLShader::UploadUniformFloat3(const std::string& name, const glm::vec3& vector) {
+
+		AYIN_PROFILE_FUNCTION();
+
 	#pragma region DSA
 		int location = glGetUniformLocation(m_ProgramID, name.c_str());
 		glProgramUniform3fv(m_ProgramID, location, 1, glm::value_ptr(vector));
 	#pragma endregion
 	}
 	void OpenGLShader::UploadUniformFloat4(const std::string& name, const glm::vec4& vector) {
+
+		AYIN_PROFILE_FUNCTION();
+
 	#pragma region DSA
 		int location = glGetUniformLocation(m_ProgramID, name.c_str());
 		glProgramUniform4fv(m_ProgramID, location, 1, glm::value_ptr(vector));
@@ -325,6 +377,9 @@ namespace Ayin {
 
 
 	void OpenGLShader::UploadUniformMat3(const std::string& name, const glm::mat3& matrix) {
+
+		AYIN_PROFILE_FUNCTION();
+
 	#pragma region DSA
 		int location = glGetUniformLocation(m_ProgramID, name.c_str());
 		glProgramUniformMatrix3fv(m_ProgramID, location, 1, GL_FALSE, glm::value_ptr(matrix));
@@ -333,6 +388,8 @@ namespace Ayin {
 	}
 	void OpenGLShader::UploadUniformMat4(const std::string& name, const glm::mat4& matrix)
 	{
+		AYIN_PROFILE_FUNCTION();
+
 	#pragma region DSA
 		int location = glGetUniformLocation(m_ProgramID, name.c_str());
 		glProgramUniformMatrix4fv(m_ProgramID, location, 1, GL_FALSE, glm::value_ptr(matrix));

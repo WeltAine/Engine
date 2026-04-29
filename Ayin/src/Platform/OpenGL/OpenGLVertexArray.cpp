@@ -34,6 +34,7 @@ namespace Ayin {
 
 
 	OpenGLVertexArray::OpenGLVertexArray() {
+		AYIN_PROFILE_FUNCTION();
 
 	#pragma region BTA/DSA
 		glCreateVertexArrays(1, &m_VertexArrayID);
@@ -42,6 +43,7 @@ namespace Ayin {
 	}
 
 	OpenGLVertexArray::~OpenGLVertexArray() {
+		AYIN_PROFILE_FUNCTION();
 
 	#pragma region BTA/DSA
 		UnBind();
@@ -53,6 +55,7 @@ namespace Ayin {
 
 	void OpenGLVertexArray::Bind() const
 	{
+		AYIN_PROFILE_FUNCTION();
 
 	#pragma region BTA/DSA
 		glBindVertexArray(m_VertexArrayID);
@@ -63,6 +66,7 @@ namespace Ayin {
 
 	void OpenGLVertexArray::UnBind() const
 	{
+		AYIN_PROFILE_FUNCTION();
 
 	#pragma region BTA/DSA
 		int currentVertexArrayID = 0;
@@ -77,6 +81,8 @@ namespace Ayin {
 	//? 有严重缺陷，如果vertexbuffer分开给的话，原先的方法会导致index冲突，我们先在BufferElement中添加一个locationIndex
 	void OpenGLVertexArray::AddVertexBuffer(const Ref<VertexBuffer>& vertexBuffer, uint32_t divisor)
 	{
+		AYIN_PROFILE_FUNCTION();
+
 		AYIN_CORE_ASSERT(vertexBuffer->GetLayout().GetElements().size(), "Vertex Buffer has no layout!");
 
 	#pragma region BTA（该注释中具备一定教育意义，先留着，下次完善时再删除）
@@ -286,6 +292,8 @@ namespace Ayin {
 
 	void OpenGLVertexArray::SetIndexBuffer(const Ref<IndexBuffer>& indexBuffer)
 	{
+        AYIN_PROFILE_FUNCTION();
+        
 	#pragma region DSA
 		glVertexArrayElementBuffer(m_VertexArrayID, *indexBuffer);
 		m_IndexBuffer = indexBuffer;
