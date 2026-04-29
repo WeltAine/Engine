@@ -50,6 +50,7 @@ namespace Ayin{
 		void UploadUniformInt2(const std::string& name, const glm::ivec2& vector);
 		void UploadUniformInt3(const std::string& name, const glm::ivec3& vector);
 		void UploadUniformInt4(const std::string& name, const glm::ivec4& vector);
+		void UploadUniformIntArray(const std::string& name, int* values, uint32_t count);
 
 
 		void UploadUniformFloat(const std::string& name, float value);
@@ -60,7 +61,7 @@ namespace Ayin{
 
 		void UploadUniformMat3(const std::string& name, const glm::mat3& matrix);
 		void UploadUniformMat4(const std::string& name, const glm::mat4& matrix);
-		//? 为什么作个API不暴露给Shader呢（Shader中没有这个接口）
+		//? 为什么作个API不暴露给Shader呢（当前Shader中有该类型接口）
 		//! 不同的API的机制是不同的，vulkan和D3D是数据驱动而非OpenGL的状态设置
 		//! 简单来说UploadUniformMat4(const std::string& name, const glm::mat4& matrix)这样的接口设计（参数）对OpenGL是容易实现的
 		//! 但是对于另外两者，它们以内存映射为主，不太“习惯”通过名称的查询；当然，我们也有手段来实现，让其模仿OpenGL那样就行，但这可能很低效
@@ -72,7 +73,9 @@ namespace Ayin{
 
 
 		virtual inline void SetInt(const std::string& name, int value) override { UploadUniformInt(name, value); };
+		virtual inline void SetIntArray(const std::string& name, int* values, uint32_t count) { UploadUniformIntArray(name, values, count); };
 		virtual inline void SetFloat(const std::string& name, float value) override { UploadUniformFloat(name, value); };
+		virtual inline void SetFloat2(const std::string& name, const glm::vec2& vertex) override { UploadUniformFloat2(name, vertex); };
 		virtual inline void SetFloat3(const std::string& name, const glm::vec3& vertex) override { UploadUniformFloat3(name, vertex); };
 		virtual inline void SetFloat4(const std::string& name, const glm::vec4& vertex) override { UploadUniformFloat4(name, vertex); };
 		virtual inline void SetMat3(const std::string& name, const glm::mat3& matrix) override { UploadUniformMat3(name, matrix); };

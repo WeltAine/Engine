@@ -327,6 +327,13 @@ namespace Ayin {
 	#pragma endregion
 
 	}
+	void OpenGLShader::UploadUniformIntArray(const std::string& name, int* values, uint32_t count) {
+	#pragma region DSA
+		int location = glGetUniformLocation(m_ProgramID, name.c_str());
+		glProgramUniform1iv(m_ProgramID, location, count, values);
+	#pragma endregion
+
+	}
 
 
 	void OpenGLShader::UploadUniformFloat(const std::string& name, float value) {

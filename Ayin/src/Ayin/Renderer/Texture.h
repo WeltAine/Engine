@@ -22,6 +22,9 @@ namespace Ayin {
 
 		virtual void Bind(int slot) const = 0;
 		virtual void UnBind() const = 0;
+
+		virtual operator uint32_t() const = 0;
+		virtual bool operator == (const Texture& other) const = 0;
 	};
 
 	class AYIN_API Texture2D : public Texture {
@@ -30,6 +33,8 @@ namespace Ayin {
 
 		virtual void SetData(int width, int height, void* data) = 0;
 
+
+		//ToDo: 我们需要考虑一下支持格式参数了
 		static Ref<Texture2D> Create(const std::string& path);
 		static Ref<Texture2D> Create(int width, int height, void* data = nullptr);
 

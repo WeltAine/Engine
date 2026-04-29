@@ -2,6 +2,7 @@
 
 #include "Ayin/Core/Core.h"
 
+#include "Ayin/Events/Event.h"
 #include "Ayin/Core/KeyCodes.h"
 #include "Ayin/Core/MouseButtonCodes.h"
 
@@ -21,28 +22,24 @@ namespace Ayin {
 		Input& operator=(const Input&) = delete;
 
 	public:
+		virtual ~Input() = default;
 
-		inline static bool IsKeyPressed(KeyCode keyCode) { return s_Instance->IsKeyPressedImpl(keyCode); };
+		static void OnEvent(Event& e);
 
-		inline static bool GetMouseButton(MouseCode button) { return s_Instance->GetMouseButtonImpl(button); };
-		inline static std::pair<float, float> GetMousePosition() { return s_Instance->GetMousePositionImpl(); };
-		inline static float GetMouseX() { return s_Instance->GetMouseXImpl(); };
-		inline static float GetMouseY() { return s_Instance->GetMouseYImpl(); };
+		static void TransitionToNextFrame();
 
-	protected:
-		//实现侧实现下面这些接口
-		virtual bool IsKeyPressedImpl(KeyCode keyCode) const = 0;
+		static bool IsKeyPressed(KeyCode keyCode);
 
-		virtual bool GetMouseButtonImpl(MouseCode button) const = 0;
-		virtual std::pair<float, float> GetMousePositionImpl() const = 0;
-		virtual float GetMouseXImpl() const = 0;
-		virtual float GetMouseYImpl() const = 0;
+		static bool GetMouseButton(MouseCode button);
+		static std::pair<float, float> GetMousePosition();
+		static float GetMouseX();
+		static float GetMouseY();
+		static float GetScrollXoffset();
+		static float GetScrollYoffset();
+		static float GetScrollX();
+		static float GetScrollY();
 
 
-	private:
-		static Scope<Input> Create();
-
-		static Scope<Input> s_Instance;//单例的保证（本身是抽象类无法直接构造实例），同时实现侧的指针
 	};
 
 }

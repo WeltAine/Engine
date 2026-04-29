@@ -2,13 +2,13 @@
 
 #include <Ayin.h>
 
-class SandBox2D : public Ayin::Layer {
+class EditorLayer : public Ayin::Layer {
 
 public:
 
-	SandBox2D();
+	EditorLayer();
 
-	inline ~SandBox2D() = default;
+	inline ~EditorLayer() = default;
 
 	virtual void OnAttach() override;//加入层栈
 	virtual void OnDetach() override;//退出层栈
@@ -26,4 +26,9 @@ private:
 
 	Ayin::Ref<Ayin::Texture2D> m_Texture;			//测试用纹理
 
+	Ayin::Ref<Ayin::Framebuffer> m_Framebuffer;
+
+	Ayin::Ref<Ayin::Texture2D> m_ViewTexture;
+
+	glm::vec2 m_ViewportSize = {0.0f, 0.0f};
 };

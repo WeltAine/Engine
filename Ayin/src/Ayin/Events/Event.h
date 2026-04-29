@@ -12,7 +12,8 @@
 //我想我们目前还缺少一个管理事件的类
 namespace Ayin {
 
-	#define AYIN_BIND_EVENT_FUN(funcName) std::bind(&funcName, this, std::placeholders::_1)//事件处理回调（不是事件发生回调OnEvent）的包装器
+	#define AYIN_BIND_EVENT_FUN(funcName) std::bind(&funcName, this, std::placeholders::_1)	//事件处理回调（不是事件发生回调OnEvent）的包装器
+	#define AYIN_BIND_EVENT_FUN_OVERRIDE(funcType, funcName) std::bind(static_cast<funcType>(&funcName), this, std::placeholders::_1)	//用于区分重载的事件回调
 
 	//事件枚举
 	enum class EventType
@@ -59,6 +60,8 @@ namespace Ayin {
 		bool handled = false;//事件是否被处理过了，可以用于后续阻断在Layer中的传递
 
 	public:
+		virtual ~Event() = default;
+
 		virtual EventType GetEventType() const = 0;//事件类型，虚函数，保证在多态时也能获得正确的原本事件类型
 		virtual const char* GetName() const = 0;//事件名称
 		virtual int GetCategoryFlags() const = 0;//事件类别

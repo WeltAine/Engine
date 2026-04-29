@@ -18,7 +18,7 @@ namespace Ayin {
 
 		void UnBind() const override;
 
-		void AddVertexBuffer(const Ref<VertexBuffer>& vertexBuffer) override;
+		void AddVertexBuffer(const Ref<VertexBuffer>& vertexBuffer, uint32_t divisor = 0) override;
 
 		void SetIndexBuffer(const Ref<IndexBuffer>& indexBuffer) override;
 

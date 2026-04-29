@@ -13,13 +13,16 @@ namespace Ayin{
 		// 未知类型
 		None = 0,
 		// 向量
-		Float, Float2, Float3 ,Float4,
-		Int, Int2, Int3, Int4,
-		Bool,
+		Float = BIT(0), Float2 = BIT(1), Float3 = BIT(2),	Float4 = BIT(3),
+
+		Int = BIT(4),	Int2 = BIT(5),	 Int3 = BIT(6),		Int4 = BIT(7),	 Bool = BIT(8),
+
 		// 矩阵
-		Mat3, Mat4
+		Mat3 = BIT(9),	Mat4 = BIT(10)
 		// 未知类型
 	};
+
+
 
 	static size_t ShaderDataTypeSize(ShaderDataType type) {
 
@@ -69,8 +72,8 @@ namespace Ayin{
 				case(ShaderDataType::Int3):		return 3;
 				case(ShaderDataType::Int4):		return 4;
 				case(ShaderDataType::Bool):		return 1;
-				case(ShaderDataType::Mat3):		return 3 * 3;
-				case(ShaderDataType::Mat4):		return 4 * 4;
+				case(ShaderDataType::Mat3):		return 3;	//mat3将被分解为3个vec3顶点属性
+				case(ShaderDataType::Mat4):		return 4;	//mat4将被分解为4个vec4顶点属性
 
 			}
 
@@ -79,7 +82,8 @@ namespace Ayin{
 
 		}
 
-		uint32_t LocationIndex;
+		uint32_t LocationIndex;//是顶点属性的首个顶点属性的location（一般的向量只有一个顶点属性，但是因为硬件和API设计，Mat实际上要拆解成3或4个location）
+		//! GPU 顶点硬件的物理寄存器设计就是这样：每个顶点属性 Location（插槽），硬件内部只有 4 个标量寄存器槽：x y z w
 		ShaderDataType Type;
 		std::string Name;
 		size_t Size;
@@ -154,6 +158,8 @@ namespace Ayin{
 
 	public:
 
+		static Ref<VertexBuffer> Create(size_t size);
+
 		/// <summary>
 		/// 根据Renderer中的当前API来创建顶点缓冲，并且创建即绑定（工厂模式创建）
 		/// </summary>
@@ -163,6 +169,13 @@ namespace Ayin{
 		static Ref<VertexBuffer> Create(float* vertices, size_t size);
 
 		virtual ~VertexBuffer() = default;
+		
+		/// <summary>
+		/// 数据设置
+		/// </summary>
+		/// <param name="data">数据指针</param>
+		/// <param name="size">数据大小</param>
+		virtual void SetData(const void* data, size_t size) = 0;
 
 		/// <summary>
 		/// 绑定顶点缓冲到当前上下文
@@ -401,7 +414,7 @@ namespace Ayin{
 		/// <returns></returns>
 		virtual const UniformLayout& GetLayout() const = 0;
 		//! 一般来说我们不会返回const&，但当方法为const方法时，函数体中的所有成变会被加上const修饰
-		//! 这个方法dagailv也是返回成变，在这个函数体中就是返回const，那么你也要一个const返回类型来接
+		//! 这个方法也是返回成变，在这个函数体中就是返回const，那么你也要一个const返回类型来接
 		//! 至于&，是因为当下就两个选择T，const T，const T&，很显然最后一个可以避免拷贝
 
 		virtual void SetBindingIndexs(const std::initializer_list<int>& bindingIndexs) = 0;

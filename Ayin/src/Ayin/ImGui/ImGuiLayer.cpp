@@ -71,6 +71,7 @@ namespace Ayin {
 
 
 	void ImGuiLayer::OnImGuiRender() {
+
 		ImGuiIO& io = ImGui::GetIO();
 
 		static bool show = true;
@@ -79,7 +80,6 @@ namespace Ayin {
 
 		// Our state
 		static bool show_another_window = false;
-		static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);//颜色
 		{
 			static float f = 0.0f;
 			static int counter = 0;
@@ -91,7 +91,6 @@ namespace Ayin {
 			ImGui::Checkbox("Another Window", &show_another_window);
 
 			ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-			ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
 
 			if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
 				counter++;
@@ -111,10 +110,19 @@ namespace Ayin {
 				ImGui::End();
 			}
 
-			RenderCommand::SetClearColor({ clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w });
 		}
 
 	}
+
+
+	void ImGuiLayer::OnEvent(Event& event) {
+
+		ImGuiIO& io = ImGui::GetIO();
+		event.handled |= event.IsInCatagory(EventCategory::EventCategoryMouse) & io.WantCaptureMouse;
+		event.handled |= event.IsInCatagory(EventCategory::EventCategoryKeyboard) & io.WantCaptureKeyboard;
+
+	}
+
 
 	void ImGuiLayer::Begin() {
 

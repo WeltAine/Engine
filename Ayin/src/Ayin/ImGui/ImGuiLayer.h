@@ -25,6 +25,7 @@ namespace Ayin {
 		virtual void OnAttach() override;//加入层栈
 		virtual void OnDetach() override;//退出层栈
 		virtual void OnImGuiRender() override;//ImGui渲染
+		virtual void OnEvent(Event& event) override;
 
 		void Begin();
 		void End();

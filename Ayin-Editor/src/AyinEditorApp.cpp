@@ -6,7 +6,7 @@
 #include "Ayin/Core/EntryPoint.h"
 // -----------------------------------
 
-#include "SandBox2D.h"
+#include "EditorLayer.h"
 
 
 class SandBox : public Ayin::Application {
@@ -14,7 +14,7 @@ class SandBox : public Ayin::Application {
 public:
 	SandBox() {
 
-		PushLayer(new SandBox2D{});//! 这里我们对于层的概念更加清晰了一些——游戏循环中某一模块的逻辑
+		PushLayer(new EditorLayer{});//! 这里我们对于层的概念更加清晰了一些——游戏循环中某一模块的逻辑
 
 	};
 

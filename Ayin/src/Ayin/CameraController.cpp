@@ -26,7 +26,7 @@ namespace Ayin{
 
             OnAxisKeyPressed(deltaTime);
             OnMouseMoved(deltaTime);
-
+            OnMouseScrolled(deltaTime);
         }
 
 
@@ -36,7 +36,7 @@ namespace Ayin{
 
             EventDispatcher dispatcher{ e };
 
-            dispatcher.Dispatch<MouseSrolledEvent>(AYIN_BIND_EVENT_FUN(CameraController::OnMouseScrolled));
+            dispatcher.Dispatch<MouseSrolledEvent>(AYIN_BIND_EVENT_FUN_OVERRIDE( bool(CameraController::*)(MouseSrolledEvent&), CameraController::OnMouseScrolled));
             dispatcher.Dispatch<MouseButtonPressedEvent>(AYIN_BIND_EVENT_FUN(CameraController::OnMouseMidButtonPressed));
             dispatcher.Dispatch<MouseButtonReleasedEvent>(AYIN_BIND_EVENT_FUN(CameraController::OnMouseMidButtonReleased));
             dispatcher.Dispatch<WindowResizeEvent>(AYIN_BIND_EVENT_FUN(CameraController::OnWindowResize));
@@ -65,6 +65,28 @@ namespace Ayin{
             return false;
 
         }
+
+        bool CameraController::OnMouseScrolled(Timestep deltaTime) {
+
+            m_ZoomLevel -= Input::GetScrollYoffset() * 4.0 * deltaTime;// 减法，窗口范围越小，看见的物体越大
+            m_ZoomLevel = std::clamp(m_ZoomLevel, 0.25f, 10.0f);
+
+
+            float height = m_CameraProp.Height * m_ZoomLevel;
+            float FOV = 2 * glm::degrees(std::atan(m_ZoomLevel * std::tan(glm::radians(0.5f * m_CameraProp.FOV))));
+
+
+            m_Camera.SetProjection({
+                .Type{m_CameraProp.Type},
+                .FOV{FOV}, .Height{height},
+                .AspectRatio{m_CameraProp.AspectRatio},
+                .NearPlaneDistance{m_CameraProp.NearPlaneDistance}, .FarPlaneDistance{m_CameraProp.FarPlaneDistance} });
+
+
+            return false;
+
+        }
+
 
         bool CameraController::OnMouseMidButtonPressed(MouseButtonPressedEvent& e){
 

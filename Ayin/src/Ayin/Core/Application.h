@@ -39,6 +39,7 @@ namespace Ayin {
 
 		virtual ~Application();
 
+		void Close();
 
 		void OnEvent(Event& e);
 		

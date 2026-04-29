@@ -4,6 +4,7 @@
 
 
 #include "Ayin/Core/Application.h"
+#include "Ayin/Core/Time.h"
 #include "Ayin/Core/Timestep.h"
 #include "Ayin/Core/Log.h"//这个要写在EntryPoint前面，不要破坏依赖顺序，否则dll可以生成，但是sandBox在运行是会报错，显示没有Log与其内容？？？！！！，奇怪的事情
 #include "Ayin/Core/Layer.h"
@@ -25,6 +26,8 @@
 
 #include "Ayin/Renderer/Buffer.h"
 #include "Ayin/Renderer/VertexArray.h"
+
+#include "Ayin/Renderer/Framebuffer.h"
 // -----------------------------------
 
 

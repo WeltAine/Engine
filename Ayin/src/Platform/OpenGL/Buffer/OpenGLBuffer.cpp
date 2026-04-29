@@ -11,6 +11,18 @@ namespace Ayin {
 	/// VertexBuffer /////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////////////////////
 
+
+	OpenGLVertexBuffer::OpenGLVertexBuffer(size_t size) {
+
+	#pragma region DSA
+		glCreateBuffers(1, &m_VertexBufferID);
+		////分配 ( $glCreateBuffers$ )：系统生成唯一 ID，GPU 预留句柄，但此时尚未实际分配显存。
+
+		glNamedBufferData(m_VertexBufferID, size, nullptr, GL_STATIC_DRAW);//只开辟空间不设置数据
+	#pragma endregion
+
+	}
+
 	OpenGLVertexBuffer::OpenGLVertexBuffer(float* vertices, size_t size) {
 
 		AYIN_PROFILE_FUNCTION();
@@ -29,6 +41,15 @@ namespace Ayin {
 	#pragma region BTA/DSA
 		UnBind();
 		glDeleteBuffers(1, &m_VertexBufferID);
+	#pragma endregion
+
+	}
+
+
+	void OpenGLVertexBuffer::SetData(const void* data, size_t size) {
+
+	#pragma region DSA
+		glNamedBufferSubData(m_VertexBufferID, 0, static_cast<GLsizeiptr>(size), data);
 	#pragma endregion
 
 	}
@@ -70,7 +91,7 @@ namespace Ayin {
 	{
 		AYIN_PROFILE_FUNCTION();
 
-	#pragma region BTA
+	#pragma region BTA（该注释具备参考意义，暂不删除）
 
 		//int currentVertexBufferID = 0;
 		//glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &currentVertexBufferID);
@@ -101,32 +122,12 @@ namespace Ayin {
 
 	#pragma endregion
 
-
-		//DSA
-
-		//! 
-
-		////设置a_index和b_index的链接关系
-		//glVertexArrayAttribBinding(vao, a_index, b_index);
-		////设置a_index的读取模式
-		//glVertexArrayAttribFormat(vao, a_index, size, type, normalized, offset);
-		////设置b_index的shader上传模式
-		//glVertexArrayBindingDivisor(vao, b_index, divisor);//不是glVertexBufferBindingDivisor
-		////设置b_index对应的buffer对象，shader数据上传方式?
-		//glVertexArrayVertexBuffer(vao, b_index, buffer, offset, stride);
-
-		//
-
-		//glBindVertexBuffer(b_index, buffer, offset, stride);
-
-		////区别是什么？后者不可再重开内存？
+		//ToDo:区别是什么？后者不可再重开内存？
 		//glNamedBufferData(buffer, size, data, usage);
 		//glNamedBufferStorage(buffer, size, data, flags);
 
 		//glNamedBufferSubData();
 
-		//glCreateBuffers();
-		////分配 ( $glCreateBuffers$ )：系统生成唯一 ID，GPU 预留句柄，但此时尚未实际分配显存。
 	}
 
 	OpenGLIndexBuffer::~OpenGLIndexBuffer() {
@@ -183,19 +184,6 @@ namespace Ayin {
 		//glBindBufferBase(目标，索引（bind）, 对象);	//也可以不指定（注意不会设置当前活跃的UBO，只是指定，shader中没有这个block块也没关系）
 		//glBufferSubData(目标, 起始偏移, 大小，数据);//向当前活跃对象上传数据，偏移是GPU中block内的偏移
 		//glBindBufferRange(目标，索引（bind），对象，起始偏移，总大小);//划分对象数据段到指定bind
-
-	#pragma region BTA
-		//int currentUniformBufferID = 0;
-		//glGetIntegerv(GL_UNIFORM_BUFFER_BINDING, &currentUniformBufferID);
-
-		//// 分配总显存大小
-		//glCreateBuffers(1, &m_UniformBufferID);
-		//glBindBuffer(GL_UNIFORM_BUFFER, m_UniformBufferID);
-		//glBufferData(GL_UNIFORM_BUFFER, size, uniformData, GL_DYNAMIC_DRAW);	// 之后移动走，不由Uniform、开辟，由Shader统一开辟
-
-
-		//glBindBuffer(GL_UNIFORM_BUFFER, currentUniformBufferID);
-	#pragma endregion
 
 	#pragma region DSA
 		glCreateBuffers(1, &m_UniformBufferID);

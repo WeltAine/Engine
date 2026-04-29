@@ -1350,6 +1350,9 @@
     <ClInclude Include="src\Ayin\Core\MouseButtonCodes.h">
       <Filter>src\Ayin\Core</Filter>
     </ClInclude>
+    <ClInclude Include="src\Ayin\Core\Time.h">
+      <Filter>src\Ayin\Core</Filter>
+    </ClInclude>
     <ClInclude Include="src\Ayin\Core\Timestep.h">
       <Filter>src\Ayin\Core</Filter>
     </ClInclude>
@@ -1375,6 +1378,9 @@
       <Filter>src\Ayin\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\Ayin\Renderer\Camera.h">
+      <Filter>src\Ayin\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Ayin\Renderer\Framebuffer.h">
       <Filter>src\Ayin\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\Ayin\Renderer\GraphicsContext.h">
@@ -1410,6 +1416,9 @@
     <ClInclude Include="src\Platform\OpenGL\OpenGLContext.h">
       <Filter>src\Platform\OpenGL</Filter>
     </ClInclude>
+    <ClInclude Include="src\Platform\OpenGL\OpenGLFramebuffer.h">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClInclude>
     <ClInclude Include="src\Platform\OpenGL\OpenGLRendererAPI.h">
       <Filter>src\Platform\OpenGL</Filter>
     </ClInclude>
@@ -1423,6 +1432,9 @@
       <Filter>src\Platform\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\Windows\WindowsInput.h">
+      <Filter>src\Platform\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\Windows\WindowsTime.h">
       <Filter>src\Platform\Windows</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\Windows\WindowsWindow.h">
@@ -1439,9 +1451,6 @@
     <ClCompile Include="src\Ayin\Core\Application.cpp">
       <Filter>src\Ayin\Core</Filter>
     </ClCompile>
-    <ClCompile Include="src\Ayin\Core\Input.cpp">
-      <Filter>src\Ayin\Core</Filter>
-    </ClCompile>
     <ClCompile Include="src\Ayin\Core\Layer.cpp">
       <Filter>src\Ayin\Core</Filter>
     </ClCompile>
@@ -1449,6 +1458,9 @@
       <Filter>src\Ayin\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Ayin\Core\Log.cpp">
+      <Filter>src\Ayin\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Ayin\Core\Time.cpp">
       <Filter>src\Ayin\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Ayin\Core\Window.cpp">
@@ -1464,6 +1476,9 @@
       <Filter>src\Ayin\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\Ayin\Renderer\Camera.cpp">
+      <Filter>src\Ayin\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Ayin\Renderer\Framebuffer.cpp">
       <Filter>src\Ayin\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\Ayin\Renderer\GraphicsContext.cpp">
@@ -1499,6 +1514,9 @@
     <ClCompile Include="src\Platform\OpenGL\OpenGLContext.cpp">
       <Filter>src\Platform\OpenGL</Filter>
     </ClCompile>
+    <ClCompile Include="src\Platform\OpenGL\OpenGLFramebuffer.cpp">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClCompile>
     <ClCompile Include="src\Platform\OpenGL\OpenGLRendererAPI.cpp">
       <Filter>src\Platform\OpenGL</Filter>
     </ClCompile>
@@ -1512,6 +1530,9 @@
       <Filter>src\Platform\OpenGL</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\Windows\WindowsInput.cpp">
+      <Filter>src\Platform\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\Windows\WindowsTime.cpp">
       <Filter>src\Platform\Windows</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp">
