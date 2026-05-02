@@ -77,7 +77,7 @@
       <PrecompiledHeaderFile>AyinPch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>AYIN_PLATFORM_WINDOWS;AYIN_BUILD_DLL;GLFW_INCLUDE_NONE;_CRT_SECURE_NO_WARNINGS;AYIN_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;Dependency\spdlog\include;Dependency\GLFW\include;Dependency\glad\include;Dependency\ImGui;Dependency\glm;Dependency\stb_image;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;Dependency\spdlog\include;Dependency\GLFW\include;Dependency\glad\include;Dependency\ImGui;Dependency\glm;Dependency\stb_image;Dependency\entt\single_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <MinimalRebuild>false</MinimalRebuild>
@@ -105,7 +105,7 @@ copy /B /Y ..\bin\Debug-windows-x86_64\Ayin\Ayin.lib ..\bin\Debug-windows-x86_64
       <PrecompiledHeaderFile>AyinPch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>AYIN_PLATFORM_WINDOWS;AYIN_BUILD_DLL;GLFW_INCLUDE_NONE;_CRT_SECURE_NO_WARNINGS;AYIN_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;Dependency\spdlog\include;Dependency\GLFW\include;Dependency\glad\include;Dependency\ImGui;Dependency\glm;Dependency\stb_image;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;Dependency\spdlog\include;Dependency\GLFW\include;Dependency\glad\include;Dependency\ImGui;Dependency\glm;Dependency\stb_image;Dependency\entt\single_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -136,7 +136,7 @@ copy /B /Y ..\bin\Release-windows-x86_64\Ayin\Ayin.lib ..\bin\Release-windows-x8
       <PrecompiledHeaderFile>AyinPch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>AYIN_PLATFORM_WINDOWS;AYIN_BUILD_DLL;GLFW_INCLUDE_NONE;_CRT_SECURE_NO_WARNINGS;AYIN_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;Dependency\spdlog\include;Dependency\GLFW\include;Dependency\glad\include;Dependency\ImGui;Dependency\glm;Dependency\stb_image;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;Dependency\spdlog\include;Dependency\GLFW\include;Dependency\glad\include;Dependency\ImGui;Dependency\glm;Dependency\stb_image;Dependency\entt\single_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -613,6 +613,9 @@ copy /B /Y ..\bin\Dist-windows-x86_64\Ayin\Ayin.lib ..\bin\Dist-windows-x86_64\S
     <ClInclude Include="src\Ayin\Renderer\Shader.h" />
     <ClInclude Include="src\Ayin\Renderer\Texture.h" />
     <ClInclude Include="src\Ayin\Renderer\VertexArray.h" />
+    <ClInclude Include="src\Ayin\Scene\Components.h" />
+    <ClInclude Include="src\Ayin\Scene\Entity.h" />
+    <ClInclude Include="src\Ayin\Scene\Scene.h" />
     <ClInclude Include="src\AyinPch.h" />
     <ClInclude Include="src\Platform\OpenGL\Buffer\OpenGLBuffer.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLContext.h" />
@@ -647,6 +650,8 @@ copy /B /Y ..\bin\Dist-windows-x86_64\Ayin\Ayin.lib ..\bin\Dist-windows-x86_64\S
     <ClCompile Include="src\Ayin\Renderer\Shader.cpp" />
     <ClCompile Include="src\Ayin\Renderer\Texture.cpp" />
     <ClCompile Include="src\Ayin\Renderer\VertexArray.cpp" />
+    <ClCompile Include="src\Ayin\Scene\Entity.cpp" />
+    <ClCompile Include="src\Ayin\Scene\Scene.cpp" />
     <ClCompile Include="src\AyinPch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>

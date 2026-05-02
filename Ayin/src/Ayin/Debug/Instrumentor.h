@@ -277,10 +277,11 @@ namespace Ayin {
 	};
 }
 
+// 拼接宏，如果宏符号直接用于##会导致宏符号被当成字符，而不展开，所以AYIN_PROFILE_BEGIN_SESSION(name, filepath)里又套了一个这个宏保证宏先被展开
 #define AYIN_INTERNAL_CAT(a, b) a##b
 #define AYIN_CAT(a,b) AYIN_INTERNAL_CAT(a, b)
 
-#define AYIN_PROFILE 1
+#define AYIN_PROFILE 0
 #if AYIN_PROFILE
 #define AYIN_PROFILE_BEGIN_ROOT_SESSION(name, filepath)	::Ayin::InstrumentationSession AYIN_CAT(session_, __LINE__) (name, filepath, ::Ayin::InstrumentationSession::Mode::NewRoot)
 #define AYIN_PROFILE_BEGIN_SESSION(name, filepath)		::Ayin::InstrumentationSession AYIN_CAT(session_, __LINE__) (name, filepath)

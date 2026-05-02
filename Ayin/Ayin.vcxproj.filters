@@ -34,6 +34,9 @@
     <Filter Include="src\Ayin\Core">
       <UniqueIdentifier>{C5C04007-3181-BC3D-FABB-05BB663B011A}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Ayin\Debug">
+      <UniqueIdentifier>{833465EF-6F02-59F5-5896-C91B4403355A}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\Ayin\Events">
       <UniqueIdentifier>{911796DF-FDA2-03A4-06B4-869872BE5FA4}</UniqueIdentifier>
     </Filter>
@@ -42,6 +45,9 @@
     </Filter>
     <Filter Include="src\Ayin\Renderer">
       <UniqueIdentifier>{934E7514-FF64-73AA-48DC-FECBB4314432}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Ayin\Scene">
+      <UniqueIdentifier>{2A9773F0-1665-67F6-FFF8-D71CEB65435B}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\Platform">
       <UniqueIdentifier>{21CA02E5-0D2D-9289-B6B2-CA3FA2F45D0C}</UniqueIdentifier>
@@ -1359,6 +1365,9 @@
     <ClInclude Include="src\Ayin\Core\Window.h">
       <Filter>src\Ayin\Core</Filter>
     </ClInclude>
+    <ClInclude Include="src\Ayin\Debug\Instrumentor.h">
+      <Filter>src\Ayin\Debug</Filter>
+    </ClInclude>
     <ClInclude Include="src\Ayin\Events\ApplicationEvent.h">
       <Filter>src\Ayin\Events</Filter>
     </ClInclude>
@@ -1406,6 +1415,15 @@
     </ClInclude>
     <ClInclude Include="src\Ayin\Renderer\VertexArray.h">
       <Filter>src\Ayin\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Ayin\Scene\Components.h">
+      <Filter>src\Ayin\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Ayin\Scene\Entity.h">
+      <Filter>src\Ayin\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Ayin\Scene\Scene.h">
+      <Filter>src\Ayin\Scene</Filter>
     </ClInclude>
     <ClInclude Include="src\AyinPch.h">
       <Filter>src</Filter>
@@ -1504,6 +1522,12 @@
     </ClCompile>
     <ClCompile Include="src\Ayin\Renderer\VertexArray.cpp">
       <Filter>src\Ayin\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Ayin\Scene\Entity.cpp">
+      <Filter>src\Ayin\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Ayin\Scene\Scene.cpp">
+      <Filter>src\Ayin\Scene</Filter>
     </ClCompile>
     <ClCompile Include="src\AyinPch.cpp">
       <Filter>src</Filter>

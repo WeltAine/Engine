@@ -8,7 +8,7 @@ public:
 
 	EditorLayer();
 
-	inline ~EditorLayer() = default;
+	virtual ~EditorLayer() = default;
 
 	virtual void OnAttach() override;//加入层栈
 	virtual void OnDetach() override;//退出层栈
@@ -26,9 +26,13 @@ private:
 
 	Ayin::Ref<Ayin::Texture2D> m_Texture;			//测试用纹理
 
-	Ayin::Ref<Ayin::Framebuffer> m_Framebuffer;
+	Ayin::Ref<Ayin::Framebuffer> m_Framebuffer;		//游戏视窗帧缓冲
 
-	Ayin::Ref<Ayin::Texture2D> m_ViewTexture;
+	Ayin::Ref<Ayin::Texture2D> m_ViewTexture;		//游戏视窗帧缓冲对应纹理
 
-	glm::vec2 m_ViewportSize = {0.0f, 0.0f};
+	glm::i32vec2 m_ViewportSize = {0.0f, 0.0f};		//游戏视窗大小
+
+	Ayin::Scene m_ActiveScene;						//ECS场景测试
+	Ayin::Entity m_TextureEntity;
+
 };

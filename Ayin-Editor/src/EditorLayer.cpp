@@ -19,10 +19,39 @@ void EditorLayer::OnAttach() {
 
 	m_Texture = Ayin::Texture2D::Create("O:/CppProgram/Ayin/assets/textures/blendTexture.png");
 
-	Ayin::FramebufferSpecification specification{ .Width = 1280 , .Height = 720, .Samples = 1 };
+	Ayin::FramebufferSpecification specification{ .Size{1280, 720}, .Samples = 1 };
 	m_Framebuffer = Ayin::Framebuffer::Create(specification);
 	m_ViewportSize.x = 1280;
 	m_ViewportSize.y = 720;
+
+	// 设置场景
+	{
+		Ayin::Entity entity = m_ActiveScene.CreateEntity();
+		auto& transform = entity.GetComponents<Ayin::TransformComponent>();
+		transform = Ayin::TransformComponent{ glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 60.0f }, glm::vec3{ 1.0f, 1.0f, 1.0f } };
+		auto& sprite = entity.AddComponent<Ayin::SpriteRendererComponent>();
+		sprite.Color = { glm::vec4{ 0.8f, 0.2f, 0.5f, 0.5f } };
+	}
+
+	{
+		m_TextureEntity = m_ActiveScene.CreateEntity("TextureEntity");
+		auto& transform = m_TextureEntity.GetComponents<Ayin::TransformComponent>();
+		transform = Ayin::TransformComponent{ glm::vec3{ 0.0f, 0.0f, -5.0f }, glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 1.0f, 1.0f, 1.0f } };
+		m_TextureEntity.AddComponent<Ayin::SpriteRendererComponent>().Texture2D = m_Texture;
+	}
+
+	for (float y = -5.0f; y < 5.0f; y += 0.5f)
+	{
+		for (float x = -5.0f; x < 5.0f; x += 0.5f)
+		{
+			std::string entityName = fmt::format("Entity_{:.1f}_{:.1f}", x, y);
+			Ayin::Entity entity = m_ActiveScene.CreateEntity(entityName);
+			auto& transform = entity.GetComponents<Ayin::TransformComponent>();
+			transform = Ayin::TransformComponent{ glm::vec3{ x, y, -10.0f }, glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 1.0f, 1.0f, 1.0f } };
+			auto& sprite = entity.AddComponent<Ayin::SpriteRendererComponent>();
+			sprite.Color = { (x + 5.0f) / 10.0f, 0.4f, (y + 5.0f) / 10.0f, 0.7f };
+		}
+	}
 
 };
 void EditorLayer::OnDetach() { AYIN_PROFILE_FUNCTION(); };
@@ -36,8 +65,7 @@ void EditorLayer::OnUpdate(Ayin::Timestep deltaTime) {
 	//! 这导致帧缓冲的改变在渲染指令之后，OnUpdate中渲染的画面丢失
 	//! 所以将帧缓冲改变提到渲染指令之前就好了
 	//ToDo 顺带一提，ImGui窗口缩放时不会阻塞更新循环
-	if ((m_ViewportSize.x != m_Framebuffer->GetSpecification().Width || m_ViewportSize.y != m_Framebuffer->GetSpecification().Height)
-		&& m_ViewportSize.x > 0.0f && m_ViewportSize.y > 0.0f)		
+	if (m_ViewportSize != m_Framebuffer->GetSpecification().Size && m_ViewportSize.x > 0.0f && m_ViewportSize.y > 0.0f)		
 	{
 		m_Framebuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
 
@@ -68,22 +96,14 @@ void EditorLayer::OnUpdate(Ayin::Timestep deltaTime) {
 
 		Ayin::Renderer2D::BeginScene(m_CameraController.GetCamera());
 
-		for (float y = -5.0f; y < 5.0f; y += 0.5f)
-		{
-			for (float x = -5.0f; x < 5.0f; x += 0.5f)
-			{
-				glm::vec4 color = { (x + 5.0f) / 10.0f, 0.4f, (y + 5.0f) / 10.0f, 0.7f };
-				Ayin::Renderer2D::DrawQuad(glm::vec3{ x, y, -10.0f }, glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 1.0f, 1.0f, 1.0f }, color);
-			}
-		}
 
 		Ayin::Renderer2D::EndScene();
 
-
 		Ayin::Renderer2D::BeginScene(m_CameraController.GetCamera());
 
-		Ayin::Renderer2D::DrawQuad(glm::vec3{ 0.0f, 0.0f, -5.0f }, glm::vec3{ 0.0f, 0.0f, rotation }, glm::vec3{ 1.0f, 1.0f, 1.0f }, m_Texture, glm::vec2{ 2.0f, 2.0f });
-		Ayin::Renderer2D::DrawQuad(glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 60.0f }, glm::vec3{ 1.0f, 1.0f, 1.0f }, glm::vec4{ 0.8f, 0.2f, 0.5f, 0.5f });
+		m_TextureEntity.GetComponents<Ayin::TransformComponent>().Rotation = glm::vec3{ 0.0f, 0.0f, rotation };
+
+		m_ActiveScene.OnUpdate(deltaTime);
 
 		Ayin::Renderer2D::EndScene();
 
@@ -126,7 +146,7 @@ void EditorLayer::OnImGuiRender() {
 	m_ViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
 
 	m_ViewTexture = m_Framebuffer->GetColorAttachment();
-	ImGui::Image((void*)(long long int)(uint32_t)(*m_ViewTexture), ImVec2{ m_ViewportSize.x, m_ViewportSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+	ImGui::Image((void*)(long long int)(uint32_t)(*m_ViewTexture), ImVec2{ (float)m_ViewportSize.x, (float)m_ViewportSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
 
 	ImGui::End();
 

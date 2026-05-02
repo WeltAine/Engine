@@ -24,6 +24,7 @@ IncludeDir["Glad"] = "Ayin/Dependency/glad/include"
 IncludeDir["ImGui"] = "Ayin/Dependency/ImGui"
 IncludeDir["glm"] = "Ayin/Dependency/glm"
 IncludeDir["stb_image"] = "Ayin/Dependency/stb_image"
+IncludeDir["entt"] = "Ayin/Dependency/entt/single_include"
 
 
 include "Ayin/Dependency/GLFW" --引入该目录下的premake5.lua，和C++的include一样
@@ -53,7 +54,8 @@ project "Ayin"
         "%{IncludeDir.Glad}",
         "%{IncludeDir.ImGui}",
         "%{IncludeDir.glm}",
-        "%{IncludeDir.stb_image}"
+        "%{IncludeDir.stb_image}",
+        "%{IncludeDir.entt}"
     }
 
     -- 依赖项目
@@ -136,8 +138,8 @@ project "Ayin-Editor"
         "Ayin/Dependency/spdlog/include",
         "Ayin/src",
         "Ayin/Dependency",
-        "%{IncludeDir.glm}"
-
+        "%{IncludeDir.glm}",
+        "%{IncludeDir.entt}"
     }
 
     -- dependson "Ayin"
@@ -206,7 +208,8 @@ project "SandBox"
         "Ayin/Dependency/spdlog/include",
         "Ayin/src",
         "Ayin/Dependency",
-        "%{IncludeDir.glm}"
+        "%{IncludeDir.glm}",
+        "%{IncludeDir.entt}"
 
     }
 

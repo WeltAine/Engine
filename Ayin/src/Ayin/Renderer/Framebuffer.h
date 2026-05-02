@@ -2,14 +2,16 @@
 
 #include "Ayin/Core/Core.h"
 #include "Ayin/Renderer/Texture.h"
+#include <glm/glm.hpp>
 
 namespace Ayin {
 
 
 	struct AYIN_API FramebufferSpecification {
 
-		int Width, Height;
-		int Samples = 1;		//? 这个参数是什么意思
+		glm::i32vec2 Size = {1280, 720};
+
+		int Samples = 1;		// 采样数，用于MSAA 
 
 		//Todo 缓冲格式（缓冲类型）
 		// FramebufferFormat Format;

@@ -227,10 +227,10 @@ namespace Ayin {
 			FlushAndReset();
 
 		// 检查TextureSlots中是否有要用到的纹理，并获取索引
-		int textureIndex = 0;
-		for (int index = 0; index < s_Data.TextureSlotInsertIndex; index++) {
+		uint32_t textureIndex = 0;
+		for (uint32_t index = 0; index < s_Data.TextureSlotInsertIndex; index++) {
 
-			if (*(s_Data.TextureSlots[index].get()) == *(texture.get())) {
+			if (*(s_Data.TextureSlots[index].get()) == *(texture.get())) {		//ID比较
 				textureIndex = index;
 				break;
 			}
@@ -263,6 +263,7 @@ namespace Ayin {
 
 
 	};
+
 
 
 	void Renderer2D::ResetStatistics() {

@@ -13,3 +13,7 @@
 	path = Ayin/Dependency/ImGui
 	url = https://github.com/WeltAine/ImGui.git
 	branch = docking
+[submodule "Ayin/Dependency/entt"]
+	path = Ayin/Dependency/entt
+	url = https://github.com/WeltAine/entt.git
+	branch = main

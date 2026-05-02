@@ -30,6 +30,13 @@
 #include "Ayin/Renderer/Framebuffer.h"
 // -----------------------------------
 
+// ---ECS-----------------------------
+#include "Ayin/Scene/Components.h"
+#include "Ayin/Scene/Scene.h"
+#include "Ayin/Scene/Entity.h"
+// -----------------------------------
+
+
 
 // ---数学----------------------------
 #include <glm/gtc/type_ptr.hpp>
