@@ -1,7 +1,7 @@
 #pragma once
 
-
 #include "Ayin/Core/Core.h"
+#include "Ayin/Renderer/Camera.h"
 #include "Ayin/Renderer/Texture.h"
 
 #include <glm/glm.hpp>

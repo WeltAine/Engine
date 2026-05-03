@@ -18,7 +18,7 @@ namespace Ayin {
 		/// <summary>
 		/// 相机类型枚举
 		/// </summary>
-		enum class CameraType
+		enum class CameraType : uint8_t
 		{
 			None = 0,
 			Perspective = 1,	// 透视
@@ -27,6 +27,8 @@ namespace Ayin {
 		
 	public:
 		Camera(const CameraProp& cameraProp);
+
+		~Camera() = default;
 
 		inline void SetPosition(const glm::vec3& position) { m_Position = position; RecalculateViewMatrix(); };
 		inline const glm::vec3& GetPosition() const { return m_Position; };
@@ -38,7 +40,7 @@ namespace Ayin {
 
 		void SetProjection(const CameraProp& cameraProp);
 
-		inline const glm::mat4& GetProjecttionViewMatrix() const { return m_ProjecttionViewMatrix; };
+		inline const glm::mat4& GetProjecttionViewMatrix() const { return m_ProjectionViewMatrix; };
 
 		inline const glm::mat4& GetRotationMatrix() const {
 			glm::mat4 pitch = glm::rotate(glm::identity<glm::mat4>(), glm::radians(m_Rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
@@ -65,7 +67,7 @@ namespace Ayin {
 
 		glm::mat4 m_ViewMatrix = glm::identity<glm::mat4>();			// 视图矩阵
 		glm::mat4 m_ProjectionMatrix = glm::identity<glm::mat4>();		// 投影矩阵
-		glm::mat4 m_ProjecttionViewMatrix = glm::identity<glm::mat4>();	// VP矩阵
+		glm::mat4 m_ProjectionViewMatrix = glm::identity<glm::mat4>();	// VP矩阵
 
 	};
 
@@ -77,7 +79,7 @@ namespace Ayin {
 	/// <para> AspectRatio(16:9) </para>
 	/// <para> NearPlaneDistance(0.1), FarPlaneDistance(100) </para>
 	/// </summary>
-	struct CameraProp
+	struct AYIN_API CameraProp
 	{
 		Camera::CameraType Type = Camera::CameraType::Perspective;
 
@@ -88,6 +90,22 @@ namespace Ayin {
 		float NearPlaneDistance = 0.1f, FarPlaneDistance = 100.0f;
 	};
 
+
+
+	class AYIN_API Camera_ {
+
+
+	public:
+		Camera_() = default;
+		~Camera_() = default;
+
+	protected:
+
+		glm::mat4 m_ViewMatrix = glm::identity<glm::mat4>();			// 视图矩阵
+		glm::mat4 m_ProjectionMatrix = glm::identity<glm::mat4>();		// 投影矩阵
+		glm::mat4 m_ProjectionViewMatrix = glm::identity<glm::mat4>();	// VP矩阵
+
+	};
 
 
 }

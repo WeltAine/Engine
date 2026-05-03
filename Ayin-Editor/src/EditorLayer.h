@@ -32,7 +32,8 @@ private:
 
 	glm::i32vec2 m_ViewportSize = {0.0f, 0.0f};		//游戏视窗大小
 
-	Ayin::Scene m_ActiveScene;						//ECS场景测试
+	//ECS测试
+	Ayin::Scene m_ActiveScene;						
 	Ayin::Entity m_TextureEntity;
-
+	Ayin::Entity m_SceneCamera;
 };

@@ -11,7 +11,7 @@ namespace Ayin {
 
 	class Entity;
 
-	class Scene {
+	class AYIN_API Scene {
 
 		friend class Entity;
 

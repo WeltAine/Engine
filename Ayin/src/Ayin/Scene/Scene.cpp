@@ -5,6 +5,8 @@
 
 #include "Ayin/Scene/Components.h"
 
+#include "Ayin/Renderer/Renderer2D.h"
+
 namespace Ayin{
 
 	Entity Scene::CreateEntity(const std::string& name) {

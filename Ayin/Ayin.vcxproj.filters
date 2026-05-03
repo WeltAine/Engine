@@ -1425,6 +1425,9 @@
     <ClInclude Include="src\Ayin\Scene\Scene.h">
       <Filter>src\Ayin\Scene</Filter>
     </ClInclude>
+    <ClInclude Include="src\Ayin\Scene\SceneCamera.h">
+      <Filter>src\Ayin\Scene</Filter>
+    </ClInclude>
     <ClInclude Include="src\AyinPch.h">
       <Filter>src</Filter>
     </ClInclude>
@@ -1527,6 +1530,9 @@
       <Filter>src\Ayin\Scene</Filter>
     </ClCompile>
     <ClCompile Include="src\Ayin\Scene\Scene.cpp">
+      <Filter>src\Ayin\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Ayin\Scene\SceneCamera.cpp">
       <Filter>src\Ayin\Scene</Filter>
     </ClCompile>
     <ClCompile Include="src\AyinPch.cpp">

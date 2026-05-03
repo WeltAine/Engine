@@ -6,8 +6,10 @@
 #include <glm/glm.hpp>
 #include <glm/ext/matrix_transform.hpp> // translate, rotate, scale, identity
 
-#include "Ayin/Renderer/Renderer2D.h"
 #include "Ayin/Renderer/Texture.h"
+#include "Ayin/Scene/SceneCamera.h"
+
+#include <entt/entt.hpp>
 
 namespace Ayin {
 
@@ -62,6 +64,22 @@ namespace Ayin {
 	
 		SpriteRendererComponent() = default;
 		SpriteRendererComponent(const SpriteRendererComponent& spriteRendererComponent) = default;
+
+	};
+
+
+	struct CameraComponent {
+
+		using Requires = entt::type_list<TransformComponent>;
+
+		//ToDo 先使用原有的Camera，之后我们需要替换，其中部分参数和Transform重叠
+		SceneCamera Camera;
+
+		CameraComponent() = default;
+		CameraComponent(const CameraProp& cameraProp)
+			:Camera{ cameraProp } 
+		{}
+
 	};
 
 }

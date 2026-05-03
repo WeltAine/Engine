@@ -616,6 +616,7 @@ copy /B /Y ..\bin\Dist-windows-x86_64\Ayin\Ayin.lib ..\bin\Dist-windows-x86_64\S
     <ClInclude Include="src\Ayin\Scene\Components.h" />
     <ClInclude Include="src\Ayin\Scene\Entity.h" />
     <ClInclude Include="src\Ayin\Scene\Scene.h" />
+    <ClInclude Include="src\Ayin\Scene\SceneCamera.h" />
     <ClInclude Include="src\AyinPch.h" />
     <ClInclude Include="src\Platform\OpenGL\Buffer\OpenGLBuffer.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLContext.h" />
@@ -652,6 +653,7 @@ copy /B /Y ..\bin\Dist-windows-x86_64\Ayin\Ayin.lib ..\bin\Dist-windows-x86_64\S
     <ClCompile Include="src\Ayin\Renderer\VertexArray.cpp" />
     <ClCompile Include="src\Ayin\Scene\Entity.cpp" />
     <ClCompile Include="src\Ayin\Scene\Scene.cpp" />
+    <ClCompile Include="src\Ayin\Scene\SceneCamera.cpp" />
     <ClCompile Include="src\AyinPch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>

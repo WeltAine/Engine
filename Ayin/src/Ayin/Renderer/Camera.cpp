@@ -49,7 +49,7 @@ namespace Ayin {
 		
 		}
 
-		m_ProjecttionViewMatrix = m_ProjectionMatrix * m_ViewMatrix;
+		m_ProjectionViewMatrix = m_ProjectionMatrix * m_ViewMatrix;
 
 
 	}
@@ -89,7 +89,7 @@ namespace Ayin {
 		
 		}
 
-		m_ProjecttionViewMatrix = m_ProjectionMatrix * m_ViewMatrix;
+		m_ProjectionViewMatrix = m_ProjectionMatrix * m_ViewMatrix;
 
 
 	}
@@ -107,7 +107,7 @@ namespace Ayin {
 
 		m_ViewMatrix = glm::inverse(transform);
 
-		m_ProjecttionViewMatrix = m_ProjectionMatrix * m_ViewMatrix;
+		m_ProjectionViewMatrix = m_ProjectionMatrix * m_ViewMatrix;
 	}
 
 	 

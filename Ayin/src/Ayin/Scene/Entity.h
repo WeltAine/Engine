@@ -7,7 +7,12 @@
 
 namespace Ayin {
 
-	class Entity {
+	//! 概念：检查组件是否有依赖组件
+	//! 组件中的依赖通过using Requires = entt::type_list<...>来表达
+	template<typename ComponentType>
+	concept HasRequirements = requires{ typename ComponentType::Requires; };
+
+	class AYIN_API Entity {
 
 	public:
 
@@ -17,8 +22,25 @@ namespace Ayin {
 		Entity(const Entity& entity) = default;
 		~Entity() = default;
 
+
 		template<typename ComponentType, typename... Args>
 		ComponentType& AddComponent(Args&&... args);
+
+		/// <summary>
+		/// 加载组件所依赖的n个前置组件
+		/// </summary>
+		/// <typeparam name="...Dependences"></typeparam>
+		/// <param name=""></param>
+		template<typename... Dependences>
+		void AddDependencies(entt::type_list<Dependences...>);
+
+		/// <summary>
+		/// 自动化添加依赖组件使用（没有断言的添加版本）
+		/// </summary>
+		/// <typeparam name="ComponentType"></typeparam>
+		template<typename ComponentType>
+			requires std::is_default_constructible_v<ComponentType>
+		void InternalEnsureComponent();
 
 		template<typename... ComponentTypes>
 		void RemoveComponents();
@@ -47,12 +69,48 @@ namespace Ayin {
 	template<typename ComponentType, typename... Args>
 	ComponentType& Entity::AddComponent(Args&&... args) {
 
-		AYIN_CORE_ASSERT(!HasComponent<ComponentType>(), "Entity already has component!");
 
-		if (!HasComponent<ComponentType>())
+		if (!HasComponent<ComponentType>()) {
+
+			//通过模板来自动根据组件的前置组件类型需求，生成模板
+			if constexpr (HasRequirements<ComponentType>) {
+
+				AddDependencies(typename ComponentType::Requires{});
+
+			}
+
 			return m_Scene->m_Registry.emplace<ComponentType>(m_EntityHandle, std::forward<Args>(args)...);
 
+		}
+
+
+		return GetComponents<ComponentType>();
+
 	};
+
+	template<typename... Dependencies>
+	void Entity::AddDependencies(entt::type_list<Dependencies...>) {
+		//借由模板类型自动推导进行类型拆包
+		//用折叠语句展开处理每一个组件类型
+		(InternalEnsureComponent<Dependencies>(), ...);
+
+	};
+
+
+	template<typename ComponentType>
+		requires std::is_default_constructible_v<ComponentType>
+	void Entity::InternalEnsureComponent() {
+		//要求自动创建的类型每一个都要有默认构造函数
+		//不要断言，这里属于自动构造的部分，不属于用户意图，无需通知使用者（AddComponent也不需要其实）
+		if (!HasComponent<ComponentType>()) {
+
+			m_Scene->m_Registry.emplace<ComponentType>(m_EntityHandle);
+
+		}
+
+	}
+
+
 
 	template<typename... ComponentTypes>
 	void Entity::RemoveComponents() {

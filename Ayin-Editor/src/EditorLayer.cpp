@@ -24,6 +24,7 @@ void EditorLayer::OnAttach() {
 	m_ViewportSize.x = 1280;
 	m_ViewportSize.y = 720;
 
+
 	// 设置场景
 	{
 		Ayin::Entity entity = m_ActiveScene.CreateEntity();
@@ -52,6 +53,9 @@ void EditorLayer::OnAttach() {
 			sprite.Color = { (x + 5.0f) / 10.0f, 0.4f, (y + 5.0f) / 10.0f, 0.7f };
 		}
 	}
+
+	m_SceneCamera = m_ActiveScene.CreateEntity("MainCamera");
+	m_SceneCamera.AddComponent<Ayin::CameraComponent>(Ayin::CameraProp{ .Type{Ayin::Camera::CameraType::Orthogonal} });
 
 };
 void EditorLayer::OnDetach() { AYIN_PROFILE_FUNCTION(); };
