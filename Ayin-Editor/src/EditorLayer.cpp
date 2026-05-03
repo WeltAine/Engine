@@ -75,6 +75,7 @@ void EditorLayer::OnUpdate(Ayin::Timestep deltaTime) {
 
 		Ayin::WindowResizeEvent resizeEvent{ (unsigned int)m_ViewportSize.x, (unsigned int)m_ViewportSize.y };
 		m_CameraController.OnEvent(resizeEvent);
+		m_SceneCamera.GetComponents<Ayin::CameraComponent>().Camera.SetCameraSize(m_ViewportSize.x, m_ViewportSize.y);
 
 		Ayin::Renderer::OnWindowResize(m_ViewportSize.x, m_ViewportSize.y);
 		//! Application::OnWindowsResize()中的调整并没有删去
@@ -154,6 +155,12 @@ void EditorLayer::OnImGuiRender() {
 	ImGui::Text("TotalQuadCount: %d", statistics.QuadCount);
 
 	ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+
+	ImGui::End();
+
+	ImGui::Begin("MainCamera");
+
+	ImGui::DragFloat3("CameraPosition", glm::value_ptr(m_SceneCamera.GetComponents < Ayin::TransformComponent >().Position));
 
 	ImGui::End();
 

@@ -116,7 +116,6 @@ namespace Ayin {
 
 	void SceneCamera::SetCameraSize(int width, int height) {
 
-		m_CameraProp.Height = height; 
 		m_CameraProp.AspectRatio = (float)width / (float)height; 
 		SetProjection(m_CameraProp); 
 
