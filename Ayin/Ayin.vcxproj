@@ -618,6 +618,7 @@ copy /B /Y ..\bin\Dist-windows-x86_64\Ayin\Ayin.lib ..\bin\Dist-windows-x86_64\S
     <ClInclude Include="src\Ayin\Scene\Scene.h" />
     <ClInclude Include="src\Ayin\Scene\SceneCamera.h" />
     <ClInclude Include="src\AyinPch.h" />
+    <ClInclude Include="src\Ayin\Scene\Systems.h" />
     <ClInclude Include="src\Platform\OpenGL\Buffer\OpenGLBuffer.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLContext.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLFramebuffer.h" />

@@ -55,6 +55,7 @@ namespace Ayin {
 
 		//BeginSecene是渲染的开始，在这里保证相关状态恢复到初始状态
 		static void BeginScene(const Camera& camera);
+		static void BeginScene(const Camera_& camera);
 		//上传数据并发起渲染
 		static void EndScene();
 		

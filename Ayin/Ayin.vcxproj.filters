@@ -1461,6 +1461,7 @@
     <ClInclude Include="src\Platform\Windows\WindowsWindow.h">
       <Filter>src\Platform\Windows</Filter>
     </ClInclude>
+    <ClInclude Include="src\Ayin\Scene\Systems.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Dependency\stb_image\stb_image.cpp">

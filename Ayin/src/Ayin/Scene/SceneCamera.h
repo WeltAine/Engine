@@ -31,10 +31,6 @@ namespace Ayin {
 
 		inline const CameraProp GetCameraProp() const { return m_CameraProp; };
 
-		inline const glm::mat4& GetProjecttionViewMatrix() const { return m_ProjectionViewMatrix; };
-		inline const glm::mat4& GetViewMatrix() const { return m_ViewMatrix; };
-		inline const glm::mat4& GetProjecttionMatrix() const { return m_ProjectionMatrix; };
-
 	private:
 
 		/// <summary>

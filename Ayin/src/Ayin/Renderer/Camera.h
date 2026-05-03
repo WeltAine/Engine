@@ -40,7 +40,7 @@ namespace Ayin {
 
 		void SetProjection(const CameraProp& cameraProp);
 
-		inline const glm::mat4& GetProjecttionViewMatrix() const { return m_ProjectionViewMatrix; };
+		inline const glm::mat4& GetProjectionViewMatrix() const { return m_ProjectionViewMatrix; };
 
 		inline const glm::mat4& GetRotationMatrix() const {
 			glm::mat4 pitch = glm::rotate(glm::identity<glm::mat4>(), glm::radians(m_Rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
@@ -98,6 +98,10 @@ namespace Ayin {
 	public:
 		Camera_() = default;
 		~Camera_() = default;
+
+		inline const glm::mat4& GetProjectionViewMatrix() const { return m_ProjectionViewMatrix; };
+		inline const glm::mat4& GetViewMatrix() const { return m_ViewMatrix; };
+		inline const glm::mat4& GetProjectionMatrix() const { return m_ProjectionMatrix; };
 
 	protected:
 

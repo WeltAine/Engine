@@ -98,18 +98,12 @@ void EditorLayer::OnUpdate(Ayin::Timestep deltaTime) {
 
 		Ayin::Renderer2D::ResetStatistics();
 
-		Ayin::Renderer2D::BeginScene(m_CameraController.GetCamera());
 
-
-		Ayin::Renderer2D::EndScene();
-
-		Ayin::Renderer2D::BeginScene(m_CameraController.GetCamera());
 
 		m_TextureEntity.GetComponents<Ayin::TransformComponent>().Rotation = glm::vec3{ 0.0f, 0.0f, rotation };
 
 		m_ActiveScene.OnUpdate(deltaTime);
 
-		Ayin::Renderer2D::EndScene();
 
 		Ayin::RenderCommand::SetClearColor({ clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w });
 

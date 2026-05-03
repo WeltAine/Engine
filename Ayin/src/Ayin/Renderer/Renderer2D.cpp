@@ -141,7 +141,7 @@ namespace Ayin {
 
 		AYIN_PROFILE_FUNCTION();
 	
-		s_Data.QuadShader->SetMat4("u_ProjectionViewMatrix", camera.GetProjecttionViewMatrix());
+		s_Data.QuadShader->SetMat4("u_ProjectionViewMatrix", camera.GetProjectionViewMatrix());
 
 
 		s_Data.QuadCount = 0;
@@ -149,6 +149,19 @@ namespace Ayin {
 		s_Data.QuadBatchBufferPtr = s_Data.QuadBatchBufferBase;
 
 	};
+	void Renderer2D::BeginScene(const Camera_& camera) {
+
+		AYIN_PROFILE_FUNCTION();
+
+		s_Data.QuadShader->SetMat4("u_ProjectionViewMatrix", camera.GetProjectionViewMatrix());
+
+
+		s_Data.QuadCount = 0;
+		s_Data.TextureSlotInsertIndex = 1;
+		s_Data.QuadBatchBufferPtr = s_Data.QuadBatchBufferBase;
+
+	};
+
 	void Renderer2D::EndScene() {
 		
         AYIN_PROFILE_FUNCTION();

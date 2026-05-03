@@ -32,7 +32,7 @@ namespace Ayin {
 
 	void Renderer::BeginScene(const Camera& rendererCamera) {
 
-		s_SceneData->projectionViewMatrix = rendererCamera.GetProjecttionViewMatrix();
+		s_SceneData->projectionViewMatrix = rendererCamera.GetProjectionViewMatrix();
 
 	}
 
