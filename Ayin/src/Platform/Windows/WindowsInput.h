@@ -7,28 +7,11 @@
 
 namespace Ayin {
 
-	class WindowsInput : public Input
+	class WindowsInput
 	{
 		friend class Input;
 
 	protected:
-
-		static void TransitionToNextFrame();
-
-		static bool IsKeyPressed(KeyCode keyCode);
-
-		static bool GetMouseButton(MouseCode button);
-		static std::pair<float, float> GetMousePosition();
-		static float GetMouseX();
-		static float GetMouseY();
-		static float GetScrollXoffset();
-		static float GetScrollYoffset();
-		static float GetScrollX();
-		static float GetScrollY();
-
-
-
-	public:
 
 		//x GLFW没有访问鼠标滚轮的轮询，我们得自己写, 接入到回调中
 		static bool OnScrollEvent(MouseSrolledEvent& e);

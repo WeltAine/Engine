@@ -92,7 +92,7 @@ namespace Ayin {
 
 			}
 
-			//输入系统更新
+			// 输入系统更新
 			Input::TransitionToNextFrame();
 
 			// 窗口更新

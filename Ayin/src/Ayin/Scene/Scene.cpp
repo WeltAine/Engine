@@ -51,25 +51,27 @@ namespace Ayin{
 		//! 关于哨兵机制其中涉及C++20 的 Ranges 设计理念。简单来说通过结束信号，而非过去明确的结束位置来判断是否终止，这样可以少一次寻找结尾的遍历
 		//除了for，也可以使用each配合lambda
 
-		// 渲染
-		auto spriteGroup = m_Registry.group<SpriteRendererComponent>(entt::get<TransformComponent>);
+		// 渲染更新
+		{
+			auto spriteGroup = m_Registry.group<SpriteRendererComponent>(entt::get<TransformComponent>);
 
-		Renderer2D::BeginScene(cameraComponent.Camera);
+			Renderer2D::BeginScene(cameraComponent.Camera);
 
-		for (auto&& [entity, sprite, transform] : spriteGroup.each()) {
-			//是倒着遍历的
+			for (auto&& [entity, sprite, transform] : spriteGroup.each()) {
+				//是倒着遍历的
 
-			//ToDo 渲染排序问题
+				//ToDo 渲染排序问题
 
-			if (sprite.Texture2D.get() == nullptr)
-				Renderer2D::DrawQuad(transform.Position, transform.Rotation, transform.Scale, sprite.Color);
-			else
-				Renderer2D::DrawQuad(transform.Position, transform.Rotation, transform.Scale, sprite.Texture2D);
+				if (sprite.Texture2D.get() == nullptr)
+					Renderer2D::DrawQuad(transform.Position, transform.Rotation, transform.Scale, sprite.Color);
+				else
+					Renderer2D::DrawQuad(transform.Position, transform.Rotation, transform.Scale, sprite.Texture2D);
 
+			}
+
+			Renderer2D::EndScene();
 		}
 
-		Renderer2D::EndScene();
-	
 	};
 
 

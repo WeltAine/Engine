@@ -17,6 +17,7 @@ namespace Ayin{
 
     public:
         CameraController(const CameraProp& cameraProp);
+        ~CameraController() = default;
 
         void OnUpdate(Timestep deltaTime);
         void OnEvent(Event& e);

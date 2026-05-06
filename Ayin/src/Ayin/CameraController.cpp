@@ -137,7 +137,7 @@ namespace Ayin{
         }
 
     
-        void CameraController::OnAxisKeyPressed( Ayin::Timestep deltaTime ) {
+        void CameraController::OnAxisKeyPressed( Timestep deltaTime ) {
 
             AYIN_PROFILE_FUNCTION();
 
@@ -170,7 +170,7 @@ namespace Ayin{
 
         }
 
-        void CameraController::OnMouseMoved( Ayin::Timestep deltaTime ) {
+        void CameraController::OnMouseMoved( Timestep deltaTime ) {
 
             AYIN_PROFILE_FUNCTION();
 

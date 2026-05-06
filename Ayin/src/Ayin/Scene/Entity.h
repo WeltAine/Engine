@@ -55,7 +55,7 @@ namespace Ayin {
 		operator bool() const { return m_EntityHandle != entt::null; }
 
 	private:
-		entt::entity m_EntityHandle{ 0 };
+		entt::entity m_EntityHandle{ entt::null };
 		
 		Scene* m_Scene = nullptr;
 		
@@ -135,6 +135,9 @@ namespace Ayin {
 		//	如果 e 是一个普通的变量名，推导结果就是该变量定义的类型。
 		//	如果 e 是一个表达式，且 e 产生一个左值（lvalue），推导结果就是 T & 。
 		//	如果 e 产生一个右值（prvalue，如临时值），推导结果就是 T。
+
+		AYIN_CORE_ASSERT(HasComponent<ComponentTypes...>(),
+			"Entity does not have all requested components!");
 
 		if constexpr (sizeof...(ComponentTypes) == 1u) {
 			// 最终是一个表达式，且为左值，返回T&
