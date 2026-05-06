@@ -22,7 +22,7 @@ namespace Ayin {
 
 	protected:
 
-		KeyEvent(KeyCode keyCode, int scanCode)
+		KeyEvent(const KeyCode keyCode, const int scanCode)
 			:Event(), m_KeyCode(keyCode), m_ScanCode(scanCode)
 		{}
 
@@ -36,7 +36,7 @@ namespace Ayin {
 
 	public:
 
-		KeyPressedEvent(KeyCode keyCode, int scanCode, int repeatCount)
+		KeyPressedEvent(const KeyCode keyCode, const int scanCode, const int repeatCount)
 			:KeyEvent(keyCode, scanCode), m_RepeatCount(repeatCount)
 		{}
 
@@ -59,7 +59,7 @@ namespace Ayin {
 	class AYIN_API KeyReleasedEvent : public KeyEvent {
 
 	public:
-		KeyReleasedEvent(KeyCode keyCode, int scanCode)
+		KeyReleasedEvent(const KeyCode keyCode, const int scanCode)
 			:KeyEvent(keyCode, scanCode)
 		{}
 
@@ -80,7 +80,7 @@ namespace Ayin {
 	{
 
 	public:
-		TextEvent(int codepoint, int scanCode)
+		TextEvent(const int codepoint, const int scanCode)
 			:KeyEvent(KeyCode::MAX, scanCode), m_Codepoint{codepoint}
 		{}
 
@@ -88,7 +88,7 @@ namespace Ayin {
 
 		std::string ToString() const override {
 			std::stringstream ss;
-			ss << "TextEvent: " << static_cast<char>(m_Codepoint) << "( " << m_Codepoint << " )";
+			ss << "TextEvent: " << static_cast<char>(m_Codepoint) << " ( " << m_Codepoint << " )";
 			return ss.str();
 		}
 

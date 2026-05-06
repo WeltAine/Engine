@@ -14,7 +14,7 @@ namespace Ayin {
 	protected:
 
 		//x GLFW没有访问鼠标滚轮的轮询，我们得自己写, 接入到回调中
-		static bool OnScrollEvent(MouseSrolledEvent& e);
+		static bool OnScrollEvent(MouseScrolledEvent& e);
 
 
 		// 通过 Input 继承

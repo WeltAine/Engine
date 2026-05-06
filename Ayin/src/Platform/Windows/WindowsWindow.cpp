@@ -180,7 +180,7 @@ namespace Ayin {
 			{
 				WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);//可以看一看glfwSetWindowUserPointer(m_Window, &m_Data)处的猜想
 
-				MouseSrolledEvent event((float)xoffset, (float)yoffset);
+				MouseScrolledEvent event((float)xoffset, (float)yoffset);
 				data.EventCallback(event);
 			});
 

@@ -38,7 +38,7 @@ namespace Ayin {
 	
 		EventDispatcher dispatcher(e);
 
-		dispatcher.Dispatch<MouseSrolledEvent>(WindowsInput::OnScrollEvent);
+		dispatcher.Dispatch<MouseScrolledEvent>(WindowsInput::OnScrollEvent);
 
 	};
 	void WindowsInput::TransitionToNextFrameImpl() {
@@ -49,7 +49,7 @@ namespace Ayin {
 
 
 
-	bool WindowsInput::OnScrollEvent(MouseSrolledEvent& e) {
+	bool WindowsInput::OnScrollEvent(MouseScrolledEvent& e) {
 
 		s_MouseScrollXoffset = e.GetXoffset();
 		s_MouseScrollYoffset = e.GetYoffset();
@@ -92,16 +92,16 @@ namespace Ayin {
 
 	float WindowsInput::GetMouseXImpl()
 	{
-		auto[x, y] = GetMousePositionImpl();
+		glm::vec2 position = GetMousePositionImpl();
 
-		return x;
+		return position.x;
 	}
 
 	float WindowsInput::GetMouseYImpl()
 	{
-		auto [x, y] = GetMousePositionImpl();
+		glm::vec2 position = GetMousePositionImpl();
 
-		return y;
+		return position.y;
 	}
 
 

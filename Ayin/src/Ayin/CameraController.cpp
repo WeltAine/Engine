@@ -36,14 +36,14 @@ namespace Ayin{
 
             EventDispatcher dispatcher{ e };
 
-            dispatcher.Dispatch<MouseSrolledEvent>(AYIN_BIND_EVENT_FUN_OVERRIDE( bool(CameraController::*)(MouseSrolledEvent&), CameraController::OnMouseScrolled));
+            dispatcher.Dispatch<MouseScrolledEvent>(AYIN_BIND_EVENT_FUN_OVERRIDE( bool(CameraController::*)(MouseScrolledEvent&), CameraController::OnMouseScrolled));
             dispatcher.Dispatch<MouseButtonPressedEvent>(AYIN_BIND_EVENT_FUN(CameraController::OnMouseMidButtonPressed));
             dispatcher.Dispatch<MouseButtonReleasedEvent>(AYIN_BIND_EVENT_FUN(CameraController::OnMouseMidButtonReleased));
             dispatcher.Dispatch<WindowResizeEvent>(AYIN_BIND_EVENT_FUN(CameraController::OnWindowResize));
 
         }
 
-        bool CameraController::OnMouseScrolled(MouseSrolledEvent& e){
+        bool CameraController::OnMouseScrolled(MouseScrolledEvent& e){
 
             AYIN_PROFILE_FUNCTION();
 
@@ -197,7 +197,7 @@ namespace Ayin{
 
                 m_Camera.SetRotation(m_CameraRotation);
 
-                lastRotation = { y, x, 0.0f };
+                lastRotation = { position.y, position.x, 0.0f };
 
                 AYIN_ERROR("Rotate");
                 AYIN_ERROR("{0}, {1}, {2}", m_CameraRotation.x, m_CameraRotation.y, m_CameraRotation.z);

@@ -26,7 +26,7 @@ namespace Ayin{
         inline const CameraProp& GetCameraProp() const { return m_CameraProp; };
 
     private:
-        bool OnMouseScrolled(MouseSrolledEvent& e);
+        bool OnMouseScrolled(MouseScrolledEvent& e);
         bool OnMouseScrolled(Timestep deltaTime);
         bool OnMouseMidButtonPressed(MouseButtonPressedEvent& e);
         bool OnMouseMidButtonReleased(MouseButtonReleasedEvent& e);

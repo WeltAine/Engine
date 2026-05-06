@@ -20,7 +20,7 @@ namespace Ayin{
 
 
 	protected:
-		MouseButtonEvent(MouseCode button)
+		MouseButtonEvent(const MouseCode button)
 			:m_Button(button)
 		{}
 
@@ -32,7 +32,7 @@ namespace Ayin{
 	class AYIN_API MouseButtonPressedEvent : public MouseButtonEvent {
 
 	public:
-		MouseButtonPressedEvent(MouseCode button)
+		MouseButtonPressedEvent(const MouseCode button)
 			:MouseButtonEvent(button)
 		{}
 
@@ -49,7 +49,7 @@ namespace Ayin{
 	class AYIN_API MouseButtonReleasedEvent : public MouseButtonEvent {
 
 	public:
-		MouseButtonReleasedEvent(MouseCode button)
+		MouseButtonReleasedEvent(const MouseCode button)
 			:MouseButtonEvent(button)
 		{
 		}
@@ -69,7 +69,7 @@ namespace Ayin{
 	class AYIN_API MouseMovedEvent : public Event {
 
 	public:
-		MouseMovedEvent(float mouseX, float mouseY)
+		MouseMovedEvent(const float mouseX, const float mouseY)
 			:Event(), m_MouseX(mouseX), m_MouseY(mouseY)
 		{}
 
@@ -90,15 +90,15 @@ namespace Ayin{
 		float m_MouseX, m_MouseY;
 	};
 
-	class AYIN_API MouseSrolledEvent : public Event {
+	class AYIN_API MouseScrolledEvent : public Event {
 
 	public:
-		MouseSrolledEvent(float xoffset, float yoffset)
+		MouseScrolledEvent(const float xoffset, const float yoffset)
 			:Event(), m_Xoffset(xoffset), m_Yoffset(yoffset)
 		{
 		}
 
-		EVENT_CLASS_TYPE(MouseSrolled);
+		EVENT_CLASS_TYPE(MouseScrolled);
 		EVENT_CLASS_CATEGORY((int)EventCategory::EventCategoryInput | (int)EventCategory::EventCategoryMouse);
 
 		inline float GetXoffset() const { return m_Xoffset; };
@@ -107,7 +107,7 @@ namespace Ayin{
 
 		std::string ToString() const override {
 			std::stringstream ss;
-			ss << "MouseSrolledEvent: " << "(" << m_Xoffset << ", " << m_Yoffset << ")";
+			ss << "MouseScrolledEvent: " << "(" << m_Xoffset << ", " << m_Yoffset << ")";
 			return ss.str();
 		}
 
