@@ -9,6 +9,9 @@
 #include "Ayin/Renderer/Texture.h"
 #include "Ayin/Scene/SceneCamera.h"
 
+#include "Ayin/Scene/ScriptableEntity.h"
+#include "Ayin/Core/Timestep.h"
+
 #include <entt/entt.hpp>
 
 namespace Ayin {
@@ -32,7 +35,7 @@ namespace Ayin {
 		glm::vec3 Scale		{ 1.0f, 1.0f, 1.0f };
 
 
-		operator glm::mat4() {
+		inline operator glm::mat4() {
 		
 			glm::mat4 transform{ 1.0f };
 
@@ -47,11 +50,22 @@ namespace Ayin {
 
 		};
 
+		inline const glm::mat4& GetRotationMatrix() const {
+			glm::mat4 pitch = glm::rotate(glm::identity<glm::mat4>(), glm::radians(Rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+			glm::mat4 yaw = glm::rotate(glm::identity<glm::mat4>(), glm::radians(Rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+			glm::mat4 roll = glm::rotate(glm::identity<glm::mat4>(), glm::radians(Rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+
+			return pitch * yaw * roll;
+
+		};
+
+
 		TransformComponent() = default;
 		TransformComponent(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& scale)
 			: Position{ position }, Rotation{ rotation }, Scale{ scale }
 		{};
 		TransformComponent(const TransformComponent& transformComponent) = default;
+		~TransformComponent() = default;
 	};
 
 
@@ -82,4 +96,57 @@ namespace Ayin {
 
 	};
 
+
+	
+	struct NativeScriptComponent {
+
+		ScriptableEntity* ScriptableInstance = nullptr;
+
+
+		std::function<void()> InstantiateFunction;
+		std::function<void()> DestroyInstanceFunction;
+		
+		std::function<void()> OnCreateFunction;
+		std::function<void(Timestep deltaTime)> OnUpdateFunction;
+		std::function<void()> OnDestroyFunction;
+
+		template<typename T>
+			requires std::derived_from<T, ScriptableEntity>
+		void Bind() {
+
+			InstantiateFunction = [&]() { ScriptableInstance = new T(); };
+			DestroyInstanceFunction = [&]() { delete ScriptableInstance, ScriptableInstance = nullptr; };
+
+			
+			OnCreateFunction = [&]() { ((T*)ScriptableInstance)->OnCreate(); };
+			OnUpdateFunction = [&](Timestep deltaTime) { ((T*)ScriptableInstance)->OnUpdate(deltaTime); };
+			OnDestroyFunction = [&]() { ((T*)ScriptableInstance)->OnDestroy(); };
+
+		}
+
+		//这里的设计十分困惑，比如为什么不直接用多态
+		//ToDo 想一想获取类型T有什么好处，什么事情是必须需要知晓类型的，或者知晓类型会更加轻松
+		//x 一个例子（基于多态指针），如果我们想基于prefab创建的话，我们显然不能直接复制指针，但是实际类型我们也不知道
+		//x 这就需要用户写一个clone方法了，看上去也不是什么没必要的方法
+		//x 但是如果序列化需要脚本类型名称呢？这个方法就很奇怪了
+		//x 好吧这些你都能接受，这是修改基类脚本的范式而已，不是什么太糟糕的问题
+		//! 那关于运行时的脚本热重载呢？
+		//x 这就不是玩笑了，你需要删除旧的脚本指针，然后创建新的，问题就在这里，你不知道之前的实际类型是什么
+		//! 所以说白了，只使用多态指针，会丢失实际脚本类型。而我们期望脚本组件和脚本是分离的（这促成了组合基类指针），但是脚本组件的一些运行逻辑需要知晓脚本实际类型
+
+
+
+		NativeScriptComponent() = default;
+		~NativeScriptComponent() {
+
+			if (ScriptableInstance != nullptr) {
+
+				OnDestroyFunction();
+				DestroyInstanceFunction();
+
+			}
+
+		}
+
+	};
 }
