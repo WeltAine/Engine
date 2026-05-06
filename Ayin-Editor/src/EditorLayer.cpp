@@ -76,25 +76,15 @@ void EditorLayer::OnAttach() {
 		}
 
 	private:
+
 		bool OnMouseScrolled(Ayin::Timestep deltaTime) {
 
 			auto& cameraComponent = GetComponents<Ayin::CameraComponent>();
-			auto& cameraProp = cameraComponent.Camera.GetCameraProp();
+			float zoomLevel = cameraComponent.Camera.GetCameraZoomLevel();
 
-			m_ZoomLevel -= Ayin::Input::GetScrollYoffset() * 4.0 * deltaTime;// 减法，窗口范围越小，看见的物体越大
-			m_ZoomLevel = std::clamp(m_ZoomLevel, 0.25f, 10.0f);
+			zoomLevel -= Ayin::Input::GetScrollYoffset() * 4.0 * deltaTime;// 减法，窗口范围越小，看见的物体越大
 
-
-			float height = 2 * m_ZoomLevel;
-			float FOV = 2 * glm::degrees(std::atan(m_ZoomLevel * std::tan(glm::radians(0.5f * cameraProp.FOV))));
-
-
-			cameraComponent.Camera.SetProjection({
-				.Type{cameraProp.Type},
-				.FOV{FOV}, .Height{height},
-				.AspectRatio{cameraProp.AspectRatio},
-				.NearPlaneDistance{cameraProp.NearPlaneDistance}, .FarPlaneDistance{cameraProp.FarPlaneDistance} });
-
+			cameraComponent.Camera.SetCameraZoomLevel(zoomLevel);
 
 			return false;
 
@@ -173,8 +163,6 @@ void EditorLayer::OnAttach() {
 
 		bool m_isRotate = false;                                                //是否开启旋转
 
-		float m_ZoomLevel = 1.0f;                                               //缩放
-
 		float m_CameraTranslateSpeed = 1.0f, m_CameraRotationSpeed = 120.0f;
 
 
@@ -188,6 +176,7 @@ void EditorLayer::OnUpdate(Ayin::Timestep deltaTime) {
 
 	AYIN_PROFILE_FUNCTION();
 
+	// 窗内部口缩放
 	//? 关于viewpoint在缩放时（主窗口不缩放），的黑屏问题
 	//! 原因在于原先是在OnImGuiRender中改变帧缓冲大小
 	//! 这导致帧缓冲的改变在渲染指令之后，OnUpdate中渲染的画面丢失
@@ -240,6 +229,7 @@ void EditorLayer::OnUpdate(Ayin::Timestep deltaTime) {
 
 void EditorLayer::OnImGuiRender() {
 
+	static int s_CameraModeSelection = 2; // 默认选中 Perspective (对应值 1)
 
 	Ayin::Renderer2D::Statistics statistics = Ayin::Renderer2D::GetStatistics();
 
@@ -258,35 +248,60 @@ void EditorLayer::OnImGuiRender() {
 
 	ImGui::DockSpaceOverViewport(dockspaceID, viewport, ImGuiDockNodeFlags_PassthruCentralNode);
 
+	{
+		ImGui::Begin("Viewport");
 
-	ImGui::Begin("Viewport");
-
-	if (ImGui::IsWindowFocused() && ImGui::IsWindowHovered()) {}		//聚焦且鼠标位于窗口上
+		if (ImGui::IsWindowFocused() && ImGui::IsWindowHovered()) {}		//聚焦且鼠标位于窗口上
 		//m_CameraController.OnUpdate(Ayin::Time::GetFrameInterval());
 
 
-	ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
-	m_ViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
+		ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
+		m_ViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
 
-	m_ViewTexture = m_Framebuffer->GetColorAttachment();
-	ImGui::Image((void*)(long long int)(uint32_t)(*m_ViewTexture), ImVec2{ (float)m_ViewportSize.x, (float)m_ViewportSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+		float halfZoomLevel = m_SceneCamera.GetComponents<Ayin::CameraComponent>().Camera.GetCameraZoomLevel() * 0.5f;
 
-	ImGui::End();
+		m_ViewTexture = m_Framebuffer->GetColorAttachment();
+		ImGui::Image((void*)(long long int)(uint32_t)(*m_ViewTexture), ImVec2{ (float)m_ViewportSize.x, (float)m_ViewportSize.y }, ImVec2{ 0.5f - halfZoomLevel, 0.5f + halfZoomLevel }, ImVec2{ 0.5f + halfZoomLevel, 0.5f - halfZoomLevel });
+		//首先纹理是中立的
+		//ImGui的坐标是左上角原点，窗口区域为第一象限，在它的纹理显示时也是这个坐标系来放置纹理，导致图片旋转180度
+		//OpenGL中坐标是常见的数学布局
+		//后两个参数就是用来更改ImGui左上角和右上角所使用的纹理uv
 
+		ImGui::End();
+	}
 
-	ImGui::Begin("Renderer2D Statistics");
-	ImGui::Text("Draw Calls: %d", statistics.DrawCalls);
-	ImGui::Text("TotalQuadCount: %d", statistics.QuadCount);
+	{
+		ImGui::Begin("Renderer2D Statistics");
+		ImGui::Text("Draw Calls: %d", statistics.DrawCalls);
+		ImGui::Text("TotalQuadCount: %d", statistics.QuadCount);
 
-	ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+		ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
 
-	ImGui::End();
+		ImGui::End();
+	}
 
-	ImGui::Begin("MainCamera");
+	{
+		ImGui::Begin("MainCamera");
 
-	ImGui::DragFloat3("CameraPosition", glm::value_ptr(m_SceneCamera.GetComponents < Ayin::TransformComponent >().Position));
+		ImGui::DragFloat3("CameraPosition", glm::value_ptr(m_SceneCamera.GetComponents < Ayin::TransformComponent >().Position));
+		// 定义下拉框的选项
+		const char* camera_mode_items[] = { "Perspective", "Orthogonal" };
+		// 参数说明：
+		//   - 标签
+		//   - 指向当前索引的指针
+		//   - 选项列表数组
+		//   - 选项数量
+		int current_item_index = s_CameraModeSelection - 1; // 把 1/2 转成 0/1 索引
+		if (ImGui::Combo("Camera Mode", &current_item_index, camera_mode_items, IM_ARRAYSIZE(camera_mode_items))) {
+			// 用户选择了新选项，更新我们的变量
+			s_CameraModeSelection = current_item_index + 1; // 把 0/1 索引转回到 1/2 枚举值
+		}
 
-	ImGui::End();
+		ImGui::End();
+
+		Ayin::Camera::CameraType current_mode = static_cast<Ayin::Camera::CameraType>(s_CameraModeSelection);
+		m_SceneCamera.GetComponents<Ayin::CameraComponent>().Camera.SetCameraMode(current_mode);
+	}
 
 };
 
