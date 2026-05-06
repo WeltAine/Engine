@@ -57,6 +57,130 @@ void EditorLayer::OnAttach() {
 	m_SceneCamera = m_ActiveScene.CreateEntity("MainCamera");
 	m_SceneCamera.AddComponent<Ayin::CameraComponent>(Ayin::CameraProp{ .Type{Ayin::Camera::CameraType::Orthogonal} });
 
+	class CameraController_ : public Ayin::ScriptableEntity{
+
+	public:
+		CameraController_() = default;
+		~CameraController_() = default;
+
+		void OnUpdate(Ayin::Timestep deltaTime) {
+
+			AYIN_PROFILE_FUNCTION();
+
+			OnAxisKeyPressed(deltaTime);
+			OnMouseMoved(deltaTime);
+			OnMouseScrolled(deltaTime);
+
+			auto&& [transfrom, camera] = GetComponents < Ayin::TransformComponent, Ayin::CameraComponent >();
+			camera.Camera.SetViewMatrix(transfrom.Position, transfrom.Rotation);
+		}
+
+	private:
+		bool OnMouseScrolled(Ayin::Timestep deltaTime) {
+
+			auto& cameraComponent = GetComponents<Ayin::CameraComponent>();
+			auto& cameraProp = cameraComponent.Camera.GetCameraProp();
+
+			m_ZoomLevel -= Ayin::Input::GetScrollYoffset() * 4.0 * deltaTime;// 减法，窗口范围越小，看见的物体越大
+			m_ZoomLevel = std::clamp(m_ZoomLevel, 0.25f, 10.0f);
+
+
+			float height = 2 * m_ZoomLevel;
+			float FOV = 2 * glm::degrees(std::atan(m_ZoomLevel * std::tan(glm::radians(0.5f * cameraProp.FOV))));
+
+
+			cameraComponent.Camera.SetProjection({
+				.Type{cameraProp.Type},
+				.FOV{FOV}, .Height{height},
+				.AspectRatio{cameraProp.AspectRatio},
+				.NearPlaneDistance{cameraProp.NearPlaneDistance}, .FarPlaneDistance{cameraProp.FarPlaneDistance} });
+
+
+			return false;
+
+		}
+		void OnAxisKeyPressed(Ayin::Timestep deltaTime) {
+
+			AYIN_PROFILE_FUNCTION();
+
+			auto&& [cameraComponent, cameraTransform] = GetComponents<Ayin::CameraComponent, Ayin::TransformComponent>();
+			
+			//原点-》平移量 -》逆矩阵
+			glm::vec3 distance{ 0.0f };
+
+			//! 因为OpenGL对相机的可是朝向是z的负半轴，所以，这里的加减关系和直觉上是相反的
+			if (Ayin::Input::IsKeyPressed(AYIN_KEY_A)) { distance.x -= m_CameraTranslateSpeed * deltaTime; };
+			if (Ayin::Input::IsKeyPressed(AYIN_KEY_D)) { distance.x += m_CameraTranslateSpeed * deltaTime; };
+			if (Ayin::Input::IsKeyPressed(AYIN_KEY_W)) { distance.z -= m_CameraTranslateSpeed * deltaTime; };
+			if (Ayin::Input::IsKeyPressed(AYIN_KEY_S)) { distance.z += m_CameraTranslateSpeed * deltaTime; };
+
+			if (glm::length(distance) > 0.0f) {
+
+				//! 原点 -> 平移量 -> 逆矩阵
+				//让移动基于相机的本地坐标，当然GetRotationMatrix()是我临时加的，之后可能会移动到Transform中
+				distance = cameraTransform.GetRotationMatrix() * glm::translate(glm::identity<glm::mat4>(), distance) * glm::vec4{ 0.0f, 0.0f, 0.0f, 1.0f };
+
+				cameraTransform.Position += glm::normalize(distance);
+				AYIN_ERROR("direction:{0}, {1}, {2}", distance.x, distance.y, distance.z);
+
+			}
+
+		}
+
+		void OnMouseMoved(Ayin::Timestep deltaTime) {
+
+			AYIN_PROFILE_FUNCTION();
+
+			auto& cameraTransform = GetComponents <Ayin::TransformComponent>();
+
+			auto& cameraProp = GetComponents <Ayin::CameraComponent>().Camera.GetCameraProp();
+
+			//正交相机（我们使用按键）或者非旋转状态无法使用鼠标发出旋转指令
+			if (cameraProp.Type == Ayin::Camera::CameraType::Orthogonal || !m_isRotate) {
+				return;
+			}
+
+			auto [x, y] = Ayin::Input::GetMousePosition();
+
+			x = (x - 640);
+			y = (y - 360);
+
+			static glm::vec3 lastRotation{ y, x, 0.0f };
+			glm::vec3 rotation{ 0.0f };
+
+
+			rotation = glm::vec3{ y, x, 0.0f };
+
+			//死区半径
+			if (glm::length(rotation) > 50.0f) {
+
+				cameraTransform.Rotation -= glm::normalize(rotation) * m_CameraRotationSpeed * float(deltaTime);
+
+
+				lastRotation = { y, x, 0.0f };
+
+				AYIN_ERROR("Rotate");
+				AYIN_ERROR("{0}, {1}, {2}", cameraTransform.Rotation.x, cameraTransform.Rotation.y, cameraTransform.Rotation.z);
+
+			}
+
+
+		}
+
+
+
+	private:
+
+		bool m_isRotate = false;                                                //是否开启旋转
+
+		float m_ZoomLevel = 1.0f;                                               //缩放
+
+		float m_CameraTranslateSpeed = 1.0f, m_CameraRotationSpeed = 120.0f;
+
+
+	};
+
+	m_SceneCamera.AddComponent<Ayin::NativeScriptComponent>().Bind<CameraController_>();
 };
 void EditorLayer::OnDetach() { AYIN_PROFILE_FUNCTION(); };
 
@@ -137,8 +261,8 @@ void EditorLayer::OnImGuiRender() {
 
 	ImGui::Begin("Viewport");
 
-	if (ImGui::IsWindowFocused() && ImGui::IsWindowHovered())		//聚焦且鼠标位于窗口上
-		m_CameraController.OnUpdate(Ayin::Time::GetFrameInterval());
+	if (ImGui::IsWindowFocused() && ImGui::IsWindowHovered()) {}		//聚焦且鼠标位于窗口上
+		//m_CameraController.OnUpdate(Ayin::Time::GetFrameInterval());
 
 
 	ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();

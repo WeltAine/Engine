@@ -25,8 +25,26 @@ namespace Ayin{
 	void Scene::OnUpdate(Timestep deltaTime) {
 	
 
-		//更新
-		CameraSystem::OnUpdate(m_Registry);
+		// 系统更新
+		//{
+		//	CameraSystem::OnUpdate(m_Registry);
+		//}
+
+		// 脚本更新
+		{
+			m_Registry.view<NativeScriptComponent>().each([=](entt::entity entity, NativeScriptComponent& nsc) {
+
+				if (!nsc.ScriptableInstance) {
+					nsc.InstantiateFunction();
+					nsc.ScriptableInstance->m_Entity = Entity{ entity, this };
+					nsc.OnCreateFunction();
+				}
+
+				nsc.OnUpdateFunction(deltaTime);
+
+				});
+		}
+
 
 
 		//? 关于没有与这些操作数匹配的 "!=" 运算符

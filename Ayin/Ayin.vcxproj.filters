@@ -1428,6 +1428,12 @@
     <ClInclude Include="src\Ayin\Scene\SceneCamera.h">
       <Filter>src\Ayin\Scene</Filter>
     </ClInclude>
+    <ClInclude Include="src\Ayin\Scene\ScriptableEntity.h">
+      <Filter>src\Ayin\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Ayin\Scene\Systems.h">
+      <Filter>src\Ayin\Scene</Filter>
+    </ClInclude>
     <ClInclude Include="src\AyinPch.h">
       <Filter>src</Filter>
     </ClInclude>
@@ -1461,7 +1467,6 @@
     <ClInclude Include="src\Platform\Windows\WindowsWindow.h">
       <Filter>src\Platform\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="src\Ayin\Scene\Systems.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Dependency\stb_image\stb_image.cpp">
