@@ -16,11 +16,11 @@ namespace Ayin{
 	public:
 
 		ScriptableEntity() = default;
-		~ScriptableEntity() = default;
+		virtual ~ScriptableEntity() = default;
 
-		void OnCreate() {};
-		void OnUpdate(Timestep deltaTime) {};
-		void OnDestroy() {};
+		virtual void OnCreate() {};
+		virtual void OnUpdate(Timestep deltaTime) {};
+		virtual void OnDestroy() {};
 
 		template<typename... ComponentTypes>
 		decltype(auto) GetComponents();

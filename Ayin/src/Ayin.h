@@ -38,6 +38,7 @@
 // -----------------------------------
 
 
+#include "Ayin/Core/ObjectPool.h"
 
 // ---数学----------------------------
 #include <glm/gtc/type_ptr.hpp>

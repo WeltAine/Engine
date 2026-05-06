@@ -57,11 +57,11 @@ void EditorLayer::OnAttach() {
 	m_SceneCamera = m_ActiveScene.CreateEntity("MainCamera");
 	m_SceneCamera.AddComponent<Ayin::CameraComponent>(Ayin::CameraProp{ .Type{Ayin::Camera::CameraType::Orthogonal} });
 
-	class CameraController_ : public Ayin::ScriptableEntity{
+	class CameraControllerScript : public Ayin::ScriptableEntity{
 
 	public:
-		CameraController_() = default;
-		~CameraController_() = default;
+		CameraControllerScript() = default;
+		~CameraControllerScript() = default;
 
 		void OnUpdate(Ayin::Timestep deltaTime) {
 
@@ -180,7 +180,7 @@ void EditorLayer::OnAttach() {
 
 	};
 
-	m_SceneCamera.AddComponent<Ayin::NativeScriptComponent>().Bind<CameraController_>();
+	m_SceneCamera.AddComponent<Ayin::NativeScriptComponent>().Bind<CameraControllerScript>();
 };
 void EditorLayer::OnDetach() { AYIN_PROFILE_FUNCTION(); };
 

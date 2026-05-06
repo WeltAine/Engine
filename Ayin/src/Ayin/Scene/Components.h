@@ -12,6 +12,8 @@
 #include "Ayin/Scene/ScriptableEntity.h"
 #include "Ayin/Core/Timestep.h"
 
+#include "Ayin/Core/ObjectPool.h"
+
 #include <entt/entt.hpp>
 
 namespace Ayin {
@@ -114,8 +116,10 @@ namespace Ayin {
 			requires std::derived_from<T, ScriptableEntity>
 		void Bind() {
 
-			InstantiateFunction = [&]() { ScriptableInstance = new T(); };
-			DestroyInstanceFunction = [&]() { delete ScriptableInstance, ScriptableInstance = nullptr; };
+			static ObjectPool<T> pool;
+
+			InstantiateFunction = [&]() { ScriptableInstance = pool.Allocate(); new(ScriptableInstance) T(); };
+			DestroyInstanceFunction = [&]() { pool.Deallocate(static_cast<T*>(ScriptableInstance)), ScriptableInstance = nullptr; };
 
 			
 			OnCreateFunction = [&]() { ((T*)ScriptableInstance)->OnCreate(); };
@@ -124,7 +128,6 @@ namespace Ayin {
 
 		}
 
-		//这里的设计十分困惑，比如为什么不直接用多态
 		//ToDo 想一想获取类型T有什么好处，什么事情是必须需要知晓类型的，或者知晓类型会更加轻松
 		//x 一个例子（基于多态指针），如果我们想基于prefab创建的话，我们显然不能直接复制指针，但是实际类型我们也不知道
 		//x 这就需要用户写一个clone方法了，看上去也不是什么没必要的方法
