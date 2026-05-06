@@ -2,8 +2,8 @@
 
 #include "Ayin/Core/Core.h"
 
-//#include <functional>
-//#include <string>
+#include <functional>
+#include <string>
 
 
 //以类（结构体）的形式构造事件信息

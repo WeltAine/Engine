@@ -96,7 +96,7 @@ namespace Ayin {
 			in.seekg(0, std::ios::end);					//设置输入流读位置（不是读操作）
 			size_t fileSize = in.tellg();
 
-			if (fileSize != -1) {							//之前的寻找文件末尾的操作可能失败，或者发现文件大到超过存储上限时不要读取内容
+			if (fileSize != -1) {						//之前的寻找文件末尾的操作可能失败，或者发现文件大到超过存储上限时不要读取内容
 			
 				source.resize(fileSize);				//获取输入流读位置
 				in.seekg(0, std::ios::beg);				//输入流读位置复位（放置到开头）

@@ -6,6 +6,8 @@
 #include "Ayin/Core/KeyCodes.h"
 #include "Ayin/Core/MouseButtonCodes.h"
 
+#include <glm/glm.hpp>
+
 namespace Ayin {
 
 
@@ -31,7 +33,7 @@ namespace Ayin {
 		static bool IsKeyPressed(KeyCode keyCode);
 
 		static bool GetMouseButton(MouseCode button);
-		static std::pair<float, float> GetMousePosition();
+		static glm::vec2 GetMousePosition();
 		static float GetMouseX();
 		static float GetMouseY();
 		static float GetScrollXoffset();

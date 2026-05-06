@@ -24,7 +24,7 @@ namespace Ayin {
 		static bool IsKeyPressedImpl(KeyCode keyCode);
 
 		static bool GetMouseButtonImpl(MouseCode button);
-		static std::pair<float, float> GetMousePositionImpl();
+		static glm::vec2 GetMousePositionImpl();
 		static float GetMouseXImpl();
 		static float GetMouseYImpl();
 		static float GetScrollXoffsetImpl() { return s_MouseScrollXoffset; };

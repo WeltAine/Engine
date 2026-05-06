@@ -243,7 +243,7 @@ namespace Ayin {
 		uint32_t textureIndex = 0;
 		for (uint32_t index = 0; index < s_Data.TextureSlotInsertIndex; index++) {
 
-			if (*(s_Data.TextureSlots[index].get()) == *(texture.get())) {		//ID比较
+			if (*(s_Data.TextureSlots[index]) == *texture) {		//ID比较
 				textureIndex = index;
 				break;
 			}

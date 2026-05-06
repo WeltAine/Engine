@@ -47,7 +47,7 @@ namespace Ayin {
 		int majorVersion, minorVersion;
 		glGetIntegerv(GL_MAJOR_VERSION, &majorVersion);
 		glGetIntegerv(GL_MINOR_VERSION, &minorVersion);
-		AYIN_CORE_ASSERT(majorVersion > 4 || (majorVersion == 4 && minorVersion >= 6), "Ayin requires at least OpenGL version 4.6!");
+		AYIN_CORE_ASSERT(GLVersion.major >= 4 && GLVersion.minor >= 6, "Ayin requires at least OpenGL version 4.6!");
 
 #endif // AYIN_ENABLE_ASSERT
 

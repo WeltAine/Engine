@@ -22,7 +22,7 @@ namespace Ayin {
 	bool Input::IsKeyPressed(KeyCode keyCode) { return WindowsInput::IsKeyPressedImpl(keyCode); };
 
 	bool Input::GetMouseButton(MouseCode button) { return WindowsInput::GetMouseButtonImpl(button); };
-	std::pair<float, float> Input::GetMousePosition() { return WindowsInput::GetMousePositionImpl(); };
+	glm::vec2 Input::GetMousePosition() { return WindowsInput::GetMousePositionImpl(); };
 	float Input::GetMouseX() { return WindowsInput::GetMouseXImpl(); };
 	float Input::GetMouseY() { return WindowsInput::GetMouseYImpl(); };
 	float Input::GetScrollXoffset() { return WindowsInput::GetScrollXoffsetImpl(); };
@@ -80,14 +80,14 @@ namespace Ayin {
 		return state == GLFW_PRESS;
 	}
 
-	std::pair<float, float> WindowsInput::GetMousePositionImpl()
+	glm::vec2 WindowsInput::GetMousePositionImpl()
 	{
 		GLFWwindow* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
 
 		double x, y;
 		glfwGetCursorPos(window, &x, &y);
 
-		return std::pair<float, float>{(float)x, (float)y};
+		return glm::vec2{(float)x, (float)y};
 	}
 
 	float WindowsInput::GetMouseXImpl()

@@ -179,16 +179,16 @@ namespace Ayin{
                 return;
             }
 
-            auto [x, y] = Ayin::Input::GetMousePosition();
+            glm::vec2 position = Ayin::Input::GetMousePosition();
 
-            x = (x - 640);
-            y = (y - 360);
+            position.x = (position.x - 640);
+            position.y = (position.y - 360);
 
-            static glm::vec3 lastRotation{ y, x, 0.0f };
+            static glm::vec3 lastRotation{ position.y, position.x, 0.0f };
             glm::vec3 rotation{ 0.0f };
 
 
-            rotation = glm::vec3{ y, x, 0.0f };
+            rotation = glm::vec3{ position.y, position.x, 0.0f };
 
             //死区半径
             if (glm::length(rotation) > 50.0f) {
