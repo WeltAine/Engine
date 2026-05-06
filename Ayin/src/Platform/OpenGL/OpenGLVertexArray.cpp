@@ -261,7 +261,7 @@ namespace Ayin {
 						element.GetComponentCount(),
 						ShaderDataTypeToBaseType(element.Type),
 						element.Normalized,
-						element.GetComponentCount() * index
+						element.GetComponentCount() * index + element.Offset
 					);
 				}
 
