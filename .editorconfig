@@ -1,0 +1,22 @@
+
+#该文件由编辑器处理
+#生效是靠 EditorConfig 协议，这是编辑器级别的事
+#编辑器在启动时/打开文件时自己处理的，跟 Premake 生成的 .sln 或 .vcxproj 毫无关系
+
+#读到这个.editorconfig 就停止往上级目录找了
+root = true
+#打开一个 .cpp 文件
+#        ↓
+#VS (或 VS Code / Rider / CLion) 自动在文件所在目录查找 .editorconfig
+#        ↓
+#找不到就往上级目录找，一直找到盘符根目录
+#        ↓
+#找到 .editorconfig → 读取规则 → 应用到当前编辑器
+#（缩进用 Tab、换行用 LF、文件末尾加空行...）
+
+
+[*]                         #适用于所有文件的规则
+end_of_line = lf            #每一行结尾统一用 Unix 换行符 (LF)，不用 Windows 的 CRLF
+insert_final_newline = true #每个文件末尾自动加一个空行
+indent_style = tab          #缩进用 Tab 而非空格
+indent_size = 4             #Tab 的宽度为 4 个空格

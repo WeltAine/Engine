@@ -56,7 +56,7 @@ echo 清理完成，正在生成解决方案...
 echo ========================================
 echo.
 
-call Dependency\bin\premake\premake5.exe vs2022
+call Dependency\premake\bin\premake5.exe vs2022
 
 echo.
 pause

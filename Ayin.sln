@@ -1,9 +1,16 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6FB2AEB2-DB13-8CC0-6481-D272D0E1C27F}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Ayin-Editor", "Ayin-Editor\Ayin-Editor.vcxproj", "{CAFB832C-36B1-FC21-BFA5-F6F82B5AF325}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Ayin", "Ayin\Ayin.vcxproj", "{D6C4827C-C2FB-830D-6BE8-691057FEFF0E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dependency", "Dependency", "{2B640FC1-175D-2E13-408F-13982CE70D1F}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GLFW", "Ayin\Dependency\GLFW\GLFW\GLFW.vcxproj", "{154B857C-0182-860D-AA6E-6C109684020F}"
 EndProject
@@ -59,5 +66,10 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{154B857C-0182-860D-AA6E-6C109684020F} = {2B640FC1-175D-2E13-408F-13982CE70D1F}
+		{BDD6857C-A90D-870D-52FA-6C103E10030F} = {2B640FC1-175D-2E13-408F-13982CE70D1F}
+		{C0FF640D-2C14-8DBE-F595-301E616989EF} = {2B640FC1-175D-2E13-408F-13982CE70D1F}
 	EndGlobalSection
 EndGlobal
