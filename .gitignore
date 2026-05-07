@@ -1,6 +1,7 @@
 #忽略文件夹
 .vs/
 bin/
+!Dependency/premake/bin/
 bin-int/
 
 #忽略文件
