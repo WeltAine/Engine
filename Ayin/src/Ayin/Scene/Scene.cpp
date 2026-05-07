@@ -37,10 +37,10 @@ namespace Ayin{
 				if (!nsc.ScriptableInstance) {
 					nsc.InstantiateFunction();
 					nsc.ScriptableInstance->m_Entity = Entity{ entity, this };
-					nsc.OnCreateFunction();
+					nsc.ScriptableInstance->OnCreate();
 				}
 
-				nsc.OnUpdateFunction(deltaTime);
+				nsc.ScriptableInstance->OnUpdate(deltaTime);
 
 				});
 		}

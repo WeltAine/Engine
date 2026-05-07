@@ -15,6 +15,7 @@
 #include "Ayin/Core/ObjectPool.h"
 
 #include <entt/entt.hpp>
+#include <concepts>
 
 namespace Ayin {
 
@@ -108,23 +109,14 @@ namespace Ayin {
 		std::function<void()> InstantiateFunction;
 		std::function<void()> DestroyInstanceFunction;
 		
-		std::function<void()> OnCreateFunction;
-		std::function<void(Timestep deltaTime)> OnUpdateFunction;
-		std::function<void()> OnDestroyFunction;
-
 		template<typename T>
-			requires std::derived_from<T, ScriptableEntity>
+			requires std::derived_from<T, ScriptableEntity> && std::default_initializable<T>
 		void Bind() {
 
 			static ObjectPool<T> pool;
 
 			InstantiateFunction = [&]() { ScriptableInstance = pool.Allocate(); new(ScriptableInstance) T(); };
 			DestroyInstanceFunction = [&]() { pool.Deallocate(static_cast<T*>(ScriptableInstance)), ScriptableInstance = nullptr; };
-
-			
-			OnCreateFunction = [&]() { ((T*)ScriptableInstance)->OnCreate(); };
-			OnUpdateFunction = [&](Timestep deltaTime) { ((T*)ScriptableInstance)->OnUpdate(deltaTime); };
-			OnDestroyFunction = [&]() { ((T*)ScriptableInstance)->OnDestroy(); };
 
 		}
 
@@ -144,7 +136,7 @@ namespace Ayin {
 
 			if (ScriptableInstance != nullptr) {
 
-				OnDestroyFunction();
+				ScriptableInstance->OnDestroy();
 				DestroyInstanceFunction();
 
 			}
