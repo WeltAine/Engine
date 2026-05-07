@@ -26,21 +26,6 @@ void EditorLayer::OnAttach() {
 
 
 	// 设置场景
-	{
-		Ayin::Entity entity = m_ActiveScene.CreateEntity();
-		auto& transform = entity.GetComponents<Ayin::TransformComponent>();
-		transform = Ayin::TransformComponent{ glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 60.0f }, glm::vec3{ 1.0f, 1.0f, 1.0f } };
-		auto& sprite = entity.AddComponent<Ayin::SpriteRendererComponent>();
-		sprite.Color = { glm::vec4{ 0.8f, 0.2f, 0.5f, 0.5f } };
-	}
-
-	{
-		m_TextureEntity = m_ActiveScene.CreateEntity("TextureEntity");
-		auto& transform = m_TextureEntity.GetComponents<Ayin::TransformComponent>();
-		transform = Ayin::TransformComponent{ glm::vec3{ 0.0f, 0.0f, -5.0f }, glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 1.0f, 1.0f, 1.0f } };
-		m_TextureEntity.AddComponent<Ayin::SpriteRendererComponent>().Texture2D = m_Texture;
-	}
-
 	for (float y = -5.0f; y < 5.0f; y += 0.5f)
 	{
 		for (float x = -5.0f; x < 5.0f; x += 0.5f)
@@ -53,6 +38,23 @@ void EditorLayer::OnAttach() {
 			sprite.Color = { (x + 5.0f) / 10.0f, 0.4f, (y + 5.0f) / 10.0f, 0.7f };
 		}
 	}
+
+	{
+		m_TextureEntity = m_ActiveScene.CreateEntity("TextureEntity");
+		auto& transform = m_TextureEntity.GetComponents<Ayin::TransformComponent>();
+		transform = Ayin::TransformComponent{ glm::vec3{ 0.0f, 0.0f, -5.0f }, glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 1.0f, 1.0f, 1.0f } };
+		m_TextureEntity.AddComponent<Ayin::SpriteRendererComponent>().Texture2D = m_Texture;
+	}
+
+
+	{
+		Ayin::Entity entity = m_ActiveScene.CreateEntity();
+		auto& transform = entity.GetComponents<Ayin::TransformComponent>();
+		transform = Ayin::TransformComponent{ glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 60.0f }, glm::vec3{ 1.0f, 1.0f, 1.0f } };
+		auto& sprite = entity.AddComponent<Ayin::SpriteRendererComponent>();
+		sprite.Color = { glm::vec4{ 0.8f, 0.2f, 0.5f, 0.5f } };
+	}
+
 
 	m_SceneCamera = m_ActiveScene.CreateEntity("MainCamera");
 	m_SceneCamera.AddComponent<Ayin::CameraComponent>(Ayin::CameraProp{ .Type{Ayin::Camera::CameraType::Orthogonal} });

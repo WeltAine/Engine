@@ -71,7 +71,13 @@ namespace Ayin{
 
 		// 渲染更新
 		{
+
 			auto spriteGroup = m_Registry.group<SpriteRendererComponent>(entt::get<TransformComponent>);
+
+			spriteGroup.sort<TransformComponent>([](const TransformComponent& transform_1, const TransformComponent& transform_2) -> bool
+					{
+						return transform_1.Position.z < transform_2.Position.z;	//简称：真的情况排在前头
+					});
 
 			Renderer2D::BeginScene(cameraComponent.Camera);
 
