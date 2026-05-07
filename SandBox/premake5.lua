@@ -1,21 +1,21 @@
 project "SandBox"
-    location "SandBox" --？？？默认目录么，可是后头的构建包含文件和头文件为什么用了更完整的路径？？
+    location "." --项目文件和premake脚本放在同一目录，与源码同级，这样VS"显示所有文件"时可以展开完整的文件夹树方便添加新文件
     kind "ConsoleApp"
     language "C++"
     cppdialect "C++20" 
     staticruntime "On" --???
     
-    targetdir ("bin/" .. outputdir .. "/%{prj.name}") --输出路径
-    objdir ("bin-int/" .. outputdir .. "/%{prj.name}") --中间文件路径
+    targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}") --输出路径
+    objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}") --中间文件路径
 
     buildoptions "/utf-8"
 
 
     includedirs --项目包含文件
     {
-        "Ayin/Dependency/spdlog/include",
-        "Ayin/src",
-        "Ayin/Dependency",
+        "%{wks.location}/Ayin/Dependency/spdlog/include",
+        "%{wks.location}/Ayin/src",
+        "%{wks.location}/Ayin/Dependency",
         "%{IncludeDir.glm}",
         "%{IncludeDir.entt}"
 
@@ -30,14 +30,13 @@ project "SandBox"
 
     files --构建时包含的文件
     {
-        "%{prj.name}/src/**.h",
-        "%{prj.name}/src/**.cpp"
+        "src/**.h",
+        "src/**.cpp"
     }
 
 
     filter "system:windows" --当在windows系统下构建该项目时
         systemversion "latest" --WindowsSDK，我的vs里是类似10.0.x
-
 
         defines --宏
         {

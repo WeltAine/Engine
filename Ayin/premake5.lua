@@ -1,21 +1,31 @@
 project "Ayin"
-    location "Ayin" --？？？默认目录么，可是后头的构建包含文件和头文件为什么用了更完整的路径？？
-    kind "StaticLib" --生成静态库
+    location "."        --项目文件和premake脚本放在同一目录，与源码同级，这样VS"显示所有文件"时可以展开完整的文件夹树方便添加新文件，你也可以指定
+    kind "StaticLib"    --生成静态库
     language "C++"
     cppdialect "C++20"
     staticruntime "On" --???
     
-    targetdir ("bin/" .. outputdir .. "/%{prj.name}") --输出路径
-    objdir ("bin-int/" .. outputdir .. "/%{prj.name}") --中间文件路径
+    targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")   --输出路径
+    objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")  --中间文件路径
 
-    pchheader "AyinPch.h" --Use Precompiled Header
+    pchheader "AyinPch.h"       -- Use Precompiled Header
+    pchsource "src/AyinPch.cpp" -- Create Precompiled Header
 
-    buildoptions "/utf-8" --保证能够使用log，文件编码时utf-8没错，但是编码器所选择的解释方式并不默认按照文本的格式来，否则 Microsoft Visual C++ (MSVC) 编译器默认会使用系统的本地代码页（如 Windows-1252）来读取它们。所以我们需要指定utf-8，否则log系统会报错
+    buildoptions "/utf-8"       --保证能够使用log，文件编码时utf-8没错，但是编码器所选择的解释方式并不默认按照文本的格式来，否则 Microsoft Visual C++ (MSVC) 编译器默认会使用系统的本地代码页（如 Windows-1252）来读取它们。所以我们需要指定utf-8，否则log系统会报错
+
+    defines --宏
+    {
+        --"AYIN_DENAMIC_LINK",        --开启静态链接还是动态链接
+        "AYIN_BUILD_DLL",           --这个宏是为了区分是构建Ayin库还是使用Ayin库，虽然现在Ayin是静态库，但以后可能会改成动态库，所以先写着
+        "GLFW_INCLUDE_NONE",        --让glfw不包含OpenGL头文件，因为我们用的是Glad来加载OpenGL函数，而且由glfw引入头文件会报错（不理解为什么要这么处理）
+        "_CRT_SECURE_NO_WARNINGS"
+    }
+
 
     includedirs --项目包含文件
     {
-        "%{prj.name}/src", --Ayin文件的根目录，为更深层次目录中的文件include时提供方便
-        "%{prj.name}/Dependency/spdlog/include",
+        "src", --Ayin文件的根目录，为更深层次目录中的文件include时提供方便
+        "Dependency/spdlog/include",
         "%{IncludeDir.GLFW}",
         "%{IncludeDir.Glad}",
         "%{IncludeDir.ImGui}",
@@ -32,30 +42,30 @@ project "Ayin"
         "opengl32.lib"
     }
 
-
+    -- files的路径是相对于premake脚本所在目录的，在此基础上拼接完整路径
+    -- includedir中也是如此
+    -- 完整绝对路径不存在该问题
+    -- 当写入.vcxproj时，会写入相对于.vcxproj文件的路径，所以在这里写相对于premake脚本的路径就行了（除非你locatin了指定位置）
     files --project构建时包含的文件
     {
-        "%{prj.name}/src/**.h",
-        "%{prj.name}/src/**.cpp",
-        "%{prj.name}/Dependency/glm/glm/**.hpp",
-        "%{prj.name}/Dependency/glm/glm/**.inl",
-        "%{prj.name}/Dependency/stb_image/**.h",
-        "%{prj.name}/Dependency/stb_image/**.cpp"
+        --%{prj.name}展开就只是项目名称
+        "src/**.h",
+        "src/**.cpp",
+        "Dependency/glm/glm/**.hpp",
+        "Dependency/glm/glm/**.inl",
+        "Dependency/stb_image/**.h",
+        "Dependency/stb_image/**.cpp"
 
     }
 
 
     filter "system:windows" --当在windows系统下构建该项目时
         systemversion "latest" --WindowsSDK，我的vs里是类似10.0.x
-        pchsource "Ayin/src/AyinPch.cpp" -- Creat Precompiled Header
 
 
         defines --宏
         {
             "AYIN_PLATFORM_WINDOWS",
-            "AYIN_BUILD_DLL", --这个宏是为了区分是构建Ayin库还是使用Ayin库，虽然现在Ayin是静态库，但以后可能会改成动态库，所以先写着
-            "GLFW_INCLUDE_NONE", --让glfw不包含OpenGL头文件，因为我们用的是Glad来加载OpenGL函数，而且由glfw引入头文件会报错（不理解为什么要这么处理）
-            "_CRT_SECURE_NO_WARNINGS"
         }
 
 
