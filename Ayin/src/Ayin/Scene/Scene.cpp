@@ -84,7 +84,6 @@ namespace Ayin{
 			for (auto&& [entity, sprite, transform] : spriteGroup.each()) {
 				//是倒着遍历的
 
-				//ToDo 渲染排序问题
 
 				if (sprite.Texture2D.get() == nullptr)
 					Renderer2D::DrawQuad(transform.Position, transform.Rotation, transform.Scale, sprite.Color);

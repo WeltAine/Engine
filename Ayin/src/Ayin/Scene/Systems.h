@@ -12,14 +12,14 @@ namespace Ayin {
 	class AYIN_API CameraSystem {
 
 	public:
-		static void OnUpdate(entt::registry& registry) {
+		static void OnUpdate(Ref<Scene> scene) {
 
-			auto&& group = registry.view<CameraComponent>();
+			auto&& group = scene->GetEntitiesByComponents<CameraComponent>();
 
 			for (auto& entity: group) {
 
-				TransformComponent& transform = registry.get<TransformComponent>(entity);
-				CameraComponent& camera = registry.get<CameraComponent>(entity);
+				TransformComponent& transform = entity.GetComponents<TransformComponent>();
+				CameraComponent& camera = entity.GetComponents<CameraComponent>();
 
 				camera.Camera.SetViewMatrix(transform.Position, transform.Rotation);
 
