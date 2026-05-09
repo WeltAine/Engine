@@ -21,3 +21,5 @@
 #include "Ayin/Core/Log.h"
 
 #include "Ayin/Debug/Instrumentor.h"
+
+#include <entt/entt.hpp>

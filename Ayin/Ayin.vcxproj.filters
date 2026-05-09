@@ -1356,6 +1356,12 @@
     <ClInclude Include="src\Ayin\Core\MouseButtonCodes.h">
       <Filter>src\Ayin\Core</Filter>
     </ClInclude>
+    <ClInclude Include="src\Ayin\Core\ObjectPool.h">
+      <Filter>src\Ayin\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Ayin\Core\PlatformDetection.h">
+      <Filter>src\Ayin\Core</Filter>
+    </ClInclude>
     <ClInclude Include="src\Ayin\Core\Time.h">
       <Filter>src\Ayin\Core</Filter>
     </ClInclude>

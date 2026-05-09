@@ -2,8 +2,11 @@
 
 #include "Ayin/Core/Core.h"
 #include <vector>
+#include <concepts>
+
 
 template <typename T>
+	requires std::default_initializable<T>
 class ObjectPool {
 
 public:
