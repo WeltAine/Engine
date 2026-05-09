@@ -16,6 +16,7 @@ project "Ayin-Editor"
         "%{wks.location}/Ayin/Dependency/spdlog/include",
         "%{wks.location}/Ayin/src",
         "%{wks.location}/Ayin/Dependency",
+        "src",
         "%{IncludeDir.glm}",
         "%{IncludeDir.entt}"
     }
