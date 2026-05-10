@@ -2,6 +2,8 @@
 
 #include <Ayin.h>
 
+#include "Panels/SceneHierarchyPanel.h"
+
 class EditorLayer : public Ayin::Layer {
 
 public:
@@ -33,7 +35,10 @@ private:
 	glm::i32vec2 m_ViewportSize = {0.0f, 0.0f};		//游戏视窗大小
 
 	//ECS测试
-	Ayin::Scene m_ActiveScene;						
+	Ayin::Ref<Ayin::Scene> m_ActiveScene;						
 	Ayin::Entity m_TextureEntity;
 	Ayin::Entity m_SceneCamera;
+
+	//面板测试
+	Ayin::SceneHierarchyPanel m_SceneHierarchyPanel;
 };

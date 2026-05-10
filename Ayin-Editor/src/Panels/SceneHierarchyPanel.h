@@ -1,0 +1,36 @@
+#pragma once
+
+#include <Ayin.h>
+
+namespace Ayin {
+
+	class SceneHierarchyPanel {
+
+	public:
+
+		SceneHierarchyPanel() = default;
+		SceneHierarchyPanel(const Ref<Scene>& scene);
+
+		~SceneHierarchyPanel() = default;
+
+		void SetContext(const Ref<Scene>& scene);
+
+		void OnImGuiRender();
+
+	private:
+
+		void DrawEntityNode(Entity& node);
+
+	private:
+
+		Ref<Scene> m_Scene;
+		Entity m_SelectedEntity, m_HoveredEntity;
+
+											 //叶节点（无前缀图标）	   //选中时整行高亮					  //不开新树
+		ImGuiTreeNodeFlags m_LeafNodeFlags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_DrawLinesFull;
+											   //点开箭头展开					//层级线绘制					    //选中时整行高亮
+		ImGuiTreeNodeFlags m_ParentNodeFlags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_DrawLinesFull | ImGuiTreeNodeFlags_SpanFullWidth;
+
+	};
+
+}
