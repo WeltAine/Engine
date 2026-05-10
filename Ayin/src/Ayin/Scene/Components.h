@@ -29,6 +29,8 @@ namespace Ayin {
 			:Name{ name }
 		{};
 		TagComponent(const TagComponent& tagComponent) = default;
+
+		static ::entt::id_type ComponentPoolID() { return ::entt::type_hash<TagComponent>::value(); };
 	};
 
 	struct TransformComponent {
@@ -69,6 +71,9 @@ namespace Ayin {
 		{};
 		TransformComponent(const TransformComponent& transformComponent) = default;
 		~TransformComponent() = default;
+
+		static ::entt::id_type ComponentPoolID() { return ::entt::type_hash<TransformComponent>::value(); };
+
 	};
 
 
@@ -81,6 +86,9 @@ namespace Ayin {
 	
 		SpriteRendererComponent() = default;
 		SpriteRendererComponent(const SpriteRendererComponent& spriteRendererComponent) = default;
+		~SpriteRendererComponent() = default;
+
+		static ::entt::id_type ComponentPoolID() { return ::entt::type_hash<SpriteRendererComponent>::value(); };
 
 	};
 
@@ -96,6 +104,9 @@ namespace Ayin {
 		CameraComponent(const CameraProp& cameraProp)
 			:Camera{ cameraProp } 
 		{}
+		~CameraComponent() = default;
+
+		static ::entt::id_type ComponentPoolID() { return ::entt::type_hash<CameraComponent>::value(); };
 
 	};
 
@@ -140,8 +151,10 @@ namespace Ayin {
 				DestroyInstanceFunction();
 
 			}
-
+			
 		}
+
+		static ::entt::id_type ComponentPoolID() { return ::entt::type_hash<NativeScriptComponent>::value(); };
 
 	};
 }

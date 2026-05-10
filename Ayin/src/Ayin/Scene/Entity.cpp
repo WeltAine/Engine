@@ -14,5 +14,16 @@ namespace Ayin {
 
 	};
 
+	bool Entity::HasComponent(entt::id_type id) {
+
+		auto* componentPool = m_Scene->m_Registry.storage(id);
+
+		if (!componentPool)
+			return false;
+
+		return componentPool->contains(m_EntityHandle);
+
+	};
+	
 
 }

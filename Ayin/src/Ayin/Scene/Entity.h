@@ -46,7 +46,8 @@ namespace Ayin {
 		void RemoveComponents();
 
 		template<typename... ComponentTypeArgs>
-		bool HasComponent();
+		bool HasComponents();
+		bool HasComponent(entt::id_type id);
 
 		template<typename... ComponentTypes>
 		decltype(auto) GetComponents();
@@ -76,7 +77,7 @@ namespace Ayin {
 	ComponentType& Entity::AddComponent(Args&&... args) {
 
 
-		if (!HasComponent<ComponentType>()) {
+		if (!HasComponents<ComponentType>()) {
 
 			//通过模板来自动根据组件的前置组件类型需求，生成模板
 			if constexpr (HasRequirements<ComponentType>) {
@@ -108,7 +109,7 @@ namespace Ayin {
 	void Entity::InternalEnsureComponent() {
 		//要求自动创建的类型每一个都要有默认构造函数
 		//不要断言，这里属于自动构造的部分，不属于用户意图，无需通知使用者（AddComponent也不需要其实）
-		if (!HasComponent<ComponentType>()) {
+		if (!HasComponents<ComponentType>()) {
 
 			m_Scene->m_Registry.emplace<ComponentType>(m_EntityHandle);
 
@@ -121,14 +122,14 @@ namespace Ayin {
 	template<typename... ComponentTypes>
 	void Entity::RemoveComponents() {
 
-		AYIN_CORE_ASSERT(HasComponent<ComponentTypes...>(), "Entity doesn't have component!");
+		AYIN_CORE_ASSERT(HasComponents<ComponentTypes...>(), "Entity doesn't have component!");
 
 		m_Scene->m_Registry.remove<ComponentTypes...>(m_EntityHandle);
 
 	};
 
 	template<typename... ComponentTypes>
-	bool Entity::HasComponent() {
+	bool Entity::HasComponents() {
 
 		return m_Scene->m_Registry.all_of<ComponentTypes...>(m_EntityHandle);
 
@@ -142,7 +143,7 @@ namespace Ayin {
 		//	如果 e 是一个表达式，且 e 产生一个左值（lvalue），推导结果就是 T & 。
 		//	如果 e 产生一个右值（prvalue，如临时值），推导结果就是 T。
 
-		AYIN_CORE_ASSERT(HasComponent<ComponentTypes...>(),
+		AYIN_CORE_ASSERT(HasComponents<ComponentTypes...>(),
 			"Entity does not have all requested components!");
 
 		if constexpr (sizeof...(ComponentTypes) == 1u) {

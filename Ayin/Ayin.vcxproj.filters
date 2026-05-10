@@ -1473,6 +1473,7 @@
     <ClInclude Include="src\Platform\Windows\WindowsWindow.h">
       <Filter>src\Platform\Windows</Filter>
     </ClInclude>
+    <ClInclude Include="src\Ayin\Scene\ComponentRegistry.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Dependency\stb_image\stb_image.cpp">
@@ -1580,5 +1581,6 @@
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp">
       <Filter>src\Platform\Windows</Filter>
     </ClCompile>
+    <ClCompile Include="src\Ayin\Scene\ComponentRegistry.cpp" />
   </ItemGroup>
 </Project>

@@ -615,6 +615,7 @@ copy /B /Y ..\bin\Dist-windows-x86_64\Ayin\Ayin.lib ..\bin\Dist-windows-x86_64\S
     <ClInclude Include="src\Ayin\Renderer\Shader.h" />
     <ClInclude Include="src\Ayin\Renderer\Texture.h" />
     <ClInclude Include="src\Ayin\Renderer\VertexArray.h" />
+    <ClInclude Include="src\Ayin\Scene\ComponentRegistry.h" />
     <ClInclude Include="src\Ayin\Scene\Components.h" />
     <ClInclude Include="src\Ayin\Scene\Entity.h" />
     <ClInclude Include="src\Ayin\Scene\Scene.h" />
@@ -655,6 +656,7 @@ copy /B /Y ..\bin\Dist-windows-x86_64\Ayin\Ayin.lib ..\bin\Dist-windows-x86_64\S
     <ClCompile Include="src\Ayin\Renderer\Shader.cpp" />
     <ClCompile Include="src\Ayin\Renderer\Texture.cpp" />
     <ClCompile Include="src\Ayin\Renderer\VertexArray.cpp" />
+    <ClCompile Include="src\Ayin\Scene\ComponentRegistry.cpp" />
     <ClCompile Include="src\Ayin\Scene\Entity.cpp" />
     <ClCompile Include="src\Ayin\Scene\Scene.cpp" />
     <ClCompile Include="src\Ayin\Scene\SceneCamera.cpp" />
