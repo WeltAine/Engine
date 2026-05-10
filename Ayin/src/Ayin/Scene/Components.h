@@ -14,6 +14,8 @@
 
 #include "Ayin/Core/ObjectPool.h"
 
+#include "Ayin/Scene/ComponentRegistry.h"
+
 #include <entt/entt.hpp>
 #include <concepts>
 
@@ -32,6 +34,8 @@ namespace Ayin {
 
 		static ::entt::id_type ComponentPoolID() { return ::entt::type_hash<TagComponent>::value(); };
 	};
+	AYIN_COMPONENT(TagComponent);
+
 
 	struct TransformComponent {
 		
@@ -75,6 +79,7 @@ namespace Ayin {
 		static ::entt::id_type ComponentPoolID() { return ::entt::type_hash<TransformComponent>::value(); };
 
 	};
+	AYIN_COMPONENT(TransformComponent);
 
 
 
@@ -91,6 +96,7 @@ namespace Ayin {
 		static ::entt::id_type ComponentPoolID() { return ::entt::type_hash<SpriteRendererComponent>::value(); };
 
 	};
+	AYIN_COMPONENT(SpriteRendererComponent);
 
 
 	struct CameraComponent {
@@ -109,6 +115,7 @@ namespace Ayin {
 		static ::entt::id_type ComponentPoolID() { return ::entt::type_hash<CameraComponent>::value(); };
 
 	};
+	AYIN_COMPONENT(CameraComponent);
 
 
 	
@@ -157,4 +164,5 @@ namespace Ayin {
 		static ::entt::id_type ComponentPoolID() { return ::entt::type_hash<NativeScriptComponent>::value(); };
 
 	};
+	AYIN_COMPONENT(NativeScriptComponent);
 }

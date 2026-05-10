@@ -1,3 +1,5 @@
+#include <AyinPch.h>
+
 #include "Ayin/Scene/ComponentRegistry.h"
 
 #include <imgui.h>

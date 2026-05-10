@@ -17,7 +17,7 @@ namespace Ayin {
 	public:
 		static void Init();
 
-		//为何这两个要用inline？？？我记得inline的一个作用就是去重
+		// inline的一个作用就是去重(反ODR)
 		inline static std::shared_ptr<spdlog::logger>& GetCoreLogger() { return s_CoreLogger; };
 		inline static std::shared_ptr<spdlog::logger>& GetClientLogger() { return s_ClientLogger; };
 

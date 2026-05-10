@@ -1,6 +1,6 @@
 #include <AyinPch.h>
 
-#include <Panels/SceneHierarchyPanel.h>
+#include "Panels/SceneHierarchyPanel.h"
 
 
 namespace Ayin {
