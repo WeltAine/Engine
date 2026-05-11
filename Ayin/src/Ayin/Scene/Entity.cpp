@@ -14,6 +14,8 @@ namespace Ayin {
 
 	};
 
+	
+
 	bool Entity::HasComponent(entt::id_type id) {
 
 		auto* componentPool = m_Scene->m_Registry.storage(id);
@@ -24,6 +26,13 @@ namespace Ayin {
 		return componentPool->contains(m_EntityHandle);
 
 	};
+
+	void Entity::RemoveComponent(entt::id_type id) {
+		auto* componentPool = m_Scene->m_Registry.storage(id);
+		if (componentPool) {
+			componentPool->remove(m_EntityHandle);
+		}
+	}
 	
 
 }

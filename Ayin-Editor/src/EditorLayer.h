@@ -3,6 +3,7 @@
 #include <Ayin.h>
 
 #include "Panels/SceneHierarchyPanel.h"
+#include "Panels/PropertiesPanel.h"
 
 class EditorLayer : public Ayin::Layer {
 
@@ -39,6 +40,7 @@ private:
 	Ayin::Entity m_TextureEntity;
 	Ayin::Entity m_SceneCamera;
 
-	//面板测试
+//面板测试
 	Ayin::SceneHierarchyPanel m_SceneHierarchyPanel;
+	Ayin::PropertiesPanel m_PropertiesPanel;
 };

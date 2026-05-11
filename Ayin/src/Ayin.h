@@ -35,6 +35,7 @@
 #include "Ayin/Scene/Scene.h"
 #include "Ayin/Scene/Entity.h"
 #include "Ayin/Scene/ScriptableEntity.h"
+#include "Ayin/Scene/ComponentRegistry.h"
 // -----------------------------------
 
 

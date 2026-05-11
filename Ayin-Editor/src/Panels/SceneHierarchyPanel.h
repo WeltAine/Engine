@@ -17,6 +17,8 @@ namespace Ayin {
 
 		void OnImGuiRender();
 
+		inline const Entity& GetSelectedEntity() const { return m_SelectedEntity; }
+
 	private:
 
 		void DrawEntityNode(Entity& node);

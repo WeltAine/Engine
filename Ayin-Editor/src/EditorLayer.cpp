@@ -310,6 +310,9 @@ void EditorLayer::OnImGuiRender() {
 
 
 	m_SceneHierarchyPanel.OnImGuiRender();
+
+	m_PropertiesPanel.SetContext(m_SceneHierarchyPanel.GetSelectedEntity());
+	m_PropertiesPanel.OnImGuiRender();
 };
 
 void EditorLayer::OnEvent(Ayin::Event& event) {};

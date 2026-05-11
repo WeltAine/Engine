@@ -7,8 +7,16 @@
 namespace Ayin {
 
 	std::vector<ComponentDescriptor>& ComponentRegistry::GetAllComponentDescriptors() {
-		static std::vector<ComponentDescriptor> entries;
-		return entries;
+		
+		static std::vector<ComponentDescriptor> componentDescriptors = []() -> std::vector<ComponentDescriptor> 
+			{
+				std::vector<ComponentDescriptor> vector; 
+				vector.reserve(50);
+				return vector;
+			}();
+
+		return componentDescriptors;
+
 	}
 
 
@@ -16,11 +24,13 @@ namespace Ayin {
 
 		for (auto& componentDescriptor : GetAllComponentDescriptors()) {
 			if (entity.HasComponent(componentDescriptor.id)) {
+				// 可折叠标题栏（前面带一个三角箭头），返回值为折叠状态
 				if (ImGui::CollapsingHeader(componentDescriptor.displayName.c_str())) {
 					componentDescriptor.onGUI(entity);
 				}
 			}
 		}
+
 	}
 
 	std::vector<ComponentDescriptor> ComponentRegistry::GetAvailableComponents(Entity entity) {
@@ -35,5 +45,16 @@ namespace Ayin {
 
 		return available;
 	}
+
+	ComponentDescriptor* ComponentRegistry::GetComponentDescriptor(entt::id_type id) {
+		auto& allComponentDescriptors = GetAllComponentDescriptors();
+		for (auto& desc : allComponentDescriptors) {
+			if (desc.id == id) {
+				return &(desc);
+			}
+		}
+		return nullptr;
+	}
+
 
 }

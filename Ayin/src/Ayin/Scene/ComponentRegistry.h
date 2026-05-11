@@ -23,6 +23,7 @@ namespace Ayin {
 		std::function<void(Entity&)> onGUI;
 		std::function<std::string(const Entity&)> serialize;
 		std::function<void(const Entity&, const std::string&)> deserialize;
+		std::function<void(Entity&)> addComponent;
 	};
 
 	class AYIN_API ComponentRegistry {
@@ -35,17 +36,24 @@ namespace Ayin {
 		template<typename T>
 		static void RegisterUI(std::function<void(Entity&)> handler);
 
+		// 注册组件添加回调
+		template<typename T>
+		static void RegisterAddComponent(std::function<void(Entity&)> handler);
+
 		// 获取信息
 		template<typename ComponentType>
 		static ComponentDescriptor* GetComponentDescriptor();
+
+		static ComponentDescriptor* GetComponentDescriptor(entt::id_type id);
 
 		static void DrawEntityComponents(Entity entity);
 
 		// 可添加的组件
 		static std::vector<ComponentDescriptor> GetAvailableComponents(Entity entity);
 
-	private:
 		static std::vector<ComponentDescriptor>& GetAllComponentDescriptors();
+
+	
 	};
 
 	namespace detail {
@@ -103,7 +111,8 @@ namespace Ayin {
 			id,
 			[](Entity&) {},
 			[](const Entity&) { return "{}"; },
-			[](const Entity&, const std::string&) {}
+			[](Entity&, const std::string&) {},
+			[](Entity& entity) { entity.AddComponent<ComponentType>(); },
 			});
 	}
 
@@ -117,6 +126,21 @@ namespace Ayin {
 		for (auto& componentDescriptor : allComponentDescriptors) {
 			if (componentDescriptor.id == id) {
 				componentDescriptor.onGUI = handler;
+				return;
+			}
+		}
+
+	}
+
+	template<typename ComponentType>
+	void ComponentRegistry::RegisterAddComponent(std::function<void(Entity&)> handler) {
+
+		entt::id_type id = entt::type_hash<ComponentType>::value();
+		auto& allComponentDescriptors = GetAllComponentDescriptors();
+
+		for (auto& desc : allComponentDescriptors) {
+			if (desc.id == id) {
+				desc.addComponent = handler;
 				return;
 			}
 		}

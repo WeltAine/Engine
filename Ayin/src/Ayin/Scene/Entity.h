@@ -44,6 +44,7 @@ namespace Ayin {
 
 		template<typename... ComponentTypes>
 		void RemoveComponents();
+		void RemoveComponent(entt::id_type id);
 
 		template<typename... ComponentTypeArgs>
 		bool HasComponents();
@@ -67,9 +68,6 @@ namespace Ayin {
 		Scene* m_Scene = nullptr;
 		
 	};
-
-
-
 
 
 
