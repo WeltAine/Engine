@@ -11,6 +11,7 @@ namespace Ayin {
 
 	void Log::Init() {
 
+		//! 可以保证一段过程只执行一次
 		// spdlog异步线程池初始化（保证整个程序只初始化一次）
 		static bool s_ThreadPoolInitialized = []() {
 				// 如果线程池尚未初始化，则进行初始化
