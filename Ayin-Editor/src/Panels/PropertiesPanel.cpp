@@ -86,6 +86,13 @@ namespace Ayin {
 
 	void PropertiesPanel::DrawAddComponentSearch() {
 
+		ImGui::SetNextWindowPos(
+			ImGui::GetMainViewport()->GetCenter(),  // 目标：主视口正中心
+			ImGuiCond_Appearing,                     // 条件：只在弹窗首次出现时设置位置
+			ImVec2(0.5f, 0.5f)                      // 轴心：(0.5,0.5) = 以窗口自身中心对齐目标点
+		);
+
+		//BeginPopup 即使返回 false，内部也走了 Begin() → 立即 End() 的路径。这个 Begin() 里会消费 NextWindowData
 		if (!ImGui::BeginPopup("AddComponentSearch")) {
 			return;
 		}
