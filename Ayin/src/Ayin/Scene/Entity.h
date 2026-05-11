@@ -5,6 +5,10 @@
 
 #include <entt/entt.hpp>
 
+
+//ToDo 使用反射库，而不是这样别扭的形式添加数据（一些以id为参数的函数会存在是因为我们没法将id_type转回类型）
+
+
 namespace Ayin {
 
 	//! 概念：检查组件是否有依赖组件

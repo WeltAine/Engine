@@ -13,16 +13,14 @@
 
 namespace Ayin {
 
-	class Entity;
-
 	struct ComponentDescriptor {
 		std::string displayName;
 		entt::id_type id;
 
-		//const修饰后能使用回调么？
 		std::function<void(Entity&)> onGUI;
 		std::function<std::string(const Entity&)> serialize;
-		std::function<void(const Entity&, const std::string&)> deserialize;
+		std::function<void(Entity&, const std::string&)> deserialize;
+		//ToDo 使用反射库，而不是这样别扭的形式添加数据（这里会存在是因为我们没法将id_type转回类型）
 		std::function<void(Entity&)> addComponent;
 	};
 
