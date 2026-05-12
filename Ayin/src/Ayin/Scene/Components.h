@@ -138,9 +138,36 @@ namespace Ayin {
 		~CameraComponent() = default;
 
 		static void OnGui(Entity& entity) {
-			auto& camera = entity.GetComponents<Ayin::CameraComponent>();
-			// 暂时使用简单的显示，后续需要特殊处理
-			ImGui::Text("Camera Component");
+			auto& cameraComponent = entity.GetComponents<Ayin::CameraComponent>();
+
+			ImGui::Spacing();
+			ImGui::SeparatorText("Camera Properties");
+
+			const char* camera_mode_items[] = { "Perspective", "Orthogonal" };
+			auto cameraType = cameraComponent.Camera.GetCameraType();
+			int current_item_index = (int)cameraType - 1;
+			if (ImGui::Combo("Camera Type", &current_item_index, camera_mode_items, IM_ARRAYSIZE(camera_mode_items))) {
+				cameraComponent.Camera.SetCameraMode(static_cast<Ayin::Camera::CameraType>(current_item_index + 1));
+			}
+
+			auto prop = cameraComponent.Camera.GetCameraProp();
+			if (ImGui::DragFloat("FOV", &prop.FOV, 1.0f)) {
+				cameraComponent.Camera.SetCameraFOV(prop.FOV);
+			}
+			ImGui::Text("Height: %.2f", prop.Height);
+			ImGui::Text("AspectRatio: %.2f", prop.AspectRatio);
+
+			bool projectionDirty = false;
+			if (ImGui::DragFloat("Near Plane", &prop.NearPlaneDistance, 0.01f)) {
+				projectionDirty = true;
+			}
+			if (ImGui::DragFloat("Far Plane", &prop.FarPlaneDistance, 0.1f)) {
+				projectionDirty = true;
+			}
+			if (projectionDirty) {
+				cameraComponent.Camera.SetProjection(prop);
+			}
+
 		};
 
 		static ::entt::id_type ComponentStorageID() { return ::entt::type_hash<CameraComponent>::value(); };

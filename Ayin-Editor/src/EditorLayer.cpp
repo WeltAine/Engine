@@ -168,6 +168,15 @@ void EditorLayer::OnAttach() {
 
 		float m_CameraTranslateSpeed = 1.0f, m_CameraRotationSpeed = 120.0f;
 
+	public:
+		virtual void OnGui() override {
+
+			ImGui::SeparatorText("Camera Controller");
+			ImGui::DragFloat("Translate Speed", &m_CameraTranslateSpeed, 0.01f);
+			ImGui::DragFloat("Rotation Speed", &m_CameraRotationSpeed, 1.0f);
+			ImGui::Checkbox("Enable Rotation", &m_isRotate);
+
+		};
 
 	};
 
@@ -284,29 +293,6 @@ void EditorLayer::OnImGuiRender() {
 		ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
 
 		ImGui::End();
-	}
-
-	{
-		ImGui::Begin("MainCamera");
-
-		ImGui::DragFloat3("CameraPosition", glm::value_ptr(m_SceneCamera.GetComponents < Ayin::TransformComponent >().Position));
-		// 定义下拉框的选项
-		const char* camera_mode_items[] = { "Perspective", "Orthogonal" };
-		// 参数说明：
-		//   - 标签
-		//   - 指向当前索引的指针
-		//   - 选项列表数组
-		//   - 选项数量
-		int current_item_index = s_CameraModeSelection - 1; // 把 1/2 转成 0/1 索引
-		if (ImGui::Combo("Camera Mode", &current_item_index, camera_mode_items, IM_ARRAYSIZE(camera_mode_items))) {
-			// 用户选择了新选项，更新我们的变量
-			s_CameraModeSelection = current_item_index + 1; // 把 0/1 索引转回到 1/2 枚举值
-		}
-
-		ImGui::End();
-
-		Ayin::Camera::CameraType current_mode = static_cast<Ayin::Camera::CameraType>(s_CameraModeSelection);
-		m_SceneCamera.GetComponents<Ayin::CameraComponent>().Camera.SetCameraMode(current_mode);
 	}
 
 
