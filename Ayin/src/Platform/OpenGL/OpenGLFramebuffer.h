@@ -30,6 +30,7 @@ namespace Ayin {
 
 		inline virtual operator uint32_t() { return m_FramebufferID; };
 
+		// 返回可被屏幕直接渲染的单采样（解析）纹理
 		virtual Ref<Texture2D> GetColorAttachment(int index = 0) const override;
 
 

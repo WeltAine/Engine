@@ -2,7 +2,6 @@
 
 #include "Application.h"
 
-#include "Ayin/Core/Log.h"
 #include "Ayin/Core/Input.h"
 #include "Ayin/Core/Timestep.h"
 #include "Ayin/Core/Time.h"

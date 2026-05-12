@@ -2,8 +2,6 @@
 
 #include "Platform/Windows/WindowsTime.h"
 
-#include "Ayin/Core/Log.h"
-
 #include <GLFW/glfw3.h>
 
 namespace Ayin {
