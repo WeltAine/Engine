@@ -1332,6 +1332,9 @@
     <ClInclude Include="src\Ayin\Core\Application.h">
       <Filter>src\Ayin\Core</Filter>
     </ClInclude>
+    <ClInclude Include="src\Ayin\Core\Assert.h">
+      <Filter>src\Ayin\Core</Filter>
+    </ClInclude>
     <ClInclude Include="src\Ayin\Core\Core.h">
       <Filter>src\Ayin\Core</Filter>
     </ClInclude>

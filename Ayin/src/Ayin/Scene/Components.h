@@ -89,6 +89,9 @@ namespace Ayin {
 
 		static void OnGui(Entity& entity) {
 			auto& transform = entity.GetComponents<Ayin::TransformComponent>();
+			
+			bool transformDirty = false;
+
 			ImGui::DragFloat3("Position", &transform.Position.x, 0.1f);
 			ImGui::DragFloat3("Rotation", &transform.Rotation.x, 0.1f);
 			ImGui::DragFloat3("Scale", &transform.Scale.x, 0.1f);

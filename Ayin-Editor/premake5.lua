@@ -8,7 +8,11 @@ project "Ayin-Editor"
     targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}") --输出路径
     objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}") --中间文件路径
 
-    buildoptions "/utf-8"
+    buildoptions 
+    {
+        "/utf-8",       --保证能够使用log，文件编码时utf-8没错，但是编码器所选择的解释方式并不默认按照文本的格式来，否则 Microsoft Visual C++ (MSVC) 编译器默认会使用系统的本地代码页（如 Windows-1252）来读取它们。所以我们需要指定utf-8，否则log系统会报错
+        "/Zc:preprocessor" --启用预处理器标准模式，解决预编译头文件中使用__VA_OPT__时出现的错误
+    }
 
 
     includedirs --项目包含文件
