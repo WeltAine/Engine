@@ -22,6 +22,9 @@ namespace Ayin{
 		virtual void OnUpdate(Timestep deltaTime) {};
 		virtual void OnDestroy() {};
 
+		//脚本绘制
+		virtual void OnGui() {};
+
 		template<typename... ComponentTypes>
 		decltype(auto) GetComponents();
 

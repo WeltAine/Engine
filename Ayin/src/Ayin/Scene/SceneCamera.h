@@ -11,7 +11,7 @@
 namespace Ayin {
 
 
-	class AYIN_API SceneCamera : public Camera_ {
+	class AYIN_API SceneCamera : public Camera {
 
 
 	public:
