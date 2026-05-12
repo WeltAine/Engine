@@ -62,12 +62,26 @@ namespace Ayin {
 				ComponentRegistry::Register<T>(name);
 			}
 		};
+
+		// 注册组件的UI绘制函数
+		template<typename T>
+		struct ComponentUIRegistrar {
+			ComponentUIRegistrar(std::function<void(Entity&)> onGUI) {
+				ComponentRegistry::RegisterUI<T>(onGUI);
+			}
+		};
+
 	}
 
 	// 注册宏（生成注册结构体）
 #define AYIN_COMPONENT(Type) \
     inline static ::Ayin::detail::ComponentRegistrar<Type> \
         AYIN_CONCAT(_reg_, Type)(#Type)
+
+	// 注册UI
+#define AYIN_COMPONENTUI(Type, FuncName) \
+	inline static ::Ayin::detail::ComponentUIRegistrar<Type> \
+		AYIN_CONCAT(_ui_, Type)(FuncName)
 
 
 	//! 关于inline， static，extern

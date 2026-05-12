@@ -16,6 +16,7 @@
 
 #include "Ayin/Scene/ComponentRegistry.h"
 
+#include <imgui.h>
 #include <entt/entt.hpp>
 #include <concepts>
 
@@ -32,9 +33,19 @@ namespace Ayin {
 		{};
 		TagComponent(const TagComponent& tagComponent) = default;
 
-		static ::entt::id_type ComponentPoolID() { return ::entt::type_hash<TagComponent>::value(); };
+		static void OnGui(Entity& entity) {
+			auto& tag = entity.GetComponents<Ayin::TagComponent>();
+			char buffer[256] = {};
+			strncpy_s(buffer, tag.Name.c_str(), sizeof(buffer) - 1);
+			if (ImGui::InputText("Name", buffer, sizeof(buffer))) {
+				tag.Name = buffer;
+			}
+		};
+
+		static ::entt::id_type ComponentStorageID() { return ::entt::type_hash<TagComponent>::value(); };
 	};
 	AYIN_COMPONENT(TagComponent);
+	AYIN_COMPONENTUI(TagComponent, TagComponent::OnGui);
 
 
 	struct TransformComponent {
@@ -76,11 +87,18 @@ namespace Ayin {
 		TransformComponent(const TransformComponent& transformComponent) = default;
 		~TransformComponent() = default;
 
-		static ::entt::id_type ComponentPoolID() { return ::entt::type_hash<TransformComponent>::value(); };
+		static void OnGui(Entity& entity) {
+			auto& transform = entity.GetComponents<Ayin::TransformComponent>();
+			ImGui::DragFloat3("Position", &transform.Position.x, 0.1f);
+			ImGui::DragFloat3("Rotation", &transform.Rotation.x, 0.1f);
+			ImGui::DragFloat3("Scale", &transform.Scale.x, 0.1f);
+		};
+
+		static ::entt::id_type ComponentStorageID() { return ::entt::type_hash<TransformComponent>::value(); };
 
 	};
 	AYIN_COMPONENT(TransformComponent);
-
+	AYIN_COMPONENTUI(TransformComponent, TransformComponent::OnGui);
 
 
 	struct SpriteRendererComponent {
@@ -93,10 +111,17 @@ namespace Ayin {
 		SpriteRendererComponent(const SpriteRendererComponent& spriteRendererComponent) = default;
 		~SpriteRendererComponent() = default;
 
-		static ::entt::id_type ComponentPoolID() { return ::entt::type_hash<SpriteRendererComponent>::value(); };
+		static void OnGui(Entity& entity) {
+			auto& sprite = entity.GetComponents<Ayin::SpriteRendererComponent>();
+			ImGui::ColorEdit4("Color", &sprite.Color.x);
+			// Texture2D 暂时不处理
+		};
+
+		static ::entt::id_type ComponentStorageID() { return ::entt::type_hash<SpriteRendererComponent>::value(); };
 
 	};
 	AYIN_COMPONENT(SpriteRendererComponent);
+	AYIN_COMPONENTUI(SpriteRendererComponent, SpriteRendererComponent::OnGui);
 
 
 	struct CameraComponent {
@@ -112,11 +137,18 @@ namespace Ayin {
 		{}
 		~CameraComponent() = default;
 
-		static ::entt::id_type ComponentPoolID() { return ::entt::type_hash<CameraComponent>::value(); };
+		static void OnGui(Entity& entity) {
+			auto& camera = entity.GetComponents<Ayin::CameraComponent>();
+			// 暂时使用简单的显示，后续需要特殊处理
+			ImGui::Text("Camera Component");
+		};
+
+		static ::entt::id_type ComponentStorageID() { return ::entt::type_hash<CameraComponent>::value(); };
 
 	};
 	AYIN_COMPONENT(CameraComponent);
-
+	AYIN_COMPONENTUI(CameraComponent, CameraComponent::OnGui);
+	
 
 	
 	struct NativeScriptComponent {
@@ -161,8 +193,21 @@ namespace Ayin {
 			
 		}
 
-		static ::entt::id_type ComponentPoolID() { return ::entt::type_hash<NativeScriptComponent>::value(); };
+		static void OnGui(Entity& entity) {
+			auto& nsc = entity.GetComponents<Ayin::NativeScriptComponent>();
+			ImGui::Text("Script: %s", nsc.ScriptableInstance ? "Bound" : "None");
+
+			ImGui::Spacing();
+			ImGui::Separator();
+			ImGui::Spacing();
+
+			nsc.ScriptableInstance->OnGui();
+
+		};
+
+		static ::entt::id_type ComponentStorageID() { return ::entt::type_hash<NativeScriptComponent>::value(); };
 
 	};
 	AYIN_COMPONENT(NativeScriptComponent);
+	AYIN_COMPONENTUI(NativeScriptComponent, NativeScriptComponent::OnGui);
 }
