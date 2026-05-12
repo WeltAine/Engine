@@ -173,57 +173,6 @@ void EditorLayer::OnAttach() {
 
 	m_SceneCamera.AddComponent<Ayin::NativeScriptComponent>().Bind<CameraControllerScript>();
 
-	// 注册组件 UI 和添加回调
-	{
-		Ayin::ComponentRegistry::RegisterUI<Ayin::TagComponent>([](Ayin::Entity& entity) {
-			auto& tag = entity.GetComponents<Ayin::TagComponent>();
-			char buffer[256] = {};
-			strncpy_s(buffer, tag.Name.c_str(), sizeof(buffer) - 1);
-			if (ImGui::InputText("Name", buffer, sizeof(buffer))) {
-				tag.Name = buffer;
-			}
-			});
-		Ayin::ComponentRegistry::RegisterAddComponent<Ayin::TagComponent>([](Ayin::Entity& entity) {
-			entity.AddComponent<Ayin::TagComponent>();
-			});
-
-		Ayin::ComponentRegistry::RegisterUI<Ayin::TransformComponent>([](Ayin::Entity& entity) {
-			auto& transform = entity.GetComponents<Ayin::TransformComponent>();
-			ImGui::DragFloat3("Position", &transform.Position.x, 0.1f);
-			ImGui::DragFloat3("Rotation", &transform.Rotation.x, 0.1f);
-			ImGui::DragFloat3("Scale", &transform.Scale.x, 0.1f);
-			});
-		Ayin::ComponentRegistry::RegisterAddComponent<Ayin::TransformComponent>([](Ayin::Entity& entity) {
-			entity.AddComponent<Ayin::TransformComponent>();
-			});
-
-		Ayin::ComponentRegistry::RegisterUI<Ayin::SpriteRendererComponent>([](Ayin::Entity& entity) {
-			auto& sprite = entity.GetComponents<Ayin::SpriteRendererComponent>();
-			ImGui::ColorEdit4("Color", &sprite.Color.x);
-			// Texture2D 暂时不处理
-			});
-		Ayin::ComponentRegistry::RegisterAddComponent<Ayin::SpriteRendererComponent>([](Ayin::Entity& entity) {
-			entity.AddComponent<Ayin::SpriteRendererComponent>();
-			});
-
-		Ayin::ComponentRegistry::RegisterUI<Ayin::CameraComponent>([](Ayin::Entity& entity) {
-			auto& camera = entity.GetComponents<Ayin::CameraComponent>();
-			// 暂时使用简单的显示，后续需要特殊处理
-			ImGui::Text("Camera Component");
-			});
-		Ayin::ComponentRegistry::RegisterAddComponent<Ayin::CameraComponent>([](Ayin::Entity& entity) {
-			entity.AddComponent<Ayin::CameraComponent>();
-			});
-
-		Ayin::ComponentRegistry::RegisterUI<Ayin::NativeScriptComponent>([](Ayin::Entity& entity) {
-			auto& nsc = entity.GetComponents<Ayin::NativeScriptComponent>();
-			ImGui::Text("Script: %s", nsc.ScriptableInstance ? "Bound" : "None");
-			});
-		Ayin::ComponentRegistry::RegisterAddComponent<Ayin::NativeScriptComponent>([](Ayin::Entity& entity) {
-			entity.AddComponent<Ayin::NativeScriptComponent>();
-			});
-	}
-
 	m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 
 };

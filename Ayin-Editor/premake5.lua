@@ -18,7 +18,9 @@ project "Ayin-Editor"
         "%{wks.location}/Ayin/Dependency",
         "src",
         "%{IncludeDir.glm}",
-        "%{IncludeDir.entt}"
+        "%{IncludeDir.entt}",
+        "%{IncludeDir.ImGui}"
+
     }
 
     -- dependson "Ayin"

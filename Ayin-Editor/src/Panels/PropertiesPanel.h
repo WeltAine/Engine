@@ -110,3 +110,4 @@ namespace Ayin {
 // IsMouseDown(btn)								某鼠标键按下中？
 // IsKeyDown(key)								某键盘键按下中？
 // IsKeyPressed(key)							某键本帧刚按下？
+

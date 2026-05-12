@@ -1,6 +1,9 @@
 #include <AyinPch.h>
 
+#include <imgui.h>
+
 #include "Panels/PropertiesPanel.h"
+
 
 namespace Ayin {
 
