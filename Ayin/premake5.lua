@@ -22,6 +22,7 @@ project "Ayin"
         --"AYIN_DENAMIC_LINK",        --开启静态链接还是动态链接
         "AYIN_BUILD_DLL",           --这个宏是为了区分是构建Ayin库还是使用Ayin库，虽然现在Ayin是静态库，但以后可能会改成动态库，所以先写着
         "GLFW_INCLUDE_NONE",        --让glfw不包含OpenGL头文件，因为我们用的是Glad来加载OpenGL函数，而且由glfw引入头文件会报错（不理解为什么要这么处理）
+        "GLM_FORCE_SWIZZLE", --强制glm启用swizzle功能（比如vec4 v; v.xy()），虽然我也不清楚为什么要这么处理，但先写着
         "_CRT_SECURE_NO_WARNINGS"
     }
 

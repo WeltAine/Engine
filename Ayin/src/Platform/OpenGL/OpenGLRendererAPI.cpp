@@ -44,8 +44,17 @@ namespace Ayin{
 		//混合
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
+		//深度测试
 		glEnable(GL_DEPTH_TEST);
+		////多重采样
+		//glEnable(GL_MULTISAMPLE);
+		//// 开启多边形偏移
+		//glEnable(GL_POLYGON_OFFSET_FILL);
+		//// 设置偏移量：第一个参数是因子，第二个参数是单位偏移
+		//// 对于共面三角形，使用(0.0f, -1.0f)通常就足够了
+		//// 负数表示让物体更靠近相机
+		//glPolygonOffset(0.0f, -1.0f);
+
 
 #if AYIN_DEBUG
 		glEnable(GL_DEBUG_OUTPUT);

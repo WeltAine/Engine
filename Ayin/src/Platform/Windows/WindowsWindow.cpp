@@ -65,6 +65,7 @@ namespace Ayin {
 
 			}
 
+			//glfwWindowHint(GLFW_SAMPLES, 4);
 		}
 		#pragma endregion
 

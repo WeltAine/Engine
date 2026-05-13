@@ -67,7 +67,7 @@ namespace Ayin {
 				glCreateRenderbuffers(1, &m_DepthAndStencilAttachment);
 				glNamedRenderbufferStorage(
 					m_DepthAndStencilAttachment,
-					GL_DEPTH24_STENCIL8,
+					GL_DEPTH32F_STENCIL8,
 					m_FramebufferSpecification.Size.x,
 					m_FramebufferSpecification.Size.y
 				);
@@ -109,7 +109,7 @@ namespace Ayin {
 				glNamedRenderbufferStorageMultisample(
 					m_DepthAndStencilAttachment,
 					m_FramebufferSpecification.Samples,
-					GL_DEPTH24_STENCIL8,
+					GL_DEPTH32F_STENCIL8,
 					m_FramebufferSpecification.Size.x,
 					m_FramebufferSpecification.Size.y
 				);
