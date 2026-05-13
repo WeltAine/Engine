@@ -31,7 +31,24 @@ namespace Ayin {
 		
 		}
 
+		if (ImGui::BeginPopupContextWindow(nullptr, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
+		{
+
+			if (ImGui::MenuItem("Create Entity")) {
+
+				m_Scene->CreateEntity();
+
+			}
+
+			ImGui::EndPopup();
+		}
+
 		ImGui::End();
+
+
+		if (!ImGui::IsWindowHovered()) {
+			m_HoveredEntity = {};
+		}
 
 	};
 
@@ -49,8 +66,24 @@ namespace Ayin {
 			m_HoveredEntity = node;
 		}
 
-		if (ImGui::IsItemClicked()) {
+		if (ImGui::IsItemClicked(0)) {
 			m_SelectedEntity = node;
+		}
+
+		if (ImGui::BeginPopupContextItem()) {
+
+			if (ImGui::MenuItem("Delete Entity")) {
+
+				if (node == m_SelectedEntity) {
+					m_SelectedEntity = {};
+				}
+
+				m_Scene->DestroyEntity(node);
+
+			}
+
+			ImGui::EndPopup();
+
 		}
 
 	};

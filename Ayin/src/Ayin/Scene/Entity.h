@@ -18,6 +18,8 @@ namespace Ayin {
 
 	class AYIN_API Entity {
 
+		friend Scene;
+
 	public:
 
 		Entity() = default;

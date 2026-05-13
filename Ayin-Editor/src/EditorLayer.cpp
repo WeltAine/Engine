@@ -27,18 +27,18 @@ void EditorLayer::OnAttach() {
 	m_ActiveScene = Ayin::CreateRef<Ayin::Scene>();
 
 	// 设置场景
-	for (float y = -5.0f; y < 5.0f; y += 0.5f)
-	{
-		for (float x = -5.0f; x < 5.0f; x += 0.5f)
-		{
-			std::string entityName = fmt::format("Entity_{:.1f}_{:.1f}", x, y);
-			Ayin::Entity entity = m_ActiveScene->CreateEntity(entityName);
-			auto& transform = entity.GetComponents<Ayin::TransformComponent>();
-			transform = Ayin::TransformComponent{ glm::vec3{ x, y, -10.0f }, glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 1.0f, 1.0f, 1.0f } };
-			auto& sprite = entity.AddComponent<Ayin::SpriteRendererComponent>();
-			sprite.Color = { (x + 5.0f) / 10.0f, 0.4f, (y + 5.0f) / 10.0f, 0.7f };
-		}
-	}
+	//for (float y = -5.0f; y < 5.0f; y += 0.5f)
+	//{
+	//	for (float x = -5.0f; x < 5.0f; x += 0.5f)
+	//	{
+	//		std::string entityName = fmt::format("Entity_{:.1f}_{:.1f}", x, y);
+	//		Ayin::Entity entity = m_ActiveScene->CreateEntity(entityName);
+	//		auto& transform = entity.GetComponents<Ayin::TransformComponent>();
+	//		transform = Ayin::TransformComponent{ glm::vec3{ x, y, -10.0f }, glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 1.0f, 1.0f, 1.0f } };
+	//		auto& sprite = entity.AddComponent<Ayin::SpriteRendererComponent>();
+	//		sprite.Color = { (x + 5.0f) / 10.0f, 0.4f, (y + 5.0f) / 10.0f, 0.7f };
+	//	}
+	//}
 
 	{
 		m_TextureEntity = m_ActiveScene->CreateEntity("TextureEntity");

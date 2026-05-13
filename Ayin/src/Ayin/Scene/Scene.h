@@ -22,6 +22,7 @@ namespace Ayin {
 		~Scene() = default;
 
 		Entity CreateEntity(const std::string& name = "Entity");
+		void DestroyEntity(const Entity& entity);
 
 		void OnUpdate(Timestep deltaTime);
 

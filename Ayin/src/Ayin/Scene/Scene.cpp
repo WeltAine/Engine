@@ -14,6 +14,10 @@ namespace Ayin{
 
 	Entity Scene::CreateEntity(const std::string& name) {
 	
+		if (name == "Entity") {
+			static int i = 0;
+			const_cast<std::string&>(name) = fmt::format("Entity_{}", i++);
+		}
 
 		Entity entity{this};
 
@@ -23,6 +27,12 @@ namespace Ayin{
 		return entity;
 
 	};
+
+	void Scene::DestroyEntity(const Entity& entity) {
+
+		m_Registry.destroy(entity.m_EntityHandle);
+
+	}
 
 	void Scene::OnUpdate(Timestep deltaTime) {
 	
