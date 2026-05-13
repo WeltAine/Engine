@@ -26,6 +26,7 @@ namespace Ayin {
 		inline void SetViewMatrix(const glm::vec3& position, const glm::vec3& rotation) { RecalculateViewMatrix(position, rotation); };
 		inline void SetCameraMode(Camera::CameraType mode) { m_CameraProp.Type = mode; RecalculateProjectionMatrix(); };
 		inline void SetProjection(const CameraProp& cameraProp) { m_CameraProp = cameraProp; RecalculateProjectionMatrix(); };
+		inline const CameraProp& GetCameraProp() const { return m_CameraProp;};
 
 		inline void SetCameraSize(int width, int height) { m_CameraProp.AspectRatio = (float)width / (float)height; RecalculateProjectionMatrix(); };
 		inline void SetCameraFOV(float angle) { m_CameraProp.FOV = angle; RecalculateProjectionMatrix();};
@@ -33,7 +34,6 @@ namespace Ayin {
 		inline void SetCameraZoomLevel(float zoomLevel) { m_ZoomLevel = std::clamp(zoomLevel, 0.25f, 1.0f); };
 		inline float GetCameraZoomLevel() const { return m_ZoomLevel; };
 
-		inline const CameraProp GetCameraProp() const { return m_CameraProp;};
 
 	private:
 
