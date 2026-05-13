@@ -1,5 +1,7 @@
 #include <AyinPch.h>
 
+#include <glm/glm.hpp>
+
 #include "Ayin/Scene/Scene.h"
 #include "Ayin/Scene/Entity.h"
 
@@ -74,9 +76,10 @@ namespace Ayin{
 
 			auto spriteGroup = m_Registry.group<SpriteRendererComponent>(entt::get<TransformComponent>);
 
-			spriteGroup.sort<TransformComponent>([](const TransformComponent& transform_1, const TransformComponent& transform_2) -> bool
+			spriteGroup.sort<TransformComponent>([&cameraComponent](const TransformComponent& transform_1, const TransformComponent& transform_2) -> bool
 					{
-						return transform_1.Position.z < transform_2.Position.z;	//简称：真的情况排在前头
+					    glm::mat4 ViewMatrix = cameraComponent.Camera.GetViewMatrix();
+						return (ViewMatrix* glm::vec4{ transform_1.Position, 1.0f }).z < (ViewMatrix * glm::vec4{ transform_2.Position, 1.0f }).z;	//简称：真的情况排在前头
 					});
 
 			Renderer2D::BeginScene(cameraComponent.Camera);

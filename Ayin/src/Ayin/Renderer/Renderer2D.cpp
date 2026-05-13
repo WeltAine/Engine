@@ -143,20 +143,13 @@ namespace Ayin {
 	
 		s_Data.QuadShader->SetMat4("u_ProjectionViewMatrix", camera.GetProjectionViewMatrix());
 
-
-		s_Data.QuadCount = 0;
-		s_Data.TextureSlotInsertIndex = 1;
-		s_Data.QuadBatchBufferPtr = s_Data.QuadBatchBufferBase;
+		StartBatch();
 
 	};
 
 	void Renderer2D::EndScene() {
 		
         AYIN_PROFILE_FUNCTION();
-
-		size_t dataSize = (s_Data.QuadBatchBufferPtr - s_Data.QuadBatchBufferBase) * sizeof(Quad);
-		// 指针相减，得到的是基于指针类型的偏移量，并不是字节
-		s_Data.QuadBatchBuffer->SetData(s_Data.QuadBatchBufferBase, dataSize);
 		
 		Flush();
 
@@ -170,6 +163,11 @@ namespace Ayin {
 		if (s_Data.QuadCount == 0)
 			return;
 
+		size_t dataSize = (s_Data.QuadBatchBufferPtr - s_Data.QuadBatchBufferBase) * sizeof(Quad);
+		// 指针相减，得到的是基于指针类型的偏移量，并不是字节
+		s_Data.QuadBatchBuffer->SetData(s_Data.QuadBatchBufferBase, dataSize);
+
+
 		for (int index = 0; index < s_Data.TextureSlotInsertIndex; index++) {
 			s_Data.TextureSlots[index]->Bind(index);
 		}
@@ -180,28 +178,25 @@ namespace Ayin {
 
 		s_Data.QuadShader->UnBind();
 
+		StartBatch();
 
 		s_Data.Stats.DrawCalls++;
+
 	}
 
-
-	void Renderer2D::FlushAndReset() {
-
-		AYIN_PROFILE_FUNCTION();
-
-		EndScene();
+	
+	void Renderer2D::StartBatch() {
 
 		s_Data.QuadCount = 0;
 		s_Data.TextureSlotInsertIndex = 1;
 		s_Data.QuadBatchBufferPtr = s_Data.QuadBatchBufferBase;
 
 	}
-	
 
 	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& size, const glm::vec4& color) {
 	
 		if (s_Data.QuadCount >= s_Data.MaxQuads)
-			FlushAndReset();
+			Flush();
 
 		//! 必须全部设置一遍，因为我们结束渲染时只是简单的移动写指针QuadBatchBufferPtr的位置，没有重置数据
 		//! 所以内存中是遗留着旧数据的，如果我们在设置时设置全部数据那就有可能使用到旧的值
@@ -225,7 +220,7 @@ namespace Ayin {
 	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& size, const Ref<Texture2D>& texture, const glm::vec2& tilingFactor) {
 		
 		if (s_Data.QuadCount >= s_Data.MaxQuads)
-			FlushAndReset();
+			Flush();
 
 		// 检查TextureSlots中是否有要用到的纹理，并获取索引
 		uint32_t textureIndex = 0;
@@ -241,7 +236,7 @@ namespace Ayin {
 		if (textureIndex == 0) {
 
 			if (s_Data.TextureSlotInsertIndex >= s_Data.MaxTextureSlots)
-				FlushAndReset();
+				Flush();
 
 			texture->Bind(s_Data.TextureSlotInsertIndex);
 			s_Data.TextureSlots[s_Data.TextureSlotInsertIndex] = texture;

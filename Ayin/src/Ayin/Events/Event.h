@@ -107,7 +107,7 @@ namespace Ayin {
 
 			if (m_Event.GetEventType() == T::GetStaticEventType()) {//对比派发起所接受的是事件的原本类型（引用的底层是指针，所以当然能触发多态了）和观察者期望的类型是否一致
 
-				m_Event.handled = func(static_cast<T&>(m_Event));//通知观察者（调用回调）
+				m_Event.handled |= func(static_cast<T&>(m_Event));//通知观察者（调用回调）
 				return true;
 
 			}

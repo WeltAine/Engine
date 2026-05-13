@@ -146,28 +146,33 @@ namespace Ayin {
 			ImGui::Spacing();
 			ImGui::SeparatorText("Camera Properties");
 
+			CameraProp prop = cameraComponent.Camera.GetCameraProp();
+			bool propDirty = false;
+
 			const char* camera_mode_items[] = { "Perspective", "Orthogonal" };
 			auto cameraType = cameraComponent.Camera.GetCameraType();
 			int current_item_index = (int)cameraType - 1;
 			if (ImGui::Combo("Camera Type", &current_item_index, camera_mode_items, IM_ARRAYSIZE(camera_mode_items))) {
-				cameraComponent.Camera.SetCameraMode(static_cast<Ayin::Camera::CameraType>(current_item_index + 1));
+				prop.Type = static_cast<Ayin::Camera::CameraType>(current_item_index + 1);
+				propDirty = true;
 			}
 
-			auto prop = cameraComponent.Camera.GetCameraProp();
 			if (ImGui::DragFloat("FOV", &prop.FOV, 1.0f)) {
-				cameraComponent.Camera.SetCameraFOV(prop.FOV);
+				propDirty = true;
 			}
-			ImGui::Text("Height: %.2f", prop.Height);
+			if (ImGui::DragFloat("Height", &prop.Height, 1.0f)) {
+				propDirty = true;
+			}
+
 			ImGui::Text("AspectRatio: %.2f", prop.AspectRatio);
 
-			bool projectionDirty = false;
 			if (ImGui::DragFloat("Near Plane", &prop.NearPlaneDistance, 0.01f)) {
-				projectionDirty = true;
+				propDirty = true;
 			}
 			if (ImGui::DragFloat("Far Plane", &prop.FarPlaneDistance, 0.1f)) {
-				projectionDirty = true;
+				propDirty = true;
 			}
-			if (projectionDirty) {
+			if (propDirty) {
 				cameraComponent.Camera.SetProjection(prop);
 			}
 

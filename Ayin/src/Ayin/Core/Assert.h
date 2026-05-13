@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstring>
+#include <filesystem>
 
 
 #ifdef AYIN_ENABLE_ASSERT
@@ -34,7 +35,7 @@
 
 #define AYIN_ASSERT_NO_MSG(type, condition) \
 	if(!(condition)){ \
-		AYIN##type##ERROR("Assertion '{0}' failed at {1}:{2}", #condition,::Ayin::Assert::CurrentFillName(__FILE__), __LINE__); \
+		AYIN##type##ERROR("Assertion '{0}' failed at {1}:{2}", #condition,std::filesystem::path{__FILE__}, __LINE__); \
 		AYIN_DEBUGBREAK(); \
 	}
 
@@ -50,16 +51,13 @@
 #define AYIN_ASSERT(condition, ...) \
 	AYIN_GET_MACRO(__VA_OPT__(AYIN_ASSERT_WITH_MSG,) AYIN_ASSERT_NO_MSG, __VA_ARGS__)(_, condition, __VA_ARGS__)
 
-
 #define AYIN_CORE_ASSERT(condition, ...) \
 	AYIN_GET_MACRO(__VA_OPT__(AYIN_ASSERT_WITH_MSG, ) AYIN_ASSERT_NO_MSG, __VA_ARGS__)(_CORE_, condition, __VA_ARGS__)
-
 
 #else
 
 #define AYIN_ASSERT(condition, ...)
 
 #define AYIN_CORE_ASSERT(condition, ...)
-
 
 #endif

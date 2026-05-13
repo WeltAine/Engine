@@ -78,11 +78,9 @@ namespace Ayin {
 		static Statistics GetStatistics();
 
 	private:
-		//当超过批处理上限时强制渲染，并恢复状态（因为该函数是提过过程中才会触发的，我们必须清理状态）
-		static void FlushAndReset();
 
-	private:
-
+		//开启一次批处理时使用
+		static void StartBatch();
 
 	};
 
