@@ -2,7 +2,7 @@ project "SandBox"
     location "." --项目文件和premake脚本放在同一目录，与源码同级，这样VS"显示所有文件"时可以展开完整的文件夹树方便添加新文件
     kind "ConsoleApp"
     language "C++"
-    cppdialect "C++20" 
+    cppdialect "C++23" 
     staticruntime "On" --???
     
     targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}") --输出路径
@@ -18,7 +18,6 @@ project "SandBox"
         "%{wks.location}/Ayin/Dependency",
         "%{IncludeDir.glm}",
         "%{IncludeDir.entt}"
-
     }
 
     -- dependson "Ayin"
@@ -37,6 +36,8 @@ project "SandBox"
 
     filter "system:windows" --当在windows系统下构建该项目时
         systemversion "latest" --WindowsSDK，我的vs里是类似10.0.x
+        
+        buildoptions "/Zc:preprocessor" --启用预处理器标准模式，解决预编译头文件中使用__VA_OPT__时出现的错误
 
         defines --宏
         {
