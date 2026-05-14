@@ -30,6 +30,9 @@ namespace Ayin {
 		void Begin();
 		void End();
 
+		//UI风格
+		void SetDarkThemeColors();
+
 	private:
 		float m_Time = 0.0f;
 	};
