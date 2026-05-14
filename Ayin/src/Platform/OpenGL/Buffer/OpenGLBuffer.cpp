@@ -91,7 +91,7 @@ namespace Ayin {
 	{
 		AYIN_PROFILE_FUNCTION();
 
-	#pragma region BTA（该注释具备参考意义，暂不删除）
+	#pragma region BTA (该注释具备参考意义, 暂不删除)
 
 		//int currentVertexBufferID = 0;
 		//glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &currentVertexBufferID);

@@ -9,7 +9,7 @@ ExampleLayer::ExampleLayer()
 	m_SceneCameraController{ {.Type = Ayin::Camera::CameraType::Perspective, .FOV = 60.0f, .AspectRatio = (16.0f / 9.0f), .NearPlaneDistance = 0.1f, .FarPlaneDistance = 100.0f} }
 {
 
-#pragma region 基础渲染流程参考（这一部分也可以放到OnAttach中）
+#pragma region 基础渲染流程参考 (这一部分也可以放到OnAttach中)
 
 	//Gen方法与Create方法的区别？？？
 
