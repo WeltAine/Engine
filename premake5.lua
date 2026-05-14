@@ -16,9 +16,7 @@ workspace "Ayin" --对应解决方案
         ".editorconfig"
     }
 
-    flags{ --Premake 内置的关键字，设置整个 workspace 级别的编译选项。
-        "MultiProcessorCompile" --多线程编译，提升编译速度
-    }
+    multiprocessorcompile "On" --开启多线程编译，提升编译速度
 
 -- 全局变量
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}" --比如Debug-Windows-x64，为不同平台做准备，虽然我没这个打算就是了，不过是个好习惯
