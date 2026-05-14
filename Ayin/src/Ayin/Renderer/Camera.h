@@ -6,6 +6,8 @@
 #include <glm/ext/matrix_float4x4.hpp> // mat4x4
 #include <glm/ext/matrix_transform.hpp> // translate, rotate, scale, identity
 
+#include <glaze/glaze.hpp>
+
 
 namespace Ayin {
 	
@@ -60,6 +62,23 @@ namespace Ayin {
 		float AspectRatio = 16.0f / 9.0f;
 
 		float NearPlaneDistance = 0.1f, FarPlaneDistance = 100.0f;
+
+
+		struct glaze {
+
+			using T = CameraProp;
+
+			static constexpr auto value = glz::object(
+				"Type", &T::Type,
+				"FOV", &T::FOV,
+				"Height", &T::Height,
+				"AspectRatio", &T::AspectRatio,
+				"NearPlane", &T::NearPlaneDistance,
+				"FarPlane", &T::FarPlaneDistance
+			);
+
+		};
+
 	};
 
 

@@ -49,6 +49,19 @@ namespace Ayin {
 		CameraProp m_CameraProp;
 
 		float m_ZoomLevel = 1.0f;	//缩放
+
+
+	public:
+
+		struct glaze {
+			using T = SceneCamera;
+			static constexpr auto value = glz::object(
+				//名称和变量名不同的话需要custom么？
+				"Camera", &T::m_CameraProp,
+				"ZoomLevel", &T::m_ZoomLevel
+			);
+		};
+
 	};
 
 

@@ -19,6 +19,32 @@
 #include <imgui.h>
 #include <entt/entt.hpp>
 #include <concepts>
+#include <glaze/glaze.hpp>
+
+// ============================================================
+// 为 glm 第三方类型注册 Glaze 反射（外部 glz::meta 特化）
+// glm::vec3/vec4 不在我们源码中，无法加 struct glaze，只能外部特化
+// ============================================================
+template <>
+struct glz::meta<glm::vec3> {
+	using T = glm::vec3;
+	static constexpr auto value = glz::object(
+		"x", &T::x,
+		"y", &T::y,
+		"z", &T::z
+	);
+};
+
+template <>
+struct glz::meta<glm::vec4> {
+	using T = glm::vec4;
+	static constexpr auto value = glz::object(
+		"x", &T::x,
+		"y", &T::y,
+		"z", &T::z,
+		"w", &T::w
+	);
+};
 
 namespace Ayin {
 
@@ -43,6 +69,18 @@ namespace Ayin {
 		};
 
 		static ::entt::id_type ComponentStorageID() { return ::entt::type_hash<TagComponent>::value(); };
+
+		// Glaze自动反射
+		struct glaze {
+
+			using T = TagComponent;
+
+			static constexpr auto value = glz::object(
+				"Name", &T::Name		// 其实T::member是个指针，指向成员在类中的偏移地址，glaze会根据这个偏移地址来访问成员（同样该zhi）
+			);
+
+		};
+
 	};
 	AYIN_COMPONENT(TagComponent);
 	AYIN_COMPONENTUI(TagComponent, TagComponent::OnGui);
@@ -99,6 +137,17 @@ namespace Ayin {
 
 		static ::entt::id_type ComponentStorageID() { return ::entt::type_hash<TransformComponent>::value(); };
 
+		struct glaze {
+
+			using T = TransformComponent;
+			static constexpr auto value = glz::object(
+				"Position", &T::Position,
+				"Rotation", &T::Rotation,
+				"Scale", &T::Scale
+			);
+
+		};
+
 	};
 	AYIN_COMPONENT(TransformComponent);
 	AYIN_COMPONENTUI(TransformComponent, TransformComponent::OnGui);
@@ -122,6 +171,15 @@ namespace Ayin {
 
 		static ::entt::id_type ComponentStorageID() { return ::entt::type_hash<SpriteRendererComponent>::value(); };
 
+		struct glaze {
+
+			using T = SpriteRendererComponent;
+
+			static constexpr auto value = glz::object(
+				"Color", &T::Color		// 只序列化颜色，Texture2D 是 Ref 指针不参与序列化
+			);
+
+		};
 	};
 	AYIN_COMPONENT(SpriteRendererComponent);
 	AYIN_COMPONENTUI(SpriteRendererComponent, SpriteRendererComponent::OnGui);
@@ -179,6 +237,14 @@ namespace Ayin {
 		};
 
 		static ::entt::id_type ComponentStorageID() { return ::entt::type_hash<CameraComponent>::value(); };
+
+		struct glaze {
+			using T = CameraComponent;
+
+			static constexpr auto value = glz::object(
+				"Camera", &T::Camera
+			);
+		};
 
 	};
 	AYIN_COMPONENT(CameraComponent);
@@ -242,6 +308,10 @@ namespace Ayin {
 
 		static ::entt::id_type ComponentStorageID() { return ::entt::type_hash<NativeScriptComponent>::value(); };
 
+		// NativeScriptComponent 不参与序列化：
+		// ScriptableInstance 是原始指针（地址不稳定），
+		// InstantiateFunction/DestroyInstanceFunction 是 lambda 捕获（无法存取）。
+		// 脚本的绑定在运行时通过 Bind<T>() 完成。
 	};
 	AYIN_COMPONENT(NativeScriptComponent);
 	AYIN_COMPONENTUI(NativeScriptComponent, NativeScriptComponent::OnGui);

@@ -11,10 +11,14 @@
 namespace Ayin {
 
 	class Entity;
+	class SceneHierarchyPanel;
+	class SceneSerializer;
 
 	class AYIN_API Scene {
 
 		friend class Entity;
+		friend class SceneHierarchyPanel;
+		friend class SceneSerializer;
 
 	public:
 
