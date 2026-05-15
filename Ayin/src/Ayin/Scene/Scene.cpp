@@ -2,6 +2,8 @@
 
 #include <glm/glm.hpp>
 
+#include <random>
+
 #include "Ayin/Scene/Scene.h"
 #include "Ayin/Scene/Entity.h"
 
@@ -19,8 +21,22 @@ namespace Ayin{
 			const_cast<std::string&>(name) = fmt::format("Entity_{}", i++);
 		}
 
+		// 生成唯一ID
+		static std::mt19937_64 s_RandomEngine([] {
+#ifdef AYIN_DEBUG
+			return std::mt19937_64(42);          // 固定种子，调试时可复现
+#else
+			static std::random_device rd;
+			return std::mt19937_64(rd());
+#endif
+		}());
+		static std::uniform_int_distribution<uint64_t> s_UniformDistribution; // 均匀分布在[0, 2 ^ 64 - 1] 区间。对 UUID 这正好是需要的——64 位全随机，碰撞概率可忽略。
+
+		// 创建实体
 		Entity entity{this};
 
+		// 为实体添加常规组件
+		m_Registry.emplace<IDComponent>(entity, s_UniformDistribution(s_RandomEngine));
 		m_Registry.emplace<TagComponent>(entity, name);
 		m_Registry.emplace<TransformComponent>(entity);
 
@@ -37,10 +53,10 @@ namespace Ayin{
 	void Scene::OnUpdate(Timestep deltaTime) {
 	
 
-		// 系统更新
-		//{
-		//	CameraSystem::OnUpdate(m_Registry);
-		//}
+		//x 系统更新
+		//x {
+		//x 	CameraSystem::OnUpdate(m_Registry);
+		//x }
 
 		// 脚本更新
 		{

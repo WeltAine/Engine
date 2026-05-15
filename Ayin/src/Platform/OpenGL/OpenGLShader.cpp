@@ -11,7 +11,7 @@
 namespace Ayin {
 
 
-	#pragma region 辅助方法（仅限于本文件使用）
+	#pragma region 辅助方法(仅限于本文件使用)
 	static GLenum ShaderTypeFromString(const std::string& type) {
 
 		if (type == "vertex")

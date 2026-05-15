@@ -37,7 +37,7 @@ namespace Ayin {
 
 
 		// GLWL初始化
-		#pragma region GLFW初始化与相关配置（OpenGL版本以及错误回调）
+		#pragma region GLFW初始化与相关配置(OpenGL版本以及错误回调)
 		if (s_GLFWWindowCount == 0) {
 
 			AYIN_PROFILE_SCOPE("glfwInit");

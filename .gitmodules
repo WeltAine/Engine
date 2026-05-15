@@ -17,3 +17,6 @@
 	path = Ayin/Dependency/entt
 	url = https://github.com/WeltAine/entt.git
 	branch = main
+[submodule "Ayin/Dependency/Glaze"]
+	path = Ayin/Dependency/Glaze
+	url = https://github.com/stephenberry/glaze.git

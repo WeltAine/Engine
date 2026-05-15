@@ -19,10 +19,45 @@
 #include <imgui.h>
 #include <entt/entt.hpp>
 #include <concepts>
+#include <glaze/glaze.hpp>
+
+template <>
+struct glz::meta<glm::vec3> {
+	using T = glm::vec3;
+	static constexpr auto value = glz::object("x", &T::x, "y", &T::y, "z", &T::z);
+};
+
+template <>
+struct glz::meta<glm::vec4> {
+	using T = glm::vec4;
+	static constexpr auto value = glz::object("x", &T::x, "y", &T::y, "z", &T::z, "w", &T::w);
+};
 
 namespace Ayin {
 
+	// ----------ID组件-----------
+	struct IDComponent {
 
+		uint64_t ID{};
+
+		IDComponent() = default;
+		IDComponent(uint64_t id) : ID{ id } {};
+		IDComponent(const IDComponent&) = default;
+
+		static ::entt::id_type ComponentStorageID() { return ::entt::type_hash<IDComponent>::value(); };
+
+		struct glaze {
+			using T = IDComponent;
+			static constexpr auto value = glz::object(
+				"ID", &T::ID
+			);
+		};
+
+	};
+	AYIN_COMPONENT(IDComponent);
+
+
+	// ----------名称组件-----------
 	struct TagComponent{
 	
 		std::string Name{"Entity"};
@@ -43,11 +78,18 @@ namespace Ayin {
 		};
 
 		static ::entt::id_type ComponentStorageID() { return ::entt::type_hash<TagComponent>::value(); };
+
+		struct glaze {
+			using T = TagComponent;
+			static constexpr auto value = glz::object("Name", &T::Name);
+		};
+
 	};
 	AYIN_COMPONENT(TagComponent);
 	AYIN_COMPONENTUI(TagComponent, TagComponent::OnGui);
 
 
+	// ----------Transform组件-----------
 	struct TransformComponent {
 		
 		glm::vec3 Position	{ 0.0f, 0.0f, 0.0f };
@@ -99,11 +141,21 @@ namespace Ayin {
 
 		static ::entt::id_type ComponentStorageID() { return ::entt::type_hash<TransformComponent>::value(); };
 
+		struct glaze {
+			using T = TransformComponent;
+			static constexpr auto value = glz::object(
+				"Position", &T::Position,
+				"Rotation", &T::Rotation,
+				"Scale", &T::Scale
+			);
+		};
+
 	};
 	AYIN_COMPONENT(TransformComponent);
 	AYIN_COMPONENTUI(TransformComponent, TransformComponent::OnGui);
 
 
+	// ----------图片组件-----------
 	struct SpriteRendererComponent {
 	
 		//ToDo 调整一下
@@ -122,11 +174,17 @@ namespace Ayin {
 
 		static ::entt::id_type ComponentStorageID() { return ::entt::type_hash<SpriteRendererComponent>::value(); };
 
+		struct glaze {
+			using T = SpriteRendererComponent;
+			static constexpr auto value = glz::object("Color", &T::Color);
+		};
+
 	};
 	AYIN_COMPONENT(SpriteRendererComponent);
 	AYIN_COMPONENTUI(SpriteRendererComponent, SpriteRendererComponent::OnGui);
 
 
+	// ----------相机组件-----------
 	struct CameraComponent {
 
 		using Requires = entt::type_list<TransformComponent>;
@@ -180,12 +238,17 @@ namespace Ayin {
 
 		static ::entt::id_type ComponentStorageID() { return ::entt::type_hash<CameraComponent>::value(); };
 
+		struct glaze {
+			using T = CameraComponent;
+			static constexpr auto value = glz::object("Camera", &T::Camera);
+		};
+
 	};
 	AYIN_COMPONENT(CameraComponent);
 	AYIN_COMPONENTUI(CameraComponent, CameraComponent::OnGui);
 	
 
-	
+	// ----------脚本组件-----------
 	struct NativeScriptComponent {
 
 		ScriptableEntity* ScriptableInstance = nullptr;
@@ -245,4 +308,6 @@ namespace Ayin {
 	};
 	AYIN_COMPONENT(NativeScriptComponent);
 	AYIN_COMPONENTUI(NativeScriptComponent, NativeScriptComponent::OnGui);
+
+
 }

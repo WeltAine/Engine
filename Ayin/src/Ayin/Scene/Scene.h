@@ -26,6 +26,9 @@ namespace Ayin {
 
 		void OnUpdate(Timestep deltaTime);
 
+		const std::string& GetName() const { return m_SceneName; }
+		void SetName(const std::string& name) { m_SceneName = name; }
+
 		template<typename... ComponentTypes, typename... ExcludeComponentTypes>
 		std::vector<Entity> GetEntitiesByComponents(entt::exclude_t<ExcludeComponentTypes...> = entt::exclude_t<ExcludeComponentTypes...>{});
 
@@ -33,6 +36,7 @@ namespace Ayin {
 	private:
 
 		entt::registry m_Registry;
+		std::string m_SceneName = "Untitled";
 
 	};
 

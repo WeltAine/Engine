@@ -31,6 +31,7 @@ IncludeDir["ImGui"] = "%{wks.location}/Ayin/Dependency/ImGui"
 IncludeDir["glm"] = "%{wks.location}/Ayin/Dependency/glm"
 IncludeDir["stb_image"] = "%{wks.location}/Ayin/Dependency/stb_image"
 IncludeDir["entt"] = "%{wks.location}/Ayin/Dependency/entt/single_include"
+IncludeDir["Glaze"] = "%{wks.location}/Ayin/Dependency/Glaze/include"
 
 group "Dependency" --分组，和vs中的过滤器类似
     include "Ayin/Dependency/GLFW" --引入该目录下的premake5.lua，和C++的include一样

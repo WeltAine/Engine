@@ -23,8 +23,8 @@ project "Ayin-Editor"
         "src",
         "%{IncludeDir.glm}",
         "%{IncludeDir.entt}",
-        "%{IncludeDir.ImGui}"
-
+        "%{IncludeDir.ImGui}",
+        "%{IncludeDir.Glaze}"
     }
 
     -- dependson "Ayin"

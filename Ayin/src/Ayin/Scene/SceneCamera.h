@@ -7,6 +7,8 @@
 #include <glm/glm.hpp>
 #include <glm/ext/matrix_float4x4.hpp> // mat4x4
 
+#include <glaze/glaze.hpp>
+
 
 namespace Ayin {
 
@@ -49,6 +51,15 @@ namespace Ayin {
 		CameraProp m_CameraProp;
 
 		float m_ZoomLevel = 1.0f;	//缩放
+
+	public:
+		struct glaze {
+			using T = SceneCamera;
+			static constexpr auto value = glz::object(
+				"CameraProp", &T::m_CameraProp,
+				"ZoomLevel", &T::m_ZoomLevel
+			);
+		};
 	};
 
 
