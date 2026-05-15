@@ -20,3 +20,4 @@
 [submodule "Ayin/Dependency/Glaze"]
 	path = Ayin/Dependency/Glaze
 	url = https://github.com/stephenberry/glaze.git
+	branch = main
