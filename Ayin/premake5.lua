@@ -14,7 +14,7 @@ project "Ayin"
     buildoptions 
     {
         "/utf-8",       --保证能够使用log，文件编码时utf-8没错，但是编码器所选择的解释方式并不默认按照文本的格式来，否则 Microsoft Visual C++ (MSVC) 编译器默认会使用系统的本地代码页（如 Windows-1252）来读取它们。所以我们需要指定utf-8，否则log系统会报错
-        "/Zc:preprocessor" --启用预处理器标准模式，解决预编译头文件中使用__VA_OPT__时出现的错误
+        "/Zm200" --增加编译器堆预留空间，缓解模板重型库(Glaze)导致的堆溢出
     }
 
     defines --宏
@@ -24,7 +24,7 @@ project "Ayin"
         "GLFW_INCLUDE_NONE",        --让glfw不包含OpenGL头文件，因为我们用的是Glad来加载OpenGL函数，而且由glfw引入头文件会报错（不理解为什么要这么处理）
         "GLM_FORCE_SWIZZLE", --强制glm启用swizzle功能（比如vec4 v; v.xy()），虽然我也不清楚为什么要这么处理，但先写着
         "_CRT_SECURE_NO_WARNINGS",
-        "NOMINMAX"
+        "NOMINMAX" --解决Glaze库和Windows.h中的min和max宏冲突问题，虽然我也不清楚为什么要这么处理，但先写着
     }
 
 
@@ -69,6 +69,7 @@ project "Ayin"
     filter "system:windows" --当在windows系统下构建该项目时
         systemversion "latest" --WindowsSDK，我的vs里是类似10.0.x
 
+        buildoptions "/Zc:preprocessor" --启用预处理器标准模式，解决预编译头文件中使用__VA_OPT__时出现的错误
 
         defines --宏
         {
