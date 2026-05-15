@@ -4,9 +4,14 @@
 #include "Ayin/Scene/Entity.h"
 
 #include <entt/entt.hpp>
+#include <glaze/glaze.hpp>
 #include <string>
 #include <vector>
 #include <functional>
+
+// 用于检测类型是否有本地 Glaze 反射元数据
+template<typename T>
+concept HasLocalGlazeMeta = requires { T::glaze::value; };
 
 #define AYIN_CONCAT_IMPL(a, b) a##b
 #define AYIN_CONCAT(a, b) AYIN_CONCAT_IMPL(a, b)
@@ -18,7 +23,7 @@ namespace Ayin {
 		entt::id_type id;
 
 		std::function<void(Entity&)> onGUI;
-		std::function<std::string(const Entity&)> serialize;
+		std::function<std::string(Entity&)> serialize;
 		std::function<void(Entity&, const std::string&)> deserialize;
 		//ToDo 使用反射库，而不是这样别扭的形式添加数据（这里会存在是因为我们没法将id_type转回类型）
 		std::function<void(Entity&)> addComponent;
@@ -43,6 +48,8 @@ namespace Ayin {
 		static ComponentDescriptor* GetComponentDescriptor();
 
 		static ComponentDescriptor* GetComponentDescriptor(entt::id_type id);
+
+		static ComponentDescriptor* GetComponentDescriptorByName(const std::string& name);
 
 		static void DrawEntityComponents(Entity entity);
 
@@ -103,6 +110,44 @@ namespace Ayin {
 
 namespace Ayin {
 
+	// ----- 辅助方法 ------
+	template<typename ComponentType>
+	std::string SerializeGlazeComponent(Entity& entity) {
+
+		auto result = glz::write_json(entity.GetComponents<ComponentType>());
+		if (!result) {
+			return "{}";
+		}
+
+		return std::move(*result);
+
+	}
+
+	template<typename ComponentType>
+	void DeserializeGlazeComponent(Entity& entity, const std::string& json, const std::string& name) {
+
+		if (entity.HasComponents<ComponentType>()) {
+
+			auto err = glz::read_json(entity.GetComponents<ComponentType>(), json);
+			if (err) {
+				AYIN_CORE_ERROR("Deserialize {} failed: {}", name, glz::format_error(err, json));
+			}
+
+		} else {
+
+			auto& comp = entity.AddComponent<ComponentType>();
+
+			auto err = glz::read_json(comp, json);
+			if (err) {
+				AYIN_CORE_ERROR("Deserialize {} failed: {}", name, glz::format_error(err, json));
+			}
+
+		}
+
+	}
+	// ---------------------
+
+
 	template<typename ComponentType>
 	void ComponentRegistry::Register(const std::string& name) {
 
@@ -116,14 +161,28 @@ namespace Ayin {
 			}
 		}
 
-		allComponentDescriptors.push_back({
-			name,
-			id,
-			[](Entity&) {},
-			[](const Entity&) { return "{}"; },
-			[](Entity&, const std::string&) {},
-			[](Entity& entity) { entity.AddComponent<ComponentType>(); },
-			});
+		//注册组件的回调函数
+		ComponentDescriptor desc;
+		desc.displayName = name;
+		desc.id = id;
+		desc.onGUI = [](Entity&) {};
+		desc.addComponent = [](Entity& entity) { entity.AddComponent<ComponentType>(); };
+
+		if constexpr (HasLocalGlazeMeta<ComponentType>) {
+
+			desc.serialize = &SerializeGlazeComponent<ComponentType>;
+
+			desc.deserialize = [name](Entity& entity, const std::string& json) {
+				DeserializeGlazeComponent<ComponentType>(entity, json, name);
+			};
+			
+		} else {
+			desc.serialize = [](Entity&) { return "{}"; };
+			desc.deserialize = [](Entity&, const std::string&) {};
+		}
+
+		allComponentDescriptors.push_back(std::move(desc));
+
 	}
 
 	template<typename ComponentType>

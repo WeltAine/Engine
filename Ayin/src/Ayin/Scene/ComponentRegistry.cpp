@@ -47,13 +47,29 @@ namespace Ayin {
 	}
 
 	ComponentDescriptor* ComponentRegistry::GetComponentDescriptor(entt::id_type id) {
+
 		auto& allComponentDescriptors = GetAllComponentDescriptors();
 		for (auto& desc : allComponentDescriptors) {
 			if (desc.id == id) {
 				return &(desc);
 			}
 		}
+
 		return nullptr;
+
+	}
+
+	ComponentDescriptor* ComponentRegistry::GetComponentDescriptorByName(const std::string& name) {
+
+		auto& allComponentDescriptors = GetAllComponentDescriptors();
+		for (auto& desc : allComponentDescriptors) {
+			if (desc.displayName == name) {
+				return &(desc);
+			}
+		}
+
+		return nullptr;
+
 	}
 
 

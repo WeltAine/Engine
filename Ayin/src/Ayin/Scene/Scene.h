@@ -15,6 +15,7 @@ namespace Ayin {
 	class AYIN_API Scene {
 
 		friend class Entity;
+		friend class SceneSerializer;
 
 	public:
 

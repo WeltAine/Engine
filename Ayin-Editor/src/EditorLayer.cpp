@@ -2,6 +2,8 @@
 
 #include "EditorLayer.h"
 
+#include "Ayin/Scene/SceneSerializer.h"
+
 
 
 static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);//没帧初始颜色
@@ -41,10 +43,12 @@ void EditorLayer::OnAttach() {
 	//}
 
 	{
-		m_TextureEntity = m_ActiveScene->CreateEntity("TextureEntity");
-		auto& transform = m_TextureEntity.GetComponents<Ayin::TransformComponent>();
-		transform = Ayin::TransformComponent{ glm::vec3{ 0.0f, 0.0f, -5.0f }, glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 1.0f, 1.0f, 1.0f } };
-		m_TextureEntity.AddComponent<Ayin::SpriteRendererComponent>().Texture2D = m_Texture;
+		//x m_TextureEntity = m_ActiveScene->CreateEntity("TextureEntity");
+		auto&& entity = m_ActiveScene->CreateEntity("TextureEntity");
+		//x auto& transform = m_TextureEntity.GetComponents<Ayin::TransformComponent>();
+		//x transform = Ayin::TransformComponent{ glm::vec3{ 0.0f, 0.0f, -5.0f }, glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 1.0f, 1.0f, 1.0f } };
+		//x m_TextureEntity.AddComponent<Ayin::SpriteRendererComponent>().Texture2D = m_Texture;
+		entity.AddComponent<Ayin::SpriteRendererComponent>().Texture2D = m_Texture;
 	}
 
 
@@ -60,125 +64,6 @@ void EditorLayer::OnAttach() {
 	m_SceneCamera = m_ActiveScene->CreateEntity("MainCamera");
 	m_SceneCamera.AddComponent<Ayin::CameraComponent>(Ayin::CameraProp{ .Type{Ayin::Camera::CameraType::Orthogonal} });
 
-	class CameraControllerScript : public Ayin::ScriptableEntity{
-
-	public:
-		CameraControllerScript() = default;
-		~CameraControllerScript() = default;
-
-		virtual void OnUpdate(Ayin::Timestep deltaTime) override {
-
-			AYIN_PROFILE_FUNCTION();
-
-			OnAxisKeyPressed(deltaTime);
-			OnMouseMoved(deltaTime);
-			OnMouseScrolled(deltaTime);
-
-			auto&& [transfrom, camera] = GetComponents < Ayin::TransformComponent, Ayin::CameraComponent >();
-			camera.Camera.SetViewMatrix(transfrom.Position, transfrom.Rotation);
-		}
-
-	private:
-
-		bool OnMouseScrolled(Ayin::Timestep deltaTime) {
-
-			auto& cameraComponent = GetComponents<Ayin::CameraComponent>();
-			float zoomLevel = cameraComponent.Camera.GetCameraZoomLevel();
-
-			zoomLevel -= Ayin::Input::GetScrollYoffset() * 4.0 * deltaTime;// 减法，窗口范围越小，看见的物体越大
-
-			cameraComponent.Camera.SetCameraZoomLevel(zoomLevel);
-
-			return false;
-
-		}
-		void OnAxisKeyPressed(Ayin::Timestep deltaTime) {
-
-			AYIN_PROFILE_FUNCTION();
-
-			auto&& [cameraComponent, cameraTransform] = GetComponents<Ayin::CameraComponent, Ayin::TransformComponent>();
-			
-			//原点-》平移量 -》逆矩阵
-			glm::vec3 distance{ 0.0f };
-
-			//! 因为OpenGL对相机的可是朝向是z的负半轴，所以，这里的加减关系和直觉上是相反的
-			if (Ayin::Input::IsKeyPressed(AYIN_KEY_A)) { distance.x -= m_CameraTranslateSpeed * deltaTime; };
-			if (Ayin::Input::IsKeyPressed(AYIN_KEY_D)) { distance.x += m_CameraTranslateSpeed * deltaTime; };
-			if (Ayin::Input::IsKeyPressed(AYIN_KEY_W)) { distance.z -= m_CameraTranslateSpeed * deltaTime; };
-			if (Ayin::Input::IsKeyPressed(AYIN_KEY_S)) { distance.z += m_CameraTranslateSpeed * deltaTime; };
-
-			if (glm::length(distance) > 0.0f) {
-
-				//! 原点 -> 平移量 -> 逆矩阵
-				//让移动基于相机的本地坐标，当然GetRotationMatrix()是我临时加的，之后可能会移动到Transform中
-				distance = cameraTransform.GetRotationMatrix() * glm::translate(glm::identity<glm::mat4>(), distance) * glm::vec4{ 0.0f, 0.0f, 0.0f, 1.0f };
-
-				cameraTransform.Position += glm::normalize(distance);
-				AYIN_ERROR("direction:{0}, {1}, {2}", distance.x, distance.y, distance.z);
-
-			}
-
-		}
-
-		void OnMouseMoved(Ayin::Timestep deltaTime) {
-
-			AYIN_PROFILE_FUNCTION();
-
-			auto& cameraTransform = GetComponents <Ayin::TransformComponent>();
-
-			auto& cameraProp = GetComponents <Ayin::CameraComponent>().Camera.GetCameraProp();
-
-			//正交相机（我们使用按键）或者非旋转状态无法使用鼠标发出旋转指令
-			if (cameraProp.Type == Ayin::Camera::CameraType::Orthogonal || !m_isRotate) {
-				return;
-			}
-
-			glm::vec2 position = Ayin::Input::GetMousePosition();
-
-			position.x = (position.x - 640);
-			position.y = (position.y - 360);
-
-			static glm::vec3 lastRotation{ position.y, position.x, 0.0f };
-			glm::vec3 rotation{ 0.0f };
-
-
-			rotation = glm::vec3{ position.y, position.x, 0.0f };
-
-			//死区半径
-			if (glm::length(rotation) > 50.0f) {
-
-				cameraTransform.Rotation -= glm::normalize(rotation) * m_CameraRotationSpeed * float(deltaTime);
-
-
-				lastRotation = { position.y, position.x, 0.0f };
-
-				AYIN_ERROR("Rotate");
-				AYIN_ERROR("{0}, {1}, {2}", cameraTransform.Rotation.x, cameraTransform.Rotation.y, cameraTransform.Rotation.z);
-
-			}
-
-
-		}
-
-
-
-	private:
-
-		bool m_isRotate = false;                                                //是否开启旋转
-
-		float m_CameraTranslateSpeed = 1.0f, m_CameraRotationSpeed = 120.0f;
-
-	public:
-		virtual void OnGui() override {
-
-			ImGui::SeparatorText("Camera Controller");
-			ImGui::DragFloat("Translate Speed", &m_CameraTranslateSpeed, 0.01f);
-			ImGui::DragFloat("Rotation Speed", &m_CameraRotationSpeed, 1.0f);
-			ImGui::Checkbox("Enable Rotation", &m_isRotate);
-
-		};
-
-	};
 
 	m_SceneCamera.AddComponent<Ayin::NativeScriptComponent>().Bind<CameraControllerScript>();
 
@@ -214,8 +99,8 @@ void EditorLayer::OnUpdate(Ayin::Timestep deltaTime) {
 	}
 
 
-	static float rotation = 0;
-	rotation += deltaTime * 50.0f;
+	//x static float rotation = 0;
+	//x rotation += deltaTime * 50.0f;
 
 	{
 		AYIN_PROFILE_SCOPE("Renderer Draw");
@@ -229,7 +114,7 @@ void EditorLayer::OnUpdate(Ayin::Timestep deltaTime) {
 
 
 
-		m_TextureEntity.GetComponents<Ayin::TransformComponent>().Rotation = glm::vec3{ 0.0f, 0.0f, rotation };
+		//x m_TextureEntity.GetComponents<Ayin::TransformComponent>().Rotation = glm::vec3{ 0.0f, 0.0f, rotation };
 
 		m_ActiveScene->OnUpdate(deltaTime);
 
@@ -300,6 +185,46 @@ void EditorLayer::OnImGuiRender() {
 
 	m_PropertiesPanel.SetContext(m_SceneHierarchyPanel.GetSelectedEntity());
 	m_PropertiesPanel.OnImGuiRender();
+
+	// 序列化反序列化菜单
+	{
+	
+		if (ImGui::BeginMainMenuBar()) {
+			
+			if (ImGui::BeginMenu("FILE")) {
+			
+				if (ImGui::MenuItem("Serializer")) {
+				
+					Ayin::SceneSerializer sceneSerializer{ m_ActiveScene };
+					sceneSerializer.Serializer("O:/CppProgram/Ayin/assets/scenes/testScene.json");
+
+				}
+
+				if (ImGui::MenuItem("Deserializer")) {
+				
+					Ayin::SceneSerializer sceneSerializer;
+					sceneSerializer.Deserializer("O:/CppProgram/Ayin/assets/scenes/testScene.json");
+
+					m_ActiveScene = sceneSerializer.GetScene();
+
+					m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+
+					{ //测试用
+						m_SceneCamera = m_ActiveScene->GetEntitiesByComponents<Ayin::CameraComponent>()[0];
+						m_SceneCamera.AddComponent<Ayin::NativeScriptComponent>().Bind<CameraControllerScript>();
+					}
+
+				}
+
+				ImGui::EndMenu();
+			
+			}
+			
+		
+			ImGui::EndMainMenuBar();
+		}
+
+	}
 };
 
 void EditorLayer::OnEvent(Ayin::Event& event) {};

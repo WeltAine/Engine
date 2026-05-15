@@ -1,0 +1,118 @@
+{
+    "SceneName": "Untitled",
+    "Entities": [
+        {
+            "UUID": 13874630024467741450,
+            "Components": {
+                "CameraComponent": {
+                    "Camera": {
+                        "CameraProp": {
+                            "Type": "Orthogonal",
+                            "FOV": 60,
+                            "Height": 2,
+                            "AspectRatio": 0.9174174,
+                            "NearPlane": 0.1,
+                            "FarPlane": 100
+                        },
+                        "ZoomLevel": 1
+                    }
+                },
+                "IDComponent": {
+                    "ID": 13874630024467741450
+                },
+                "TagComponent": {
+                    "Name": "MainCamera"
+                },
+                "TransformComponent": {
+                    "Position": {
+                        "x": 0,
+                        "y": 0,
+                        "z": 0
+                    },
+                    "Rotation": {
+                        "x": 0,
+                        "y": 0,
+                        "z": 0
+                    },
+                    "Scale": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1
+                    }
+                }
+            }
+        },
+        {
+            "UUID": 11788048577503494824,
+            "Components": {
+                "IDComponent": {
+                    "ID": 11788048577503494824
+                },
+                "SpriteRendererComponent": {
+                    "Color": {
+                        "x": 0.8,
+                        "y": 0.2,
+                        "z": 0.5,
+                        "w": 0.5
+                    }
+                },
+                "TagComponent": {
+                    "Name": "Entity_0"
+                },
+                "TransformComponent": {
+                    "Position": {
+                        "x": 0,
+                        "y": 0,
+                        "z": 0
+                    },
+                    "Rotation": {
+                        "x": 0,
+                        "y": 0,
+                        "z": 60
+                    },
+                    "Scale": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1
+                    }
+                }
+            }
+        },
+        {
+            "UUID": 13930160852258120406,
+            "Components": {
+                "IDComponent": {
+                    "ID": 13930160852258120406
+                },
+                "SpriteRendererComponent": {
+                    "Color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                "TagComponent": {
+                    "Name": "TextureEntity"
+                },
+                "TransformComponent": {
+                    "Position": {
+                        "x": 0,
+                        "y": 0,
+                        "z": 0
+                    },
+                    "Rotation": {
+                        "x": 0,
+                        "y": 0,
+                        "z": 0
+                    },
+                    "Scale": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1
+                    }
+                }
+            }
+        }
+    ]
+}
