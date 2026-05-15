@@ -9,8 +9,6 @@
   </Project>
   <Project Path="Ayin-Editor\Ayin-Editor.vcxproj" Id="CAFB832C-36B1-FC21-BFA5-F6F82B5AF325" DefaultStartup="true">
   </Project>
-  <Project Path="SandBox\SandBox.vcxproj" Id="D43924E3-4019-A37E-4931-2E55B58F09E0">
-  </Project>
   <Folder Name="/Dependency/">
     <Project Path="Ayin\Dependency\Glad\Glad\Glad.vcxproj" Id="BDD6857C-A90D-870D-52FA-6C103E10030F">
     </Project>

@@ -79,13 +79,13 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>AYIN_PLATFORM_WINDOWS;AYIN_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Ayin\Dependency\spdlog\include;..\Ayin\src;..\Ayin\Dependency;src;..\Ayin\Dependency\glm;..\Ayin\Dependency\entt\single_include;..\Ayin\Dependency\ImGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Ayin\Dependency\spdlog\include;..\Ayin\src;..\Ayin\Dependency;src;..\Ayin\Dependency\glm;..\Ayin\Dependency\entt\single_include;..\Ayin\Dependency\ImGui;..\Ayin\Dependency\Glaze\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <MinimalRebuild>false</MinimalRebuild>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>/utf-8 /Zc:preprocessor %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/utf-8 /Zm200 /Zc:preprocessor %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpp23</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
     </ClCompile>
@@ -101,7 +101,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>AYIN_PLATFORM_WINDOWS;AYIN_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Ayin\Dependency\spdlog\include;..\Ayin\src;..\Ayin\Dependency;src;..\Ayin\Dependency\glm;..\Ayin\Dependency\entt\single_include;..\Ayin\Dependency\ImGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Ayin\Dependency\spdlog\include;..\Ayin\src;..\Ayin\Dependency;src;..\Ayin\Dependency\glm;..\Ayin\Dependency\entt\single_include;..\Ayin\Dependency\ImGui;..\Ayin\Dependency\Glaze\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -109,7 +109,7 @@
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>/utf-8 /Zc:preprocessor %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/utf-8 /Zm200 /Zc:preprocessor %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpp23</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
     </ClCompile>
@@ -126,7 +126,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>AYIN_PLATFORM_WINDOWS;AYIN_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Ayin\Dependency\spdlog\include;..\Ayin\src;..\Ayin\Dependency;src;..\Ayin\Dependency\glm;..\Ayin\Dependency\entt\single_include;..\Ayin\Dependency\ImGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Ayin\Dependency\spdlog\include;..\Ayin\src;..\Ayin\Dependency;src;..\Ayin\Dependency\glm;..\Ayin\Dependency\entt\single_include;..\Ayin\Dependency\ImGui;..\Ayin\Dependency\Glaze\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -134,7 +134,7 @@
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>/utf-8 /Zc:preprocessor %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/utf-8 /Zm200 /Zc:preprocessor %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpp23</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
     </ClCompile>

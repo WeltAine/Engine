@@ -16,7 +16,7 @@ namespace {
 	struct EntityJsonEntry {
 
 		uint64_t UUID{};
-		std::map<std::string, glz::raw_json> Components;
+		std::map<std::string, glz::raw_json> Components;//会导致序列化文件中的组件顺序不固定，但没关系，反序列化时是根据组件名称来找的
 
 		struct glaze {
 
