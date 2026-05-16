@@ -4,6 +4,7 @@
 
 #include "Ayin/Scene/SceneSerializer.h"
 
+#include "Ayin/Utils/PlatformUtils.h"
 
 
 static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);//没帧初始颜色
@@ -28,19 +29,19 @@ void EditorLayer::OnAttach() {
 
 	m_ActiveScene = Ayin::CreateRef<Ayin::Scene>();
 
-	// 设置场景
-	//for (float y = -5.0f; y < 5.0f; y += 0.5f)
-	//{
-	//	for (float x = -5.0f; x < 5.0f; x += 0.5f)
-	//	{
-	//		std::string entityName = fmt::format("Entity_{:.1f}_{:.1f}", x, y);
-	//		Ayin::Entity entity = m_ActiveScene->CreateEntity(entityName);
-	//		auto& transform = entity.GetComponents<Ayin::TransformComponent>();
-	//		transform = Ayin::TransformComponent{ glm::vec3{ x, y, -10.0f }, glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 1.0f, 1.0f, 1.0f } };
-	//		auto& sprite = entity.AddComponent<Ayin::SpriteRendererComponent>();
-	//		sprite.Color = { (x + 5.0f) / 10.0f, 0.4f, (y + 5.0f) / 10.0f, 0.7f };
-	//	}
-	//}
+	//x 设置场景
+	//xfor (float y = -5.0f; y < 5.0f; y += 0.5f)
+	//x{
+	//x	for (float x = -5.0f; x < 5.0f; x += 0.5f)
+	//x	{
+	//x		std::string entityName = fmt::format("Entity_{:.1f}_{:.1f}", x, y);
+	//x		Ayin::Entity entity = m_ActiveScene->CreateEntity(entityName);
+	//x		auto& transform = entity.GetComponents<Ayin::TransformComponent>();
+	//x		transform = Ayin::TransformComponent{ glm::vec3{ x, y, -10.0f }, glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 1.0f, 1.0f, 1.0f } };
+	//x		auto& sprite = entity.AddComponent<Ayin::SpriteRendererComponent>();
+	//x		sprite.Color = { (x + 5.0f) / 10.0f, 0.4f, (y + 5.0f) / 10.0f, 0.7f };
+	//x	}
+	//x}
 
 	{
 		//x m_TextureEntity = m_ActiveScene->CreateEntity("TextureEntity");
@@ -87,8 +88,11 @@ void EditorLayer::OnUpdate(Ayin::Timestep deltaTime) {
 		m_Framebuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
 
 		Ayin::WindowResizeEvent resizeEvent{ (unsigned int)m_ViewportSize.x, (unsigned int)m_ViewportSize.y };
+
+		//相机比例调整
 		m_CameraController.OnEvent(resizeEvent);
-		m_SceneCamera.GetComponents<Ayin::CameraComponent>().Camera.SetCameraSize(m_ViewportSize.x, m_ViewportSize.y);
+		//x m_SceneCamera.GetComponents<Ayin::CameraComponent>().Camera.SetCameraSize(m_ViewportSize.x, m_ViewportSize.y);
+		m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
 
 		Ayin::Renderer::OnWindowResize(m_ViewportSize.x, m_ViewportSize.y);
 		//! Application::OnWindowsResize()中的调整并没有删去
@@ -193,28 +197,17 @@ void EditorLayer::OnImGuiRender() {
 			
 			if (ImGui::BeginMenu("FILE")) {
 			
-				if (ImGui::MenuItem("Serializer")) {
-				
-					Ayin::SceneSerializer sceneSerializer{ m_ActiveScene };
-					sceneSerializer.Serializer("O:/CppProgram/Ayin/assets/scenes/testScene.json");
-
+				if (ImGui::MenuItem("SaveScene")) {
+					SaveScene();
+				}
+				if (ImGui::MenuItem("OpenScene")) {
+					OpenScene();
+				}
+				if (ImGui::MenuItem("CreateScene")) {
+					NewScene();
 				}
 
-				if (ImGui::MenuItem("Deserializer")) {
-				
-					Ayin::SceneSerializer sceneSerializer;
-					sceneSerializer.Deserializer("O:/CppProgram/Ayin/assets/scenes/testScene.json");
 
-					m_ActiveScene = sceneSerializer.GetScene();
-
-					m_SceneHierarchyPanel.SetContext(m_ActiveScene);
-
-					{ //测试用
-						m_SceneCamera = m_ActiveScene->GetEntitiesByComponents<Ayin::CameraComponent>()[0];
-						m_SceneCamera.AddComponent<Ayin::NativeScriptComponent>().Bind<CameraControllerScript>();
-					}
-
-				}
 
 				ImGui::EndMenu();
 			
@@ -228,3 +221,66 @@ void EditorLayer::OnImGuiRender() {
 };
 
 void EditorLayer::OnEvent(Ayin::Event& event) {};
+
+
+//快捷键
+bool EditorLayer::OnKeyPressed(Ayin::KeyPressedEvent& keyPressedEvent) {
+
+	bool isCtrl = Ayin::Input::IsKeyPressed(Ayin::KeyCode::Left_Control) && Ayin::Input::IsKeyPressed(Ayin::KeyCode::Right_Control);
+	bool isShift = Ayin::Input::IsKeyPressed(Ayin::KeyCode::Left_Shift) && Ayin::Input::IsKeyPressed(Ayin::KeyCode::Right_Shift);
+
+	switch (keyPressedEvent.GetKeyCode()) {
+	
+		//Ctrl + N
+		case(Ayin::KeyCode::N): if (isCtrl) NewScene(); return true;
+	
+	}
+
+};
+
+//场景导入导出
+void EditorLayer::OpenScene() {
+
+	std::string filePath = Ayin::FileDialogs::OpenFile({ {"Scenen", "json"}}, nullptr);
+
+	m_ActiveScene = Ayin::CreateRef<Ayin::Scene>();
+
+
+	Ayin::SceneSerializer sceneSerializer{m_ActiveScene};
+	sceneSerializer.Deserializer(filePath);
+
+	{ //测试用
+		m_SceneCamera = m_ActiveScene->GetEntitiesByComponents<Ayin::CameraComponent>()[0];
+		m_SceneCamera.AddComponent<Ayin::NativeScriptComponent>().Bind<CameraControllerScript>();
+	}
+
+	m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
+
+	m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+
+};
+
+void EditorLayer::NewScene() {
+
+	m_ActiveScene = Ayin::CreateRef<Ayin::Scene>();
+	m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+
+	{ //测试用
+		m_SceneCamera = m_ActiveScene->CreateEntity("MainCamera");
+		m_SceneCamera.AddComponent<Ayin::CameraComponent>();
+		m_SceneCamera.AddComponent<Ayin::NativeScriptComponent>().Bind<CameraControllerScript>();
+	}
+
+	m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
+
+};
+
+void EditorLayer::SaveScene() {
+
+	std::string filePath = Ayin::FileDialogs::OpenFile({ {"Scenen", "json"} }, "Scene");
+
+	Ayin::SceneSerializer sceneSerializer{ m_ActiveScene };
+	sceneSerializer.Serializer(filePath);
+
+};
+

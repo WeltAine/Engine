@@ -27,6 +27,9 @@ namespace Ayin {
 
 		void OnUpdate(Timestep deltaTime);
 
+		// 根据展示窗口调整相机比例（是所有相机）
+		void OnViewportResize(int width, int height);
+
 		const std::string& GetName() const { return m_SceneName; }
 		void SetName(const std::string& name) { m_SceneName = name; }
 

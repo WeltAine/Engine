@@ -10,7 +10,7 @@ namespace Ayin {
 	{};
 
 
-	void SceneHierarchyPanel::SetContext(const Ref<Scene>& scene) { m_Scene = scene; };
+	void SceneHierarchyPanel::SetContext(const Ref<Scene>& scene) { m_Scene = scene; m_SelectedEntity = {}; m_HoveredEntity = {}; };
 
 
 	void SceneHierarchyPanel::OnImGuiRender() {
@@ -19,16 +19,56 @@ namespace Ayin {
 
 		ImGui::Begin("HierarchyPanel");
 
-		if (ImGui::TreeNodeEx("TestScene", m_ParentNodeFlags | ImGuiTreeNodeFlags_DefaultOpen)) {
+		ImGuiTreeNodeFlags sceneFlags = m_ParentNodeFlags | ImGuiTreeNodeFlags_DefaultOpen;
 
+		auto drawEntities = [&]() {
 			for (Entity& entity : entitys) {
-
 				DrawEntityNode(entity);
+			}
+		};
 
+		if (m_EditingSceneName) {
+			// 编辑态：去掉 SpanFullWidth，否则 TreeNode 的交互区域会铺满整行，
+			// 遮挡后面 SameLine() 上的 InputText，导致其无法接收鼠标事件
+			sceneFlags &= ~ImGuiTreeNodeFlags_SpanFullWidth;//去掉整行高亮
+
+			bool open = ImGui::TreeNodeEx("##SceneRoot", sceneFlags);
+
+			//编辑框绘制
+			ImGui::SameLine();
+			ImGui::SetKeyboardFocusHere();//让下一个绘制的组件获取焦点，本帧组件变为活跃
+			ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(0, 0, 0, 0));
+			ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(0, 0, 0, 0));
+			ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(0, 0, 0, 0));
+			if (ImGui::InputText("##SceneNameEdit", m_SceneNameBuffer, sizeof(m_SceneNameBuffer), ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll)) {
+				m_Scene->SetName(m_SceneNameBuffer);
+				m_EditingSceneName = false;
+			}
+			ImGui::PopStyleColor(3);
+
+			if (!ImGui::IsItemActive() && ImGui::IsMouseClicked(0))//! m_JustStartedEditing是用于堵住时序漏洞的，因为第一次进入这里时
+				m_EditingSceneName = false;
+
+			//绘制场景中节点
+			if (open) {
+				drawEntities();
+				ImGui::TreePop();
 			}
 
-			ImGui::TreePop();
-		
+		} else {
+			// 正常态：场景名直接作 TreeNode label，保留 SpanFullWidth 实现整行高亮
+			bool open = ImGui::TreeNodeEx(m_Scene->GetName().c_str(), sceneFlags);
+
+			if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0)) {
+				m_EditingSceneName = true;
+				strncpy(m_SceneNameBuffer, m_Scene->GetName().c_str(), sizeof(m_SceneNameBuffer) - 1);
+			}
+
+			if (open) {
+				drawEntities();
+				ImGui::TreePop();
+			}
+
 		}
 
 		if (ImGui::BeginPopupContextWindow(nullptr, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))

@@ -22,6 +22,15 @@ public:
 
 	virtual void OnEvent(Ayin::Event& event) override;
 
+private:
+
+	//快捷键
+	bool OnKeyPressed(Ayin::KeyPressedEvent& event);
+
+	//场景导入导出
+	void OpenScene();
+	void NewScene();
+	void SaveScene();
 
 private:
 
@@ -43,6 +52,7 @@ private:
 //面板测试
 	Ayin::SceneHierarchyPanel m_SceneHierarchyPanel;
 	Ayin::PropertiesPanel m_PropertiesPanel;
+
 };
 
 

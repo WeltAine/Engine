@@ -33,6 +33,9 @@ namespace Ayin {
 											   //点开箭头展开					//层级线绘制					    //选中时整行高亮
 		ImGuiTreeNodeFlags m_ParentNodeFlags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_DrawLinesFull | ImGuiTreeNodeFlags_SpanFullWidth;
 
+		char m_SceneNameBuffer[256] = {};
+		bool m_EditingSceneName = false;
+
 	};
 
 }

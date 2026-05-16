@@ -114,6 +114,9 @@ namespace Ayin {
 
 	void SceneSerializer::Deserializer(const std::string& filepath) {
 
+		if (m_Scene.get() == nullptr)
+			return;
+
 		std::ifstream ifs(filepath);
 		if (!ifs.is_open()) {
 			AYIN_CORE_ERROR("Failed to open scene file: {}", filepath);
@@ -130,8 +133,6 @@ namespace Ayin {
 			AYIN_CORE_ERROR("Failed to parse scene JSON: {}", glz::format_error(err, jsonStr));
 			return;
 		}
-
-		m_Scene = CreateRef<Scene>();
 
 		m_Scene->SetName(sceneData.SceneName);
 

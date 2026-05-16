@@ -127,4 +127,14 @@ namespace Ayin{
 	};
 
 
+	void Scene::OnViewportResize(int width, int height) {
+
+		auto&& view = m_Registry.view<CameraComponent>();
+
+		for (auto&& [_, cameraComponent] : view.each()) {
+			cameraComponent.Camera.SetCameraSize(width, height);
+		}
+
+	};
+
 }
