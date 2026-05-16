@@ -10,6 +10,7 @@
 
 #include "Ayin/Renderer/Buffer.h"
 
+#include "Ayin/Utils/PlatformUtils.h"
 
 namespace Ayin {
 
@@ -32,6 +33,8 @@ namespace Ayin {
 		//当窗口发生事件时（通过GLFW），窗口类会调用OnEvent回调，由我们来处理，Application成了中介者，而窗口成为了组件，这道函指则是组件与中介之间的沟通桥梁
 		m_Window->SetEventCallback(AYIN_BIND_EVENT_FUN(Application::OnEvent));
 
+		//文件弹窗初始化
+		FileDialogs::Init();
 
 		Renderer::Init();
 
@@ -46,6 +49,9 @@ namespace Ayin {
 		AYIN_PROFILE_FUNCTION();
 
 		Renderer::Shutdown();
+
+		//文件弹窗反初始化
+		FileDialogs::Shutdown();
 
 	}
 

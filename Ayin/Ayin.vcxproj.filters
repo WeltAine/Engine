@@ -49,6 +49,9 @@
     <Filter Include="src\Ayin\Scene">
       <UniqueIdentifier>{2A9773F0-1665-67F6-FFF8-D71CEB65435B}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Ayin\Utils">
+      <UniqueIdentifier>{6D2BA1F0-59F9-94F6-428D-051D2EFA705B}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\Platform">
       <UniqueIdentifier>{21CA02E5-0D2D-9289-B6B2-CA3FA2F45D0C}</UniqueIdentifier>
     </Filter>
@@ -1449,6 +1452,9 @@
     <ClInclude Include="src\Ayin\Scene\Systems.h">
       <Filter>src\Ayin\Scene</Filter>
     </ClInclude>
+    <ClInclude Include="src\Ayin\Utils\PlatformUtils.h">
+      <Filter>src\Ayin\Utils</Filter>
+    </ClInclude>
     <ClInclude Include="src\AyinPch.h">
       <Filter>src</Filter>
     </ClInclude>
@@ -1561,6 +1567,9 @@
     </ClCompile>
     <ClCompile Include="src\Ayin\Scene\SceneSerializer.cpp">
       <Filter>src\Ayin\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Ayin\Utils\PlatformUtils.cpp">
+      <Filter>src\Ayin\Utils</Filter>
     </ClCompile>
     <ClCompile Include="src\AyinPch.cpp">
       <Filter>src</Filter>

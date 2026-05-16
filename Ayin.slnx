@@ -16,5 +16,7 @@
     </Project>
     <Project Path="Ayin\Dependency\ImGui\ImGui\ImGui.vcxproj" Id="C0FF640D-2C14-8DBE-F595-301E616989EF">
     </Project>
+    <Project Path="Ayin\Dependency\nativefiledialog-extended\NativeFileDialogExtended\NativeFileDialogExtended.vcxproj" Id="6D1566D0-593A-B550-8285-9AE06E09B46E">
+    </Project>
   </Folder>
 </Solution>

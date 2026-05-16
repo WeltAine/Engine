@@ -53,7 +53,7 @@ project "Ayin-Editor"
 
 
 
-    filter "configurations:Debug" --暂时没用，但先写着
+    filter "configurations:Debug"
         defines "AYIN_DEBUG"
         runtime "Debug"
         symbols "On"

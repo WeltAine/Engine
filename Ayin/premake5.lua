@@ -38,7 +38,8 @@ project "Ayin"
         "%{IncludeDir.glm}",
         "%{IncludeDir.stb_image}",
         "%{IncludeDir.entt}",
-        "%{IncludeDir.Glaze}"
+        "%{IncludeDir.Glaze}",
+        "%{IncludeDir.NativeFileDialogExtended}"
     }
 
     -- 依赖项目
@@ -46,7 +47,8 @@ project "Ayin"
         "GLFW",
         "Glad",
         "ImGui",
-        "opengl32.lib"
+        "opengl32.lib",
+        "NativeFileDialogExtended"
     }
 
     -- files的路径是相对于premake脚本所在目录的，在此基础上拼接完整路径
