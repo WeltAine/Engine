@@ -21,3 +21,6 @@
 	path = Ayin/Dependency/Glaze
 	url = https://github.com/stephenberry/glaze.git
 	branch = main
+[submodule "Ayin/Dependency/nativefiledialog-extended"]
+	path = Ayin/Dependency/nativefiledialog-extended
+	url = https://github.com/btzy/nativefiledialog-extended.git
