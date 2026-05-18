@@ -1,6 +1,10 @@
 #include <AyinPch.h>
 
 #include "Ayin/ImGui/ImGuiLayer.h"
+#include "Ayin/Events/ApplicationEvent.h"
+#include "Ayin/Events/KeyEvent.h"
+#include "Ayin/Events/MouseEvent.h"
+
 #include "Ayin/Core/Application.h"
 
 #include <glad/glad.h>
@@ -119,9 +123,13 @@ namespace Ayin {
 
 	void ImGuiLayer::OnEvent(Event& event) {
 
-		ImGuiIO& io = ImGui::GetIO();
-		event.handled |= event.IsInCatagory(EventCategory::EventCategoryMouse) & io.WantCaptureMouse;
-		event.handled |= event.IsInCatagory(EventCategory::EventCategoryKeyboard) & io.WantCaptureKeyboard;
+		if (m_BlockEvents) {
+		
+			ImGuiIO& io = ImGui::GetIO();
+			event.handled |= event.IsInCatagory(EventCategory::EventCategoryMouse) & io.WantCaptureMouse;
+			event.handled |= event.IsInCatagory(EventCategory::EventCategoryKeyboard) & io.WantCaptureKeyboard;
+		
+		}
 
 	}
 

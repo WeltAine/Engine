@@ -3,10 +3,7 @@
 #include "Ayin/Core/Core.h"
 #include "Ayin/Core/Layer.h"
 
-
-#include "Ayin/Events/ApplicationEvent.h"
-#include "Ayin/Events/KeyEvent.h"
-#include "Ayin/Events/MouseEvent.h"
+#include "Ayin/Events/Event.h"
 
 namespace Ayin {
 
@@ -30,11 +27,15 @@ namespace Ayin {
 		void Begin();
 		void End();
 
+		inline void BlockEvents(bool block) { m_BlockEvents = block; };
+
 		//UI风格
 		void SetDarkThemeColors();
 
 	private:
 		float m_Time = 0.0f;
+		bool m_BlockEvents = true;	//编辑器UI层是否截断事件
+
 	};
 
 }
