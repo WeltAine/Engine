@@ -13,20 +13,20 @@
 
 namespace Ayin{
 
-    class AYIN_API CameraController  : Camera{
+	class AYIN_API CameraController  : Camera{
 
-    public:
-        CameraController(const CameraProp& cameraProp);
-        ~CameraController() = default;
+	public:
+		CameraController(const CameraProp& cameraProp);
+		~CameraController() = default;
 
-        void OnUpdate(Timestep deltaTime);
-        void OnEvent(Event& e);
+		void OnUpdate(Timestep deltaTime);
+		void OnEvent(Event& e);
 
 		// 获取相机（主要是矩阵）
-        inline const Camera& GetCamera() const { return *this; };
+		inline const Camera& GetCamera() const { return *this; };
 		// 获取相机参数
 		inline void SetCameraProp(const CameraProp& cameraProp) { m_CameraProp = cameraProp; RecalculateProjectionMatrix(); };
-        inline const CameraProp& GetCameraProp() const { return m_CameraProp; };
+		inline const CameraProp& GetCameraProp() const { return m_CameraProp; };
 		inline const void SwitchCameraType(Camera::CameraType cameraType) { m_CameraProp.Type = cameraType; RecalculateProjectionMatrix(); }
 		inline CameraType GetCameraType() const { return m_CameraProp.Type; };
 		inline const void SetCameraFOV_H(float verticalFovAngle) { m_CameraProp.FOV = verticalFovAngle; RecalculateProjectionMatrix(); }
@@ -63,32 +63,32 @@ namespace Ayin{
 
 		void RecalculateProjectionMatrix();
 
-    private:
-        bool OnMouseScrolled(MouseScrolledEvent& e);
-        bool OnMouseScrolled(Timestep deltaTime);
-        bool OnMouseMidButtonPressed(MouseButtonPressedEvent& e);
-        bool OnMouseMidButtonReleased(MouseButtonReleasedEvent& e);
-        bool OnWindowResize(WindowResizeEvent& e);
+	private:
+		bool OnMouseScrolled(MouseScrolledEvent& e);
+		bool OnMouseScrolled(Timestep deltaTime);
+		bool OnMouseMidButtonPressed(MouseButtonPressedEvent& e);
+		bool OnMouseMidButtonReleased(MouseButtonReleasedEvent& e);
+		bool OnWindowResize(WindowResizeEvent& e);
 
-        void OnAxisKeyPressed(Ayin::Timestep deltaTime);
-        void OnMouseMoved(Ayin::Timestep deltaTime);
+		void OnAxisKeyPressed(Ayin::Timestep deltaTime);
+		void OnMouseMoved(Ayin::Timestep deltaTime);
 
 
 
-    private:
+	private:
 
-        CameraProp m_CameraProp;
+		CameraProp m_CameraProp;
 
-        bool m_isRotate = false;                                                //是否开启旋转
+		bool m_isRotate = false;                                                //是否开启旋转
 
-        float m_ZoomLevel = 1.0f;                                               //缩放
+		float m_ZoomLevel = 1.0f;                                               //缩放
 
-        glm::vec3 m_CameraPosition = { 0.0f, 0.0f, 1.0f };						// 位置
-        glm::vec3 m_CameraRotation = { 0.0f, 0.0f, 0.0f };						// 角度
+		glm::vec3 m_CameraPosition = { 0.0f, 0.0f, 1.0f };						// 位置
+		glm::vec3 m_CameraRotation = { 0.0f, 0.0f, 0.0f };						// 角度
 
-        float m_CameraTranslateSpeed = 1.0f, m_CameraRotationSpeed = 120.0f;
+		float m_CameraTranslateSpeed = 1.0f, m_CameraRotationSpeed = 120.0f;
 
-    };
+	};
 
 
 }

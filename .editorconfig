@@ -12,11 +12,17 @@ root = true
 #找不到就往上级目录找，一直找到盘符根目录
 #        ↓
 #找到 .editorconfig → 读取规则 → 应用到当前编辑器
-#（缩进用 Tab、换行用 LF、文件末尾加空行...）
+#（缩进用 Tab、换行用 LF、文件末尾加空行...）   
 
 
-[*]                         #适用于所有文件的规则
-end_of_line = lf            #每一行结尾统一用 Unix 换行符 (LF)，不用 Windows 的 CRLF
-insert_final_newline = true #每个文件末尾自动加一个空行
-indent_style = tab          #缩进用 Tab 而非空格
-indent_size = 4             #Tab 的宽度为 4 个空格
+[*]                                 #适用于所有文件的规则
+end_of_line = lf                    #每一行结尾统一用 Unix 换行符 (LF)，不用 Windows 的 CRLF
+charset = utf-8                     #文件编码统一用 UTF-8，避免不同编码导致的乱码问题
+insert_final_newline = true         #每个文件末尾自动加一个空行
+indent_style = tab                  #缩进用 Tab 而非空格
+indent_size = 4                     #Tab 的宽度为 4 个空格
+trim_trailing_whitespace = false    #不自动删除行尾的空格，避免误删有意添加的空格
+insert_final_newline = true         #每个文件末尾自动加一个空行，保持文件格式一致
+# 锁死 VS 不许乱动
+format_on_save = false              #保存时不自动格式化代码，避免不必要的格式化操作，保持代码风格一致
+auto_format = false                 #不自动格式化代码，保持代码风格一致，避免不必要的格式化操作

@@ -82,7 +82,7 @@ namespace Ayin {
 
 	// 注册宏（生成注册结构体）
 #define AYIN_COMPONENT(Type) \
-    inline static ::Ayin::detail::ComponentRegistrar<Type> AYIN_CONCAT(_reg_, Type)(#Type)
+	inline static ::Ayin::detail::ComponentRegistrar<Type> AYIN_CONCAT(_reg_, Type)(#Type)
 
 	// 注册UI
 #define AYIN_COMPONENTUI(Type, FuncName) \

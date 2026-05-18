@@ -292,8 +292,8 @@ namespace Ayin {
 
 	void OpenGLVertexArray::SetIndexBuffer(const Ref<IndexBuffer>& indexBuffer)
 	{
-        AYIN_PROFILE_FUNCTION();
-        
+		AYIN_PROFILE_FUNCTION();
+		
 	#pragma region DSA
 		glVertexArrayElementBuffer(m_VertexArrayID, *indexBuffer);
 		m_IndexBuffer = indexBuffer;

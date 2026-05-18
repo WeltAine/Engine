@@ -130,9 +130,9 @@ namespace Ayin {
 	};
 
 	void Renderer2D::Shutdown() {
-        
-        AYIN_PROFILE_FUNCTION();
-        
+		
+		AYIN_PROFILE_FUNCTION();
+		
 		delete[] s_Data.QuadBatchBufferBase;
 
 	};
@@ -149,7 +149,7 @@ namespace Ayin {
 
 	void Renderer2D::EndScene() {
 		
-        AYIN_PROFILE_FUNCTION();
+		AYIN_PROFILE_FUNCTION();
 		
 		Flush();
 
@@ -158,7 +158,7 @@ namespace Ayin {
 
 	void Renderer2D::Flush() {
 
-        AYIN_PROFILE_FUNCTION();
+		AYIN_PROFILE_FUNCTION();
 
 		if (s_Data.QuadCount == 0)
 			return;
