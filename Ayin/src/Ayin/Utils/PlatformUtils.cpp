@@ -30,7 +30,7 @@ namespace Ayin {
 		NFD_Quit();
 	}
 
-	std::string FileDialogs::OpenFile(std::initializer_list<FileFilter> filters, const char* defaultPath)
+	std::optional<std::string> FileDialogs::OpenFile(std::initializer_list<FileFilter> filters, const char* defaultPath)
 	{
 
 		std::vector<nfdu8filteritem_t> nfdFilters;
@@ -57,15 +57,15 @@ namespace Ayin {
 				return result;
 			}
 			case NFD_CANCEL:
-				return {};
+				return std::nullopt;
 			default:
 				AYIN_CORE_ERROR("File open error: {0}", NFD_GetError());
-				return {};
+				return std::nullopt;
 		}
 
 	}
 
-	std::string FileDialogs::SaveFile(std::initializer_list<FileFilter> filters, const char* defaultName)
+	std::optional<std::string> FileDialogs::SaveFile(std::initializer_list<FileFilter> filters, const char* defaultName)
 	{
 
 		std::vector<nfdu8filteritem_t> nfdFilters;
@@ -91,10 +91,10 @@ namespace Ayin {
 				return result;
 			}
 			case NFD_CANCEL:
-				return {};
+				return std::nullopt;
 			default:
 				AYIN_CORE_ERROR("File save error: {0}", NFD_GetError());
-				return {};
+				return std::nullopt;
 		}
 
 	}

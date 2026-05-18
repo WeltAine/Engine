@@ -241,22 +241,24 @@ bool EditorLayer::OnKeyPressed(Ayin::KeyPressedEvent& keyPressedEvent) {
 //场景导入导出
 void EditorLayer::OpenScene() {
 
-	std::string filePath = Ayin::FileDialogs::OpenFile({ {"Scenen", "json"}}, nullptr);
+	std::optional<std::string> filePath = Ayin::FileDialogs::OpenFile({ {"Scenen", "json"}}, nullptr);
 
-	m_ActiveScene = Ayin::CreateRef<Ayin::Scene>();
+	if (filePath) {
+		m_ActiveScene = Ayin::CreateRef<Ayin::Scene>();
 
 
-	Ayin::SceneSerializer sceneSerializer{m_ActiveScene};
-	sceneSerializer.Deserializer(filePath);
+		Ayin::SceneSerializer sceneSerializer{ m_ActiveScene };
+		sceneSerializer.Deserializer(*filePath);
 
-	{ //测试用
-		m_SceneCamera = m_ActiveScene->GetEntitiesByComponents<Ayin::CameraComponent>()[0];
-		m_SceneCamera.AddComponent<Ayin::NativeScriptComponent>().Bind<CameraControllerScript>();
+		{ //测试用
+			m_SceneCamera = m_ActiveScene->GetEntitiesByComponents<Ayin::CameraComponent>()[0];
+			m_SceneCamera.AddComponent<Ayin::NativeScriptComponent>().Bind<CameraControllerScript>();
+		}
+
+		m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
+
+		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 	}
-
-	m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
-
-	m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 
 };
 
@@ -277,10 +279,12 @@ void EditorLayer::NewScene() {
 
 void EditorLayer::SaveScene() {
 
-	std::string filePath = Ayin::FileDialogs::OpenFile({ {"Scenen", "json"} }, "Scene");
-
-	Ayin::SceneSerializer sceneSerializer{ m_ActiveScene };
-	sceneSerializer.Serializer(filePath);
+	std::optional<std::string> filePath = Ayin::FileDialogs::OpenFile({ {"Scenen", "json"} }, "Scene");
+	
+	if (filePath) {
+		Ayin::SceneSerializer sceneSerializer{ m_ActiveScene };
+		sceneSerializer.Serializer(*filePath);
+	} 
 
 };
 

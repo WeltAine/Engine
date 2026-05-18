@@ -3,6 +3,8 @@
 #include "Ayin/Core/Core.h"
 
 #include <string>
+#include <optional>
+
 
 namespace Ayin {
 
@@ -25,10 +27,10 @@ namespace Ayin {
 		static void Shutdown();
 
 		//打开文件对话框，返回选择的文件路径
-		static std::string OpenFile(std::initializer_list<FileFilter> filters, const char* defaultPath);
+		static std::optional<std::string> OpenFile(std::initializer_list<FileFilter> filters, const char* defaultPath);
 
 		//保存文件对话框，返回选择的保存路径
-		static std::string SaveFile(std::initializer_list<FileFilter> filters, const char* defaultName);
+		static std::optional<std::string> SaveFile(std::initializer_list<FileFilter> filters, const char* defaultName);
 
 	};
 
