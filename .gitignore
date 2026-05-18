@@ -10,5 +10,10 @@ imgui.ini
 *.log
 Ayin/src/Ayin/Core/ObjectPool.cs
 
+# Premake 生成文件
+*.vcxproj
+*.vcxproj.filters
+*.slnx
+
 #学习glaze用
 glaze_guide.h

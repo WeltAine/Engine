@@ -1,5 +1,5 @@
 # 强制所有文本文件使用LF行尾
-* text=auto eol=lf
+* text eol=lf
 
 # 明确指定二进制文件，不要修改它们的行尾
 *.png binary

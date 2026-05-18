@@ -23,6 +23,3 @@ indent_style = tab                  #缩进用 Tab 而非空格
 indent_size = 4                     #Tab 的宽度为 4 个空格
 trim_trailing_whitespace = false    #不自动删除行尾的空格，避免误删有意添加的空格
 insert_final_newline = true         #每个文件末尾自动加一个空行，保持文件格式一致
-# 锁死 VS 不许乱动
-format_on_save = false              #保存时不自动格式化代码，避免不必要的格式化操作，保持代码风格一致
-auto_format = false                 #不自动格式化代码，保持代码风格一致，避免不必要的格式化操作
