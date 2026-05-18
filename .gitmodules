@@ -19,8 +19,11 @@
 	branch = main
 [submodule "Ayin/Dependency/Glaze"]
 	path = Ayin/Dependency/Glaze
-	url = https://github.com/stephenberry/glaze.git
-	branch = main
+	url = https://github.com/WeltAine/glaze.git
 [submodule "Ayin/Dependency/nativefiledialog-extended"]
 	path = Ayin/Dependency/nativefiledialog-extended
-	url = https://github.com/btzy/nativefiledialog-extended.git
+	url = https://github.com/WeltAine/nativefiledialog-extended.git
+[submodule "Ayin/Dependency/ImGuizmo"]
+	path = Ayin/Dependency/ImGuizmo
+	url = https://github.com/WeltAine/ImGuizmo.git
+	branch = master
