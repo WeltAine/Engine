@@ -35,6 +35,7 @@ IncludeDir["stb_image"] = "%{wks.location}/Ayin/Dependency/stb_image"           
 IncludeDir["entt"] = "%{wks.location}/Ayin/Dependency/entt/single_include"                                          -- EnTT，一个现代C++的实体组件系统（ECS）库，提供了高效的实体管理和组件系统，适用于游戏开发和复杂应用程序。
 IncludeDir["Glaze"] = "%{wks.location}/Ayin/Dependency/Glaze/include"                                               -- Glaze，一个现代C++的序列化库，提供了高效的对象序列化和反序列化功能，适用于游戏开发和数据持久化。
 IncludeDir["NativeFileDialogExtended"] = "%{wks.location}/Ayin/Dependency/nativefiledialog-extended/src/include"    -- NativeFileDialogExtended，一个跨平台的文件对话框库，提供了在不同操作系统上显示文件选择对话框的功能，适用于图形应用程序开发。
+IncludeDir["ImGuizmo"] = "%{wks.location}/Ayin/Dependency/ImGuizmo/src"                                                 -- ImGuizmo，一个基于ImGui的3D变换工具库，提供了在图形应用程序中进行对象变换的功能，适用于游戏开发和图形编辑器。
 
 
 group "Dependency" --分组，和vs中的过滤器类似

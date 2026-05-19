@@ -24,7 +24,12 @@ project "Ayin-Editor"
         "%{IncludeDir.glm}",
         "%{IncludeDir.entt}",
         "%{IncludeDir.ImGui}",
-        "%{IncludeDir.Glaze}"
+        "%{IncludeDir.Glaze}",
+        "%{IncludeDir.ImGuizmo}"
+    }
+
+    defines{
+        "GLM_ENABLE_EXPERIMENTAL"
     }
 
     -- dependson "Ayin"

@@ -8,10 +8,14 @@ project "Ayin"
     targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")   --输出路径
     objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")  --中间文件路径
 
-    pchheader "AyinPch.h"       -- Use Precompiled Header
-    pchsource "src/AyinPch.cpp" -- Create Precompiled Header
+    -- MSVC的预编译头文件只对cpp文件作用，对头文件和 .inl 文件不会有任何影响
+    pchheader "AyinPch.h"       -- 使用预编译头文件
+    pchsource "src/AyinPch.cpp" -- 创建预编译头文件的源文件
+    filter "files:Dependency/ImGuizmo/**.cpp"   -- ImGuizmo库的cpp文件不使用预编译头文件，解决与AyinPch.h中某些宏定义冲突导致的编译错误
+        enablepch "Off"                       -- 禁用预编译头文件，解决第三方库中可能存在的与预编译头文件冲突的问题
+    filter {}
 
-    buildoptions 
+    buildoptions
     {
         "/utf-8",       --保证能够使用log，文件编码时utf-8没错，但是编码器所选择的解释方式并不默认按照文本的格式来，否则 Microsoft Visual C++ (MSVC) 编译器默认会使用系统的本地代码页（如 Windows-1252）来读取它们。所以我们需要指定utf-8，否则log系统会报错
         "/Zm200" --增加编译器堆预留空间，缓解模板重型库(Glaze)导致的堆溢出
@@ -22,9 +26,10 @@ project "Ayin"
         --"AYIN_DENAMIC_LINK",        --开启静态链接还是动态链接
         "AYIN_BUILD_DLL",           --这个宏是为了区分是构建Ayin库还是使用Ayin库，虽然现在Ayin是静态库，但以后可能会改成动态库，所以先写着
         "GLFW_INCLUDE_NONE",        --让glfw不包含OpenGL头文件，因为我们用的是Glad来加载OpenGL函数，而且由glfw引入头文件会报错（不理解为什么要这么处理）
-        "GLM_FORCE_SWIZZLE", --强制glm启用swizzle功能（比如vec4 v; v.xy()），虽然我也不清楚为什么要这么处理，但先写着
+        "GLM_FORCE_SWIZZLE",        --强制glm启用swizzle功能（比如vec4 v; v.xy()）
+        "GLM_ENABLE_EXPERIMENTAL",  --启用glm的实验性功能
         "_CRT_SECURE_NO_WARNINGS",
-        "NOMINMAX" --解决Glaze库和Windows.h中的min和max宏冲突问题，虽然我也不清楚为什么要这么处理，但先写着
+        "NOMINMAX"                  --解决Glaze库和Windows.h中的min和max宏冲突问题
     }
 
 
@@ -39,7 +44,8 @@ project "Ayin"
         "%{IncludeDir.stb_image}",
         "%{IncludeDir.entt}",
         "%{IncludeDir.Glaze}",
-        "%{IncludeDir.NativeFileDialogExtended}"
+        "%{IncludeDir.NativeFileDialogExtended}",
+        "%{IncludeDir.ImGuizmo}"
     }
 
     -- 依赖项目
@@ -60,11 +66,13 @@ project "Ayin"
         --%{prj.name}展开就只是项目名称
         "src/**.h",
         "src/**.cpp",
+        -- glm、stb_image、ImGuizmo一起编译
         "Dependency/glm/glm/**.hpp",
         "Dependency/glm/glm/**.inl",
         "Dependency/stb_image/**.h",
-        "Dependency/stb_image/**.cpp"
-
+        "Dependency/stb_image/**.cpp",
+        "Dependency/ImGuizmo/src/ImGuizmo.h",
+        "Dependency/ImGuizmo/src/ImGuizmo.cpp"
     }
 
 
