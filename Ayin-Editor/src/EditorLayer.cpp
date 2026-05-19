@@ -6,6 +6,10 @@
 
 #include "Ayin/Utils/PlatformUtils.h"
 
+#include "Ayin/Math/Math.h"
+
+#include <glm/glm.hpp>
+
 
 static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);//没帧初始颜色
 
@@ -63,7 +67,8 @@ void EditorLayer::OnAttach() {
 
 
 	m_SceneCamera = m_ActiveScene->CreateEntity("MainCamera");
-	m_SceneCamera.AddComponent<Ayin::CameraComponent>(Ayin::CameraProp{ .Type{Ayin::Camera::CameraType::Orthogonal} });
+	m_SceneCamera.GetComponents<Ayin::TransformComponent>().Position.z = 10.0f;
+	m_SceneCamera.AddComponent<Ayin::CameraComponent>(Ayin::CameraProp{ .Type{Ayin::Camera::CameraType::Perspective} });
 
 
 	m_SceneCamera.AddComponent<Ayin::NativeScriptComponent>().Bind<CameraControllerScript>();
@@ -162,6 +167,47 @@ void EditorLayer::OnImGuiRender() {
 		ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
 		m_ViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
 
+		//Gizmo
+		// 每帧初始化ImGuizmo绘制列表和热区状态（原在ImGuiLayer::Begin()中调用，移至此处归属编辑器层）
+		// SetNextWindowViewport：强制"gizmo"窗口留在主视口，防止ViewportsEnable模式下被提升为独立GLFW窗口导致黑色矩形bug
+		ImGui::SetNextWindowViewport(ImGui::GetMainViewport()->ID);
+		ImGuizmo::BeginFrame();
+
+		if(m_SceneHierarchyPanel.GetSelectedEntity())
+		{
+			// 相机
+			Ayin::SceneCamera& camera = m_SceneCamera.GetComponents<Ayin::CameraComponent>().Camera;
+			// 实体transform
+			Ayin::TransformComponent& selectedEntityTransform = const_cast<Ayin::Entity&>(m_SceneHierarchyPanel.GetSelectedEntity()).GetComponents<Ayin::TransformComponent>();
+			glm::mat4 transform = selectedEntityTransform;
+
+			//ImGuizmo显示配置
+			ImGuizmo::SetOrthographic((camera.GetCameraType() == Ayin::Camera::CameraType::Orthogonal) ? true : false);
+			ImGuizmo::SetDrawlist();//???
+			ImVec2 Top_left_corner = ImGui::GetCursorScreenPos();
+			ImGuizmo::SetRect(Top_left_corner.x, Top_left_corner.y, m_ViewportSize.x, m_ViewportSize.y);//用于NDC
+
+			ImGuizmo::Manipulate(
+				glm::value_ptr(camera.GetViewMatrix()), glm::value_ptr(camera.GetProjectionMatrix()),
+				m_GizmoOperation, m_GizmoMode,
+				glm::value_ptr(transform), nullptr, nullptr, nullptr, nullptr
+			);
+
+
+			if (ImGuizmo::IsUsing()) {
+				
+				auto&&[positiong, rotation, scale] = Ayin::Math::DecomposeTransform(transform);
+
+				selectedEntityTransform.Position = positiong;
+				selectedEntityTransform.Rotation = glm::degrees(rotation);
+				selectedEntityTransform.Scale = scale;
+
+			}
+
+		}
+
+
+
 		float halfZoomLevel = m_SceneCamera.GetComponents<Ayin::CameraComponent>().Camera.GetCameraZoomLevel() * 0.5f;
 
 		m_ViewTexture = m_Framebuffer->GetColorAttachment();
@@ -189,6 +235,8 @@ void EditorLayer::OnImGuiRender() {
 
 	m_PropertiesPanel.SetContext(m_SceneHierarchyPanel.GetSelectedEntity());
 	m_PropertiesPanel.OnImGuiRender();
+
+
 
 	// 序列化反序列化菜单
 	{

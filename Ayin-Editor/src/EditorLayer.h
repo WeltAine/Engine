@@ -5,6 +5,8 @@
 #include "Panels/SceneHierarchyPanel.h"
 #include "Panels/PropertiesPanel.h"
 
+#include <ImGuizmo.h>
+
 class EditorLayer : public Ayin::Layer {
 
 public:
@@ -43,6 +45,10 @@ private:
 	Ayin::Ref<Ayin::Texture2D> m_ViewTexture;		//游戏视窗帧缓冲对应纹理
 
 	glm::i32vec2 m_ViewportSize = {0.0f, 0.0f};		//游戏视窗大小
+
+	ImGuizmo::MODE m_GizmoMode = ImGuizmo::MODE::LOCAL;
+	ImGuizmo::OPERATION m_GizmoOperation = ImGuizmo::OPERATION::TRANSLATE;
+	ImGuizmo::MOVETYPE m_GizmoMoveType = ImGuizmo::MOVETYPE::MT_NONE;//不确定，好像没用上
 
 	//ECS测试
 	Ayin::Ref<Ayin::Scene> m_ActiveScene;						

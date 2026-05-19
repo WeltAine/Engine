@@ -5,6 +5,8 @@
 
 #include <glm/glm.hpp>
 #include <glm/ext/matrix_transform.hpp> // translate, rotate, scale, identity
+#include <glm/gtx/quaternion.hpp>
+#include <glm/gtx/euler_angles.hpp>
 
 #include "Ayin/Renderer/Texture.h"
 #include "Ayin/Scene/SceneCamera.h"
@@ -99,25 +101,66 @@ namespace Ayin {
 
 		inline operator glm::mat4() {
 		
-			glm::mat4 transform{ 1.0f };
+			glm::mat4 translate{ 1.0f }, rotation{ 1.0f }, scale{ 1.0f };
 
-			transform = glm::translate(transform, Position);
-			transform = glm::scale(transform, Scale);
+			translate = glm::translate(translate, Position);
+			scale = glm::scale(scale, Scale);
+			//toMat4内部的旋转顺序是不可指定的，所以达不到我们的Rx*Ry*Rz
+			//x rotation = glm::toMat4(glm::quat{ glm::radians(Rotation)});
+			/*
+			{
+				//四元数合成
+				glm::quat qX = glm::angleAxis(Rotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
+				glm::quat qY = glm::angleAxis(Rotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
+				glm::quat qZ = glm::angleAxis(Rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
+				glm::quat finalRotation = qX * qY * qZ;
+				rotation = glm::mat4_cast(finalRotation);
+			}
+			{
+				//矩阵合成
+				glm::mat4 pitch = glm::rotate(glm::identity<glm::mat4>(), glm::radians(Rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+				glm::mat4 yaw = glm::rotate(glm::identity<glm::mat4>(), glm::radians(Rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+				glm::mat4 roll = glm::rotate(glm::identity<glm::mat4>(), glm::radians(Rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+				rotation = pitch * yaw * roll;
+			} 
+			*/
+			{
+				//glm实验性方法
+				rotation = glm::eulerAngleXYZ(glm::radians(Rotation.x), glm::radians(Rotation.y), glm::radians(Rotation.z));
+			}
+			
 
-			glm::mat4 pitch = glm::rotate(glm::identity<glm::mat4>(), glm::radians(Rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-			glm::mat4 yaw = glm::rotate(glm::identity<glm::mat4>(), glm::radians(Rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-			glm::mat4 roll = glm::rotate(glm::identity<glm::mat4>(), glm::radians(Rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-
-			return transform = transform * pitch * yaw * roll;
+			return translate * rotation * scale;
 
 		};
 
-		inline const glm::mat4& GetRotationMatrix() const {
-			glm::mat4 pitch = glm::rotate(glm::identity<glm::mat4>(), glm::radians(Rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-			glm::mat4 yaw = glm::rotate(glm::identity<glm::mat4>(), glm::radians(Rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-			glm::mat4 roll = glm::rotate(glm::identity<glm::mat4>(), glm::radians(Rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+		inline const glm::mat4 GetRotationMatrix() const {
 
-			return pitch * yaw * roll;
+			//toMat4内部的旋转顺序是不可指定的，所以达不到我们的Rx*Ry*Rz
+			//x glm::toMat4(glm::quat{ glm::radians(Rotation) })
+			/*
+			{
+				//四元数合成
+				glm::quat qX = glm::angleAxis(Rotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
+				glm::quat qY = glm::angleAxis(Rotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
+				glm::quat qZ = glm::angleAxis(Rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
+				glm::quat finalRotation = qX * qY * qZ;
+				rotation = glm::mat4_cast(finalRotation);
+			}
+			{
+				//矩阵合成
+				glm::mat4 pitch = glm::rotate(glm::identity<glm::mat4>(), glm::radians(Rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+				glm::mat4 yaw = glm::rotate(glm::identity<glm::mat4>(), glm::radians(Rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+				glm::mat4 roll = glm::rotate(glm::identity<glm::mat4>(), glm::radians(Rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+				rotation = pitch * yaw * roll;
+			}
+			{
+				//glm实验性方法
+				rotation = glm::eulerAngleXYZ(Rotation.x, Rotation.y, Rotation.z);
+			}
+			*/
+
+			return glm::eulerAngleXYZ(glm::radians(Rotation.x), glm::radians(Rotation.y), glm::radians(Rotation.z));
 
 		};
 

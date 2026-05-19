@@ -53,8 +53,8 @@ namespace Ayin {
 		void RemoveComponent(entt::id_type id);
 
 		template<typename... ComponentTypeArgs>
-		bool HasComponents();
-		bool HasComponent(entt::id_type id);
+		bool HasComponents() const;
+		bool HasComponent(entt::id_type id) const;
 
 		template<typename... ComponentTypes>
 		decltype(auto) GetComponents();
@@ -133,7 +133,7 @@ namespace Ayin {
 	};
 
 	template<typename... ComponentTypes>
-	bool Entity::HasComponents() {
+	bool Entity::HasComponents() const{
 
 		return m_Scene->m_Registry.all_of<ComponentTypes...>(m_EntityHandle);
 

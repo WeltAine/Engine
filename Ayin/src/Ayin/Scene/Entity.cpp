@@ -16,7 +16,7 @@ namespace Ayin {
 
 	
 
-	bool Entity::HasComponent(entt::id_type id) {
+	bool Entity::HasComponent(entt::id_type id) const {
 
 		auto* componentPool = m_Scene->m_Registry.storage(id);
 

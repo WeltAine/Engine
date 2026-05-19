@@ -3,6 +3,8 @@
 #include <glm/ext/matrix_transform.hpp> // translate, rotate, scale, identity
 
 #include <glm/ext/matrix_clip_space.hpp> // perspective
+#include <glm/gtx/quaternion.hpp>
+#include <glm/gtx/euler_angles.hpp>
 
 
 #include "Ayin/CameraController.h"
@@ -52,11 +54,32 @@ namespace Ayin{
 		void CameraController::RecalculateViewMatrix() {
 			AYIN_PROFILE_FUNCTION();
 
-			glm::mat4 pitch = glm::rotate(glm::identity<glm::mat4>(), glm::radians(m_CameraRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-			glm::mat4 yaw = glm::rotate(glm::identity<glm::mat4>(), glm::radians(m_CameraRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-			glm::mat4 roll = glm::rotate(glm::identity<glm::mat4>(), glm::radians(m_CameraRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+			glm::mat4 rotation{ 1.0f };
 
-			glm::mat4 transform = glm::translate(glm::identity<glm::mat4>(), m_CameraPosition) * pitch * yaw * roll;
+			//x glm::mat4 rotation = glm::toMat4(glm::quat{ glm::radians(m_CameraRotation) });
+			/*
+			{
+				//四元数合成
+				glm::quat qX = glm::angleAxis(m_CameraRotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
+				glm::quat qY = glm::angleAxis(m_CameraRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
+				glm::quat qZ = glm::angleAxis(m_CameraRotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
+				glm::quat finalRotation = qX * qY * qZ;
+				rotation = glm::mat4_cast(finalRotation);
+			}
+			{
+				//矩阵合成
+				glm::mat4 pitch = glm::rotate(glm::identity<glm::mat4>(), glm::radians(m_CameraRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+				glm::mat4 yaw = glm::rotate(glm::identity<glm::mat4>(), glm::radians(m_CameraRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+				glm::mat4 roll = glm::rotate(glm::identity<glm::mat4>(), glm::radians(m_CameraRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+				rotation = pitch * yaw * roll;
+			}
+			*/
+			{
+				//glm实验性方法
+				rotation = glm::eulerAngleXYZ(glm::radians(m_CameraRotation.x), glm::radians(m_CameraRotation.y), glm::radians(m_CameraRotation.z));
+			}
+
+			glm::mat4 transform = glm::translate(glm::identity<glm::mat4>(), m_CameraPosition) * rotation;
 
 			m_ViewMatrix = glm::inverse(transform);
 
