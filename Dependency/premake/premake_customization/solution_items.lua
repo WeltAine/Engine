@@ -38,3 +38,25 @@ premake.override(premake.vstudio.sln2005, "projects", function(base, wks)
 end)
 
 -- push和pop函数用于写入sln文件，push表示开始一个新的块，pop表示结束当前块（用缩进来区分块）。通过调用base(wks)来继续执行原来的projects函数，以确保生成的sln文件包含所有项目和solution_items。
+
+--重写vstudio.sln2026.projects函数，在生成.slnx解决方案文件时添加solution_items
+--sln2026是VS2022+使用的.slnx XML格式，与旧版sln2005文本格式的API不同
+premake.override(premake.vstudio.sln2026, "projects", function(base, wks)
+	base(wks)	--先生成正常的项目和文件夹
+	if wks.solution_items and #wks.solution_items > 0 then
+		premake.push('<Folder Name="/Solution Items/">')
+		for _, item in ipairs(wks.solution_items) do
+			--让这个文件出现在 VS 解决方案资源管理器里，方便你双击打开编辑。
+			--.slnx 用 <File> 元素引用文件，放在 <Folder> 内就能在 VS 中展开看到
+			premake.push('<File Path="%s" />', item)
+			premake.pop()
+		end
+		premake.pop('</Folder>')
+	end
+	--生成的内容大概是这样的：
+	--<Folder Name="/Solution Items/">
+	--	<File Path=".editorconfig" />
+	--	<File Path=".gitattributes" />
+	--	<File Path=".gitignore" />
+	--</Folder>
+end)

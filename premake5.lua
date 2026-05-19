@@ -11,9 +11,11 @@ workspace "Ayin" --对应解决方案
         "Dist" --真正的发行（不会有任何日志），这个以后会用上
     }
 
-    solution_items --解决方案包含的文件
+    solution_items --解决方案包含的文件，会在 VS 的 Solution Items 文件夹中显示
     {
-        ".editorconfig"
+        ".editorconfig",
+        ".gitattributes",
+        ".gitignore"
     }
 
     multiprocessorcompile "On" --开启多线程编译，提升编译速度
