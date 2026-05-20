@@ -32,8 +32,8 @@ mat4 RotateZ(float angle){
     float c = cos(angle);
 
     return mat4(
-         c ,  s , 0.0, 0.0,
-        -s ,  c , 0.0, 0.0,
+        c ,  s , 0.0, 0.0,
+        -s , c , 0.0, 0.0,
         0.0, 0.0, 1.0, 0.0,
         0.0, 0.0, 0.0, 1.0
     );
@@ -46,9 +46,9 @@ mat4 RotateY(float angle){
     float c = cos(angle);
 
     return mat4(
-         c , 0.0,  s , 0.0,
+         c , 0.0, -s , 0.0,
         0.0, 1.0, 0.0, 0.0,
-        -s , 0.0,  c , 0.0,
+         s , 0.0,  c , 0.0,
         0.0, 0.0, 0.0, 1.0
     );
 
@@ -63,7 +63,7 @@ mat4 RotateX(float angle){
     return mat4(
         1.0, 0.0, 0.0, 0.0,
         0.0,  c ,  s , 0.0,
-        0.0,  -s,  c , 0.0,
+        0.0, -s,   c , 0.0,
         0.0, 0.0, 0.0, 1.0
     );
 
