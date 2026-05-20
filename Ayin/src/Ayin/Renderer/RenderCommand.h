@@ -20,8 +20,11 @@ namespace Ayin {
 		inline static void SetViewport(int x, int y, int width, int height) { s_RendererAPI->SetViewport(x, y, width, height); };
 
 		inline static void SetClearColor(const glm::vec4& color) { s_RendererAPI->SetClearColor(color); };
+		inline static glm::vec4 GetClearColor() { return s_RendererAPI->GetClearColor(); }
 
 		inline static void Clear() { s_RendererAPI->Clear(); };
+
+		inline static void ClearDefaultFramebuffer(glm::vec4 color) { s_RendererAPI->ClearDefaultFramebufferColor(color); };
 
 		inline static void DrawIndexed(const Ref<VertexArray>& vertexArray) {
 			vertexArray->Bind();

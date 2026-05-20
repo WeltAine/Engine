@@ -72,7 +72,10 @@ namespace Ayin {
 
 			if (m_IsVisible) {
 
+				RenderCommand::ClearDefaultFramebuffer({ 0.0f, 0.0f, 0.0f, 0.0f });
+				
 				{
+
 					AYIN_PROFILE_SCOPE("LayerStack OnUpdate");
 					// 层更新
 					for (Layer* layer : m_LayerStack) {

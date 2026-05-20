@@ -52,6 +52,12 @@ namespace Ayin {
 		io.ConfigViewportsNoAutoMerge = true;               // 替代原ImGuiConfigFlags_ViewportsNoMerge			防止 ImGui 自动把拖出去的窗口又 “吸” 回来合并
 		io.ConfigViewportsNoTaskBarIcon = true;				// 替换原ImGuiConfigFlags_ViewportsNoTaskBarIcons	不让这些独立的 ImGui 小窗口在系统任务栏上显示图标（避免任务栏变乱）
 		
+		// 窗口仅可通过标题栏拖动。设为 false（ImGui 默认）时，点击窗口任意空白区都会触发 StartMouseMovingWindow()（imgui.cpp:5534），开始移动窗口。，
+		// 在独立视口中操作 gizmo 时会被误判为窗口拖拽。
+		io.ConfigWindowsMoveFromTitleBarOnly = true;
+		// 效果：窗口只能通过标题栏拖动，点击窗口内部任何区域（包括 gizmo 手柄）都不会触发移动。这是桌面软件的标准行为。
+		
+		
 		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
 			ImGuiStyle& style = ImGui::GetStyle();
 			style.WindowRounding = 0.0f;					//窗口圆角

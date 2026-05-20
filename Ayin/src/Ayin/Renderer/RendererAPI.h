@@ -34,10 +34,13 @@ namespace Ayin {
 		/// </summary>
 		/// <param name="color">颜色</param>
 		virtual void SetClearColor(const glm::vec4& color) const = 0;
+		virtual glm::vec4 GetClearColor() const = 0;
 		/// <summary>
 		/// 清屏
 		/// </summary>
 		virtual void Clear() const = 0;
+
+		virtual void ClearDefaultFramebufferColor(glm::vec4 color) const = 0;
 
 
 		/// <summary>
