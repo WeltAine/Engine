@@ -3,6 +3,8 @@
 #include "Platform/OpenGL/OpenGLRendererAPI.h"
 
 #include <glad/glad.h>
+#include <glm/gtc/type_ptr.hpp>
+
 
 namespace Ayin{
 
@@ -75,12 +77,28 @@ namespace Ayin{
 	void OpenGLRendererAPI::SetClearColor(const glm::vec4& color) const
 	{
 		glClearColor(color.r, color.g, color.b, color.a);
+		//x glClearDepth()
+		//x glClearStencil()
+	}
+
+	glm::vec4 OpenGLRendererAPI::GetClearColor() const {
+		glm::vec4 color{ 0.0f };
+		glGetFloatv(GL_COLOR_CLEAR_VALUE, glm::value_ptr(color));
+		//x GL_DEPTH_CLEAR_VALUE
+		//x GL_STENCIL_CLEAR_VALUE
+		return color;
 	}
 
 	void OpenGLRendererAPI::Clear() const
 	{
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
+
+	void OpenGLRendererAPI::ClearDefaultFramebufferColor(glm::vec4 color) const
+	{
+		glClearNamedFramebufferfv(0, GL_COLOR, 0, glm::value_ptr(color));
+	}
+
 
 	void OpenGLRendererAPI::DrawIndexed(const Ref<VertexArray>& vertexArray) const
 	{

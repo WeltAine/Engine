@@ -59,7 +59,7 @@ namespace Ayin {
 
 				m_ColorAttachmentTexture = std::make_shared<OpenGLTexture2D>(colorAttachment, m_FramebufferSpecification.Size.x, m_FramebufferSpecification.Size.y);
 
-				glNamedFramebufferTexture(m_FramebufferID, GL_COLOR_ATTACHMENT0, colorAttachment, 0);//多重采样纹理是没有minmip的，所以最后一个参数选0
+				glNamedFramebufferTexture(m_FramebufferID, GL_COLOR_ATTACHMENT0, colorAttachment, 0);
 
 				
 
@@ -127,6 +127,28 @@ namespace Ayin {
 				break;
 			}
 
+			//! combind格式
+			//	   格式				深度精度			模板精度			典型用途
+			//	GL_DEPTH24_STENCIL8	24 - bit int		8 - bit int		通用，大多数场景
+			//	GL_DEPTH32F_STENCIL8	32 - bit float	8 - bit int		高精度深度需要（大场景）
+			//	两种都是 combined 格式——一块缓冲区物理上包含两种数据，GPU 按固定位偏移读写。Texture 要使用 combined 格式需要 OpenGL 4.3 + 或 ARB_stencil_texturing 扩展。
+
+			//? RGBA8 能当深度 / 模板附件用吗？
+			//!	不能。 深度和模板是 GPU 专用的存储器类型，和颜色缓冲区物理上不同。
+			//	RGBA8  → 颜色附件(GPU 颜色压缩单元，按 RGBA 通道解释)
+			//	D24S8  → 深度 / 模板附件(GPU 深度测试单元，按 24bit深度 + 8bit模板解释)
+			//!	深度缓冲区有专门的硬件单元做深度比较（glDepthFunc）、Early - Z 剔除、Hi - Z 层级优化。拿 RGBA8 当深度附件绑，glCheckFramebufferStatus 直接返回 GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT。
+		
+			//? 分别绑定两个纹理到深度和模板附件？
+			//		   可以。 这也是合法做法：
+			/*	   // 深度纹理
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, w, h, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTex, 0);
+				  // 模板纹理（独立一张）
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_STENCIL_INDEX8, w, h, 0, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, nullptr);
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, stencilTex, 0);
+			*/
+		
 		}
 
 		GLenum status = glCheckNamedFramebufferStatus(m_FramebufferID, GL_FRAMEBUFFER);
@@ -183,10 +205,12 @@ namespace Ayin {
 		
 
 		if (m_FramebufferSpecification.Samples > 1) {
-
+			
+			//配置要读和写入的buffer
 			glNamedFramebufferReadBuffer(m_FramebufferID, GL_COLOR_ATTACHMENT0 + index);
 			glNamedFramebufferDrawBuffer(m_ResolveFramebufferID, GL_COLOR_ATTACHMENT0);
 
+			//传输
 			glBlitNamedFramebuffer(
 				m_FramebufferID, m_ResolveFramebufferID,
 				0, 0, m_FramebufferSpecification.Size.x, m_FramebufferSpecification.Size.y,
