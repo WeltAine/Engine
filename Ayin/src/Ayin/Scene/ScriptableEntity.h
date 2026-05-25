@@ -16,6 +16,7 @@ namespace Ayin{
 	class ScriptableEntity {
 
 		friend class Scene;
+		friend class SceneSerializer;
 		friend struct NativeScriptComponent;
 
 	public:

@@ -316,11 +316,12 @@ namespace Ayin {
 
 			static ObjectPool<ScriptType> pool;
 
+			if (ScriptableInstance != nullptr) {
+				DestroyInstanceFunction();
+			}
+
 			InstantiateFunction = [&]() {
-					if (ScriptableInstance != nullptr) {
-						DestroyInstanceFunction();
-					}
-					ScriptableInstance = pool.Allocate(); new(ScriptableInstance) ScriptType(); ScriptName = ScriptableInstance->GetScriptName(); 
+					ScriptableInstance = pool.Allocate(); new(ScriptableInstance) ScriptType(); ScriptName = ScriptableInstance->GetScriptName().value_or("None");
 				};
 			DestroyInstanceFunction = [&]() { pool.Deallocate(static_cast<ScriptType*>(ScriptableInstance)), ScriptableInstance = nullptr; };
 

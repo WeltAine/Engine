@@ -29,7 +29,10 @@ namespace Ayin {
 	
 		auto desc = ScriptRegistry::GetScriptDescriptor(scriptName);
 		
-		return (*desc).serializeScript(nsc);
+		if (desc.has_value())
+			return (*desc).serializeScript(nsc);
+		else
+			return "{}";
 
 	};
 
@@ -37,14 +40,16 @@ namespace Ayin {
 		
 		auto desc = ScriptRegistry::GetScriptDescriptor(scriptName);
 
-		(*desc).deserializeScript(nsc, json);
+		if(desc.has_value())
+			(*desc).deserializeScript(nsc, json);
 	};
 
 	void ScriptRegistry::BindScriptByScriptName(NativeScriptComponent& nsc, const std::string& scriptName) {
 		
 		auto desc = ScriptRegistry::GetScriptDescriptor(scriptName);
 
-		(*desc).bindScript(nsc);
+		if(desc.has_value())
+			(*desc).bindScript(nsc);
 
 	};
 

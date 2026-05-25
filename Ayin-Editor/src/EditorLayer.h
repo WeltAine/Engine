@@ -68,6 +68,9 @@ private:
 class CameraControllerScript : public Ayin::ScriptableEntity {
 
 public:
+	AYIN_CUSTOM_SCRIPT_TYPE(CameraControllerScript);
+
+public:
 	CameraControllerScript() = default;
 	~CameraControllerScript() = default;
 
@@ -184,4 +187,6 @@ public:
 	};
 
 };
+AYIN_SCRIPT(CameraControllerScript);
+
 

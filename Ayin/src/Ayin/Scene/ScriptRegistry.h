@@ -77,7 +77,7 @@ namespace Ayin {
 
 		 auto err = glz::read_json(*script, json);
 
-		 if (!err) {
+		 if (err) {
 			 AYIN_CORE_ERROR("Deserialize {} failed: {}", nsc.ScriptName, glz::format_error(err, json));
 		 }
 

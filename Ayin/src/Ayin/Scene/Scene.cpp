@@ -58,7 +58,7 @@ namespace Ayin{
 		//x 	CameraSystem::OnUpdate(m_Registry);
 		//x }
 
-		// 脚本更新
+		// 脚本初始化（挂在实际脚本）、更新
 		{
 			m_Registry.view<NativeScriptComponent>().each([=](entt::entity entity, NativeScriptComponent& nsc) {
 
