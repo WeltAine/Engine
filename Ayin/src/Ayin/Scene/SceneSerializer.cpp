@@ -185,14 +185,32 @@ namespace Ayin {
 
 		auto&& nativeScriptComponentView = m_Scene->m_Registry.view<NativeScriptComponent>();
 
+		// 初始化脚本实例
 		nativeScriptComponentView.each([=](entt::entity entity, NativeScriptComponent& nsc) {
+				if (!nsc.HasScript()) {
+					return;
+				}
+
 				nsc.InstantiateFunction();
-				nsc.ScriptableInstance->m_Entity = Entity{ entity, m_Scene.get() };
-				nsc.ScriptableInstance->OnCreate();
+				if (nsc.ScriptableInstance != nullptr) {
+					nsc.ScriptableInstance->m_Entity = Entity{ entity, m_Scene.get() };
+				}
 			});
-		
-		nativeScriptComponentView.each([=](entt::entity entity, NativeScriptComponent& nsc) {
+
+		// 脚本实例反序列
+		nativeScriptComponentView.each([=](entt::entity, NativeScriptComponent& nsc) {
+				if (nsc.ScriptableInstance == nullptr) {
+					return;
+				}
+
 				ScriptRegistry::DeserializeScriptByScriptName(nsc, nsc.ScriptName, nsc.ScriptData.str);
+			});
+
+		// OnCreate生命周期
+		nativeScriptComponentView.each([=](entt::entity, NativeScriptComponent& nsc) {
+				if (nsc.ScriptableInstance != nullptr) {
+					nsc.ScriptableInstance->OnCreate();
+				}
 			});
 
 
@@ -212,7 +230,7 @@ namespace Ayin {
 	void SceneSerializerContext::EraseSceneContext() { s_SceneSerializerContextData.currentScene = nullptr; };
 
 	void SceneSerializerContext::SetCurrentEntity(const Entity& entity) { s_SceneSerializerContextData.entity = &const_cast<Entity&>(entity); };
-	::std::optional<Entity> SceneSerializerContext::GetCurrentEntity() { return *s_SceneSerializerContextData.entity; };
+	Entity* SceneSerializerContext::GetCurrentEntity() { return s_SceneSerializerContextData.entity; };
 	void SceneSerializerContext::EraseEntityContext() { s_SceneSerializerContextData.entity = nullptr; };
 
 

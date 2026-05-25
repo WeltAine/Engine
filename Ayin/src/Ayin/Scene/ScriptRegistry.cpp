@@ -26,30 +26,48 @@ namespace Ayin {
 
 
 	std::string ScriptRegistry::SerializeScriptByScriptName(NativeScriptComponent& nsc, const std::string& scriptName) {
+
+		if (scriptName.empty() || scriptName == NativeScriptComponent::NoneScriptName) {
+			return NativeScriptComponent::NullScriptData;
+		}
 	
 		auto desc = ScriptRegistry::GetScriptDescriptor(scriptName);
 		
 		if (desc.has_value())
 			return (*desc).serializeScript(nsc);
 		else
-			return "{}";
+			return NativeScriptComponent::NullScriptData;
 
 	};
 
-	void ScriptRegistry::DeserializeScriptByScriptName(NativeScriptComponent& nsc, const std::string& scriptName, const std::string& json) {
+	bool ScriptRegistry::DeserializeScriptByScriptName(NativeScriptComponent& nsc, const std::string& scriptName, const std::string& json) {
+
+		if (scriptName.empty() || scriptName == NativeScriptComponent::NoneScriptName) {
+			return true;
+		}
 		
 		auto desc = ScriptRegistry::GetScriptDescriptor(scriptName);
 
 		if(desc.has_value())
-			(*desc).deserializeScript(nsc, json);
+			return (*desc).deserializeScript(nsc, json);
+
+		return false;
 	};
 
-	void ScriptRegistry::BindScriptByScriptName(NativeScriptComponent& nsc, const std::string& scriptName) {
+	bool ScriptRegistry::BindScriptByScriptName(NativeScriptComponent& nsc, const std::string& scriptName) {
+
+		if (scriptName.empty() || scriptName == NativeScriptComponent::NoneScriptName) {// 没脚本
+			return false;
+		}
 		
 		auto desc = ScriptRegistry::GetScriptDescriptor(scriptName);
 
-		if(desc.has_value())
+		if(desc.has_value()) {
 			(*desc).bindScript(nsc);
+			return true;
+		}
+
+		return false;
 
 	};
 

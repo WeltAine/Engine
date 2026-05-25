@@ -298,10 +298,13 @@ void EditorLayer::OpenScene() {
 		Ayin::SceneSerializer sceneSerializer{ m_ActiveScene };
 		sceneSerializer.Deserializer(*filePath);
 
-		{ //测试用
+		//{ //测试用
 			m_SceneCamera = m_ActiveScene->GetEntitiesByComponents<Ayin::CameraComponent>()[0];
-			m_SceneCamera.AddComponent<Ayin::NativeScriptComponent>().Bind<CameraControllerScript>();
-		}
+		//	auto& nsc = m_SceneCamera.AddComponent<Ayin::NativeScriptComponent>();
+		//	if (!nsc.HasScript()) {
+		//		nsc.Bind<CameraControllerScript>();
+		//	}
+		//}
 
 		m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
 
@@ -335,4 +338,3 @@ void EditorLayer::SaveScene() {
 	} 
 
 };
-

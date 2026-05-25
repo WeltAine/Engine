@@ -62,8 +62,15 @@ namespace Ayin{
 		{
 			m_Registry.view<NativeScriptComponent>().each([=](entt::entity entity, NativeScriptComponent& nsc) {
 
-				if (!nsc.ScriptableInstance) {
+				if (!nsc.HasScript()) {//没有绑定脚本类型
+					return;
+				}
+
+				if (!nsc.ScriptableInstance) {//没有脚本实例
 					nsc.InstantiateFunction();
+					if (nsc.ScriptableInstance == nullptr) {
+						return;
+					}
 					nsc.ScriptableInstance->m_Entity = Entity{ entity, this };
 					nsc.ScriptableInstance->OnCreate();
 				}

@@ -186,6 +186,20 @@ public:
 
 	};
 
+public:
+	struct glaze {
+
+		using T = CameraControllerScript;
+
+		static constexpr auto value = glz::object(
+			"Translate Speed", &T::m_CameraTranslateSpeed,
+			"Rotation Speed", &T::m_CameraRotationSpeed,
+			"Enable Rotation", &T::m_isRotate
+		);
+
+	};
+	
+
 };
 AYIN_SCRIPT(CameraControllerScript);
 

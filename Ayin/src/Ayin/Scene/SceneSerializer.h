@@ -46,7 +46,7 @@ namespace Ayin {
 
 	public:
 		static ::std::optional<Ref<Scene>> GetCurrentScene();
-		static ::std::optional<Entity> GetCurrentEntity();
+		static Entity* GetCurrentEntity();
 
 	private:
 		static void SetCurrentScene(const Ref<Scene> scene);

@@ -294,10 +294,13 @@ namespace Ayin {
 	// ----------脚本组件-----------
 	struct NativeScriptComponent {
 
+		static constexpr const char* NoneScriptName = "none";
+		static constexpr const char* NullScriptData = "null";
+
 		ScriptableEntity* ScriptableInstance = nullptr;
 
-		std::string ScriptName;
-		glz::raw_json ScriptData;
+		std::string ScriptName{ NoneScriptName };//它基本上是实时的
+		glz::raw_json ScriptData{ NullScriptData };//只会在序列化和反序列化是被赋值，所以小心赃值。在未bind和非法脚本时未null
 		//x 一开始是不想这么设计的，而是转换成内部定义的中间结构体，该结构 没有外露
 		//x 但那样导致一个问题我在通过json反序列化时，NSC必须bind，否者会影响回收操作，这一点注册器解决了。
 		//x 其二时ScriptAbleEntity需要所影响的Enity（目前没有涉及复杂的复数个同组件的情况），这一点我目前通过上下文来解决（但后续可能移除）
@@ -305,7 +308,6 @@ namespace Ayin {
 		//x 但麻烦的时OnCreate这样的过程，它们可能涉及对环境的感知，但是原来的序列化方案，要求反序列化是在构建Entity时进行的，所以可能因为环境尚未构建完毕而导致OnCreate行为异常
 		//x 简单来说有一些行为涉及到更加广泛的内容，原先的方案，会因其局限性，对反序列化时机产生限制 ，上下文感知带来麻烦，令上下文耦合严重
 		//! 所以采用这个方案，先将序列化数据存储起来，延迟反序列化（分步反序列化），使得反序列化时机可以控制，一来避免环境缺失问题，二来方便后续引入更复杂的序列化效果 ，最后交由sceneSerialize来完成，那个位置的上下文充足，甚至可以不再依靠上下文类
-
 
 		std::function<void()> InstantiateFunction;		//初始化回调
 		std::function<void()> DestroyInstanceFunction;	//移除回调
@@ -316,49 +318,51 @@ namespace Ayin {
 
 			static ObjectPool<ScriptType> pool;
 
+			// 更新赋名
+			auto scriptName = ScriptType{}.GetScriptName();
+			ScriptName = (scriptName && !scriptName->empty()) ? *scriptName : NoneScriptName;
+
+			// 回收旧脚本
 			if (ScriptableInstance != nullptr) {
+				ScriptableInstance->OnDestroy();
 				DestroyInstanceFunction();
 			}
 
+			// 注册新回调
 			InstantiateFunction = [&]() {
-					ScriptableInstance = pool.Allocate(); new(ScriptableInstance) ScriptType(); ScriptName = ScriptableInstance->GetScriptName().value_or("None");
+					ScriptableInstance = pool.Allocate(); new(ScriptableInstance) ScriptType(); ScriptName = ScriptableInstance->GetScriptName().value_or(NoneScriptName);
 				};
 			DestroyInstanceFunction = [&]() { pool.Deallocate(static_cast<ScriptType*>(ScriptableInstance)), ScriptableInstance = nullptr; };
 
 		}
 
-		//ToDo 想一想获取类型T有什么好处，什么事情是必须需要知晓类型的，或者知晓类型会更加轻松
-		//x 一个例子（基于多态指针），如果我们想基于prefab创建的话，我们显然不能直接复制指针，但是实际类型我们也不知道
-		//x 这就需要用户写一个clone方法了，看上去也不是什么没必要的方法
-		//x 但是如果序列化需要脚本类型名称呢？这个方法就很奇怪了
-		//x 好吧这些你都能接受，这是修改基类脚本的范式而已，不是什么太糟糕的问题
-		//! 那关于运行时的脚本热重载呢？
-		//x 这就不是玩笑了，你需要删除旧的脚本指针，然后创建新的，问题就在这里，你不知道之前的实际类型是什么
-		//! 所以说白了，只使用多态指针，会丢失实际脚本类型。而我们期望脚本组件和脚本是分离的（这促成了组合基类指针），但是脚本组件的一些运行逻辑需要知晓脚本实际类型
-
+		// 是否绑定了脚本
+		bool HasScript() const {
+			return !ScriptName.empty() && ScriptName != NoneScriptName;
+		}
 
 
 		NativeScriptComponent() = default;
 		~NativeScriptComponent() {
 
 			if (ScriptableInstance != nullptr) {
-
 				ScriptableInstance->OnDestroy();
 				DestroyInstanceFunction();
-
 			}
 			
 		}
 
 		static void OnGui(Entity& entity) {
 			auto& nsc = entity.GetComponents<Ayin::NativeScriptComponent>();
-			ImGui::Text("Script: %s", nsc.ScriptableInstance ? "Bound" : "None");
+			ImGui::Text("Script: %s", nsc.HasScript() ? nsc.ScriptName.c_str() : "None");
 
 			ImGui::Spacing();
 			ImGui::Separator();
 			ImGui::Spacing();
 
-			nsc.ScriptableInstance->OnGui();
+			if (nsc.ScriptableInstance != nullptr) {
+				nsc.ScriptableInstance->OnGui();
+			}
 
 		};
 
@@ -366,8 +370,8 @@ namespace Ayin {
 
 
 
-		std::string write_ScriptData();
-		void read_ScriptData(const std::string& json);
+		glz::raw_json write_ScriptData();
+		void read_ScriptData(glz::raw_json json);
 
 		struct glaze {
 
