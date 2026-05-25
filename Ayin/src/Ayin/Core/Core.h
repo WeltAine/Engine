@@ -67,6 +67,8 @@ namespace Ayin {
 	//ToDo 这里有个问题，高层很多都是抽象的，导致无法构造，构造方式不统一的情况下，可能没法调用
 }
 
+#define AYIN_CONCAT_IMPL(a, b) a##b
+#define AYIN_CONCAT(a, b) AYIN_CONCAT_IMPL(a, b)
 
 #include "Ayin/Core/Log.h"
 #include "Ayin/Core/Assert.h"

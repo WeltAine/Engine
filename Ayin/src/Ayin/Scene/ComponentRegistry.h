@@ -8,17 +8,16 @@
 #include <string>
 #include <vector>
 #include <functional>
+#include <glaze/json/write.hpp>
 
 // 用于检测类型是否有本地 Glaze 反射元数据
 template<typename T>
 concept HasLocalGlazeMeta = requires { T::glaze::value; };
 
-#define AYIN_CONCAT_IMPL(a, b) a##b
-#define AYIN_CONCAT(a, b) AYIN_CONCAT_IMPL(a, b)
 
 namespace Ayin {
 
-	struct ComponentDescriptor {
+	struct AYIN_API ComponentDescriptor {
 		std::string displayName;
 		entt::id_type id;
 
