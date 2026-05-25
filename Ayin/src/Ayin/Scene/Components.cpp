@@ -23,11 +23,6 @@ namespace Ayin {
 
 	void NativeScriptComponent::read_ScriptData(glz::raw_json json) {
 		ScriptData = json.str.empty() ? glz::raw_json{ NullScriptData } : std::move(json);
-
-		if (!ScriptRegistry::BindScriptByScriptName(*this, ScriptName)) {
-			AYIN_CORE_WARN("Unknown script type: {}", ScriptName);
-		}
-		//构造也是生命周期的一部分，所以我们不在这里处理
 	}
 
 

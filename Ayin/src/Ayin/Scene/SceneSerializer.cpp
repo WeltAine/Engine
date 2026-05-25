@@ -185,12 +185,23 @@ namespace Ayin {
 
 		auto&& nativeScriptComponentView = m_Scene->m_Registry.view<NativeScriptComponent>();
 
+		// 绑定脚本类型
+		nativeScriptComponentView.each([=](entt::entity, NativeScriptComponent& nsc) {
+				if (!nsc.HasScript()) {
+					return;
+				}
+
+				bool bound = ScriptRegistry::BindScriptByScriptName(nsc, nsc.ScriptName);
+				AYIN_CORE_ASSERT(bound, "Script '{}' is not registered", nsc.ScriptName);
+			});
+
 		// 初始化脚本实例
 		nativeScriptComponentView.each([=](entt::entity entity, NativeScriptComponent& nsc) {
 				if (!nsc.HasScript()) {
 					return;
 				}
 
+				AYIN_CORE_ASSERT(nsc.InstantiateFunction, "Script '{}' is not bound", nsc.ScriptName);
 				nsc.InstantiateFunction();
 				if (nsc.ScriptableInstance != nullptr) {
 					nsc.ScriptableInstance->m_Entity = Entity{ entity, m_Scene.get() };

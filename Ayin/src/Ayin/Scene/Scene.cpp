@@ -67,6 +67,7 @@ namespace Ayin{
 				}
 
 				if (!nsc.ScriptableInstance) {//没有脚本实例
+					AYIN_CORE_ASSERT(nsc.InstantiateFunction, "Script '{}' is not bound", nsc.ScriptName);
 					nsc.InstantiateFunction();
 					if (nsc.ScriptableInstance == nullptr) {
 						return;

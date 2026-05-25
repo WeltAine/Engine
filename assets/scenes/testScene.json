@@ -7,10 +7,10 @@
                 "CameraComponent": {
                     "Camera": {
                         "CameraProp": {
-                            "Type": "Orthogonal",
+                            "Type": "Perspective",
                             "FOV": 60,
                             "Height": 2,
-                            "AspectRatio": 0.9174174,
+                            "AspectRatio": 0.9804805,
                             "NearPlane": 0.1,
                             "FarPlane": 100
                         },
@@ -20,6 +20,14 @@
                 "IDComponent": {
                     "ID": 13874630024467741450
                 },
+                "NativeScriptComponent": {
+                    "ScriptName": "CameraControllerScript",
+                    "ScriptData": {
+                        "Translate Speed": 1,
+                        "Rotation Speed": 120,
+                        "Enable Rotation": false
+                    }
+                },
                 "TagComponent": {
                     "Name": "MainCamera"
                 },
@@ -27,7 +35,7 @@
                     "Position": {
                         "x": 0,
                         "y": 0,
-                        "z": 0
+                        "z": 10
                     },
                     "Rotation": {
                         "x": 0,
