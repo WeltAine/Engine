@@ -1,18 +1,17 @@
 #pragma once
 
 #include "Ayin/Core/Core.h"
+#include "Ayin/core/Log.h"
 #include <string>
 
 #include <glm/glm.hpp>
 #include <glm/ext/matrix_transform.hpp> // translate, rotate, scale, identity
-#include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/euler_angles.hpp>
 
 #include "Ayin/Renderer/Texture.h"
 #include "Ayin/Scene/SceneCamera.h"
 
 #include "Ayin/Scene/ScriptableEntity.h"
-#include "Ayin/Core/Timestep.h"
 
 #include "Ayin/Core/ObjectPool.h"
 
@@ -22,6 +21,7 @@
 #include <entt/entt.hpp>
 #include <concepts>
 #include <glaze/glaze.hpp>
+
 
 template <>
 struct glz::meta<glm::vec3> {
@@ -296,18 +296,33 @@ namespace Ayin {
 
 		ScriptableEntity* ScriptableInstance = nullptr;
 
+		std::string ScriptName;
+		glz::raw_json ScriptData;
+		//x 一开始是不想这么设计的，而是转换成内部定义的中间结构体，该结构 没有外露
+		//x 但那样导致一个问题我在通过json反序列化时，NSC必须bind，否者会影响回收操作，这一点注册器解决了。
+		//x 其二时ScriptAbleEntity需要所影响的Enity（目前没有涉及复杂的复数个同组件的情况），这一点我目前通过上下文来解决（但后续可能移除）
+		//x 其三也是改变思路的核心原因，生命周期，第一初始化会行为会重置脚本实例，所以反序列化的数据回填需要在初始化之后，这一点还好，只要bind的问题解决了就好。
+		//x 但麻烦的时OnCreate这样的过程，它们可能涉及对环境的感知，但是原来的序列化方案，要求反序列化是在构建Entity时进行的，所以可能因为环境尚未构建完毕而导致OnCreate行为异常
+		//x 简单来说有一些行为涉及到更加广泛的内容，原先的方案，会因其局限性，对反序列化时机产生限制 ，上下文感知带来麻烦，令上下文耦合严重
+		//! 所以采用这个方案，先将序列化数据存储起来，延迟反序列化（分步反序列化），使得反序列化时机可以控制，一来避免环境缺失问题，二来方便后续引入更复杂的序列化效果 ，最后交由sceneSerialize来完成，那个位置的上下文充足，甚至可以不再依靠上下文类
 
-		std::function<void()> InstantiateFunction;
-		std::function<void()> DestroyInstanceFunction;
+
+		std::function<void()> InstantiateFunction;		//初始化回调
+		std::function<void()> DestroyInstanceFunction;	//移除回调
 		
-		template<typename T>
-			requires std::derived_from<T, ScriptableEntity> && std::default_initializable<T>
+		template<typename ScriptType>
+			requires std::derived_from<ScriptType, ScriptableEntity> && std::default_initializable<ScriptType>
 		void Bind() {
 
-			static ObjectPool<T> pool;
+			static ObjectPool<ScriptType> pool;
 
-			InstantiateFunction = [&]() { ScriptableInstance = pool.Allocate(); new(ScriptableInstance) T(); };
-			DestroyInstanceFunction = [&]() { pool.Deallocate(static_cast<T*>(ScriptableInstance)), ScriptableInstance = nullptr; };
+			InstantiateFunction = [&]() {
+					if (ScriptableInstance != nullptr) {
+						DestroyInstanceFunction();
+					}
+					ScriptableInstance = pool.Allocate(); new(ScriptableInstance) ScriptType(); ScriptName = ScriptableInstance->GetScriptName(); 
+				};
+			DestroyInstanceFunction = [&]() { pool.Deallocate(static_cast<ScriptType*>(ScriptableInstance)), ScriptableInstance = nullptr; };
 
 		}
 
@@ -347,6 +362,24 @@ namespace Ayin {
 		};
 
 		static ::entt::id_type ComponentStorageID() { return ::entt::type_hash<NativeScriptComponent>::value(); };
+
+
+
+		std::string write_ScriptData();
+		void read_ScriptData(const std::string& json);
+
+		struct glaze {
+
+			using T = NativeScriptComponent;
+
+			static constexpr auto value = glz::object(
+				"ScriptName", &T::ScriptName,
+				"ScriptData", glz::custom<&T::read_ScriptData, &T::write_ScriptData>
+			);
+			//! 序列和反序列化时只是简单的存储导ScriptData中，在场景序列化时由场景序列化器SceneSerializer来处理，它会阶段性处理脚本序列化事宜
+			//! 这样行为脚本序列化更加可控
+
+		};
 
 	};
 	AYIN_COMPONENT(NativeScriptComponent);
