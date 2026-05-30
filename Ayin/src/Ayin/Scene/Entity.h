@@ -40,14 +40,6 @@ namespace Ayin {
 		template<typename... Dependences>
 		void AddDependencies(entt::type_list<Dependences...>);
 
-		/// <summary>
-		/// 自动化添加依赖组件使用（没有断言的添加版本）
-		/// </summary>
-		/// <typeparam name="ComponentType"></typeparam>
-		template<typename ComponentType>
-			requires std::is_default_constructible_v<ComponentType>
-		void InternalEnsureComponent();
-
 		template<typename... ComponentTypes>
 		void RemoveComponents();
 		void RemoveComponent(entt::id_type id);
@@ -103,23 +95,9 @@ namespace Ayin {
 	void Entity::AddDependencies(entt::type_list<Dependencies...>) {
 		//借由模板类型自动推导进行类型拆包
 		//用折叠语句展开处理每一个组件类型
-		(InternalEnsureComponent<Dependencies>(), ...);
+		(AddComponent<Dependencies>(), ...);
 
 	};
-
-
-	template<typename ComponentType>
-		requires std::is_default_constructible_v<ComponentType>
-	void Entity::InternalEnsureComponent() {
-		//要求自动创建的类型每一个都要有默认构造函数
-		//不要断言，这里属于自动构造的部分，不属于用户意图，无需通知使用者（AddComponent也不需要其实）
-		if (!HasComponents<ComponentType>()) {
-
-			m_Scene->m_Registry.emplace<ComponentType>(m_EntityHandle);
-
-		}
-
-	}
 
 
 
