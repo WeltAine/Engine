@@ -29,12 +29,13 @@ namespace Ayin {
 
 	void OpenGLFramebuffer::Init() {
 
-
-
-		if (m_FramebufferID != 0) {
+		if (m_FramebufferID != 0 || m_ResolveFramebufferID != 0) {
 
 			glDeleteRenderbuffers(1, &m_DepthAndStencilAttachment);
 
+			uint32_t framebuffers[] = { m_FramebufferID , m_ResolveFramebufferID };
+			glDeleteFramebuffers(2, framebuffers);
+			glDeleteRenderbuffers(1, &m_DepthAndStencilAttachment);
 		}
 
 		glCreateFramebuffers(1, &m_FramebufferID);
