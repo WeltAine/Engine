@@ -218,11 +218,13 @@ void EditorLayer::OnImGuiRender() {
 
 		}
 
+		DrawGiamoToolbarOverlay(sceneMin);
 
 		m_SceneSize = { sceneSize.x, sceneSize.y };					//记录场景尺寸（Image实际绘制大小范围）（用于缩放时更新GPU资源大小）
 
 		ImGui::End();
 	}
+	
 
 	{
 		ImGui::Begin("Renderer2D Statistics");
@@ -287,6 +289,28 @@ bool EditorLayer::OnKeyPressed(Ayin::KeyPressedEvent& keyPressedEvent) {
 	}
 
 };
+
+void EditorLayer::DrawGiamoToolbarOverlay(ImVec2 leftTopPos) {
+	
+	leftTopPos.y += 8.0f;
+	ImGui::SetCursorScreenPos(leftTopPos);//SetCursorPos是设置相对坐标
+
+	// 目前就仅支持本地
+	if (ImGui::RadioButton("T", m_GizmoOperation & ImGuizmo::TRANSLATE)) {
+		m_GizmoOperation = (ImGuizmo::OPERATION)(m_GizmoOperation ^ ImGuizmo::TRANSLATE);
+	}
+	ImGui::SameLine();
+	if (ImGui::RadioButton("R", m_GizmoOperation & ImGuizmo::ROTATE)) {
+		m_GizmoOperation = (ImGuizmo::OPERATION)(m_GizmoOperation ^ ImGuizmo::ROTATE);
+	}
+	ImGui::SameLine();
+	if (ImGui::RadioButton("S", m_GizmoOperation & ImGuizmo::SCALE)) {
+		m_GizmoOperation = (ImGuizmo::OPERATION)(m_GizmoOperation ^ ImGuizmo::SCALE);
+	}
+
+
+};
+
 
 //场景导入导出
 void EditorLayer::OpenScene() {

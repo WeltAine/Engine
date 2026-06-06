@@ -29,6 +29,9 @@ private:
 	//快捷键
 	bool OnKeyPressed(Ayin::KeyPressedEvent& event);
 
+	//操作手柄
+	void DrawGiamoToolbarOverlay(ImVec2 leftTopPos);
+
 	//场景导入导出
 	void OpenScene();
 	void NewScene();
