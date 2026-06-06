@@ -35,13 +35,13 @@ namespace Ayin {
 // 光标 / 布局位置
 //			API										说明
 // 
-// GetCursorPos()								光标位置
-// GetCursorPosX() / Y()						光标 X / Y 分量
-// GetCursorScreenPos()							光标位置
-// GetCursorStartPos()							本行起始光标位置
-// SetCursorPos(ImVec2)							设光标位置
-// SetCursorScreenPos(ImVec2)					设光标位置
-// SetCursorPosX(float)							设光标 X
+// GetCursorPos()										光标位置
+// GetCursorPosX() / Y()								光标 X / Y 分量
+// GetCursorScreenPos()								光标位置
+// GetCursorStartPos()									本行起始光标位置
+// SetCursorPos(ImVec2)								设光标位置
+// SetCursorScreenPos(ImVec2)							设光标位置
+// SetCursorPosX(float)								设光标 X
 // 
 // -- -
 // 
@@ -53,31 +53,31 @@ namespace Ayin {
 // GetWindowContentRegionMin() / Max()					整个窗口内容区的边界（包含已有内容占用的部分）
 // GetWindowWidth() / Height()							窗口整体宽高
 // GetWindowPos() / Size()								窗口位置和尺寸
-// GetFrameHeight()										标准控件框架高度
+// GetFrameHeight()									标准控件框架高度。比如这些控件通常都算 frame：ImGui::Button(...)ImGui::RadioButton(...)ImGui::Checkbox(...)ImGui::InputFloat(...)ImGui::SliderFloat(...)它们的高度大致由当前字体和样式内边距决定：FrameHeight = FontSize + FramePadding.y * 2所以它不是提前知道“某个具体按钮最终有多宽”，而是根据当前 ImGui 样式知道“标准控件高度应该是多少”。但宽度一般要自己算，因为按钮文字不同。
 // GetFrameHeightWithSpacing()							框架高 + ItemSpacing.y
 // CalcItemWidth()										计算当前上下文下单个控件的推荐宽度
-// PushMultiItemsWidths(int count, float total_width)	为接下来的 N 个控件预先分配相等的宽度，并将这些宽度压入宽度栈(必须为每个控件调用一次ImGui::PopItemWidth())
+// PushMultiItemsWidths(int count, float total_width)		为接下来的 N 个控件预先分配相等的宽度，并将这些宽度压入宽度栈(必须为每个控件调用一次ImGui::PopItemWidth())
 // -- -
 // 
 // 上一个控件的反查
 //			API										说明
 // 
-// GetItemRectMin() / Max()						上一个控件的包围盒（屏幕坐标）
-// GetItemRectSize()							上一个控件的尺寸
-// IsItemHovered()								鼠标悬停在上一控件上？
-// IsItemClicked()								上一控件被点击？
-// IsItemActive()								上一控件正在被按着（拖拽中）？
-// IsItemFocused()								上一控件有键盘焦点？
-// IsItemVisible()								上一控件在可视范围内？
+// GetItemRectMin() / Max()								上一个控件的包围盒（屏幕坐标）
+// GetItemRectSize()									上一个控件的尺寸
+// IsItemHovered()										鼠标悬停在上一控件上？
+// IsItemClicked()										上一控件被点击？
+// IsItemActive()										上一控件正在被按着（拖拽中）？
+// IsItemFocused()										上一控件有键盘焦点？
+// IsItemVisible()										上一控件在可视范围内？
 // 
 // -- -
 // 
 // ID 管理
 //			API										说明
 // 
-// PushID(int / str / ptr)						推一个新层级到 ID 栈
-// PopID()										弹出一个层级
-// GetID(str)									根据当前 ID 栈 + 字符串算一个唯一 ID
+// PushID(int / str / ptr)								推一个新层级到 ID 栈
+// PopID()											弹出一个层级
+// GetID(str)											根据当前 ID 栈 + 字符串算一个唯一 ID
 // 
 // -- -
 // 
@@ -108,7 +108,7 @@ namespace Ayin {
 // 
 // IsWindowHovered()							当前窗口被鼠标悬停？
 // IsWindowFocused()							当前窗口有焦点？
-// IsMouseDown(btn)								某鼠标键按下中？
+// IsMouseDown(btn)							某鼠标键按下中？
 // IsKeyDown(key)								某键盘键按下中？
 // IsKeyPressed(key)							某键本帧刚按下？
 //
