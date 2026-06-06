@@ -332,7 +332,7 @@ void EditorLayer::NewScene() {
 
 void EditorLayer::SaveScene() {
 
-	std::optional<std::string> filePath = Ayin::FileDialogs::OpenFile({ {"Scenen", "json"} }, "Scene");
+	std::optional<std::string> filePath = Ayin::FileDialogs::SaveFile({ {"Scenen", "json"} }, "Scene");
 	
 	if (filePath) {
 		Ayin::SceneSerializer sceneSerializer{ m_ActiveScene };
