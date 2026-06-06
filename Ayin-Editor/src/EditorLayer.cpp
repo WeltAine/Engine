@@ -218,7 +218,7 @@ void EditorLayer::OnImGuiRender() {
 
 		}
 
-		DrawGiamoToolbarOverlay(sceneMin);
+		DrawGizmoToolbarOverlay(sceneMin, sceneSize);
 
 		m_SceneSize = { sceneSize.x, sceneSize.y };					//记录场景尺寸（Image实际绘制大小范围）（用于缩放时更新GPU资源大小）
 
@@ -290,24 +290,86 @@ bool EditorLayer::OnKeyPressed(Ayin::KeyPressedEvent& keyPressedEvent) {
 
 };
 
-void EditorLayer::DrawGiamoToolbarOverlay(ImVec2 leftTopPos) {
-	
-	leftTopPos.y += 8.0f;
-	ImGui::SetCursorScreenPos(leftTopPos);//SetCursorPos是设置相对坐标
+void EditorLayer::DrawGizmoToolbarOverlay(ImVec2 sceneMin, ImVec2 sceneSize) {
 
-	// 目前就仅支持本地
-	if (ImGui::RadioButton("T", m_GizmoOperation & ImGuizmo::TRANSLATE)) {
-		m_GizmoOperation = (ImGuizmo::OPERATION)(m_GizmoOperation ^ ImGuizmo::TRANSLATE);
-	}
-	ImGui::SameLine();
-	if (ImGui::RadioButton("R", m_GizmoOperation & ImGuizmo::ROTATE)) {
-		m_GizmoOperation = (ImGuizmo::OPERATION)(m_GizmoOperation ^ ImGuizmo::ROTATE);
-	}
-	ImGui::SameLine();
-	if (ImGui::RadioButton("S", m_GizmoOperation & ImGuizmo::SCALE)) {
-		m_GizmoOperation = (ImGuizmo::OPERATION)(m_GizmoOperation ^ ImGuizmo::SCALE);
+	constexpr float toolbarHeight = 34.0f;		//ToolBar高度
+	constexpr float rounding = 5.0f;			//ToolBar矩形圆角
+	constexpr float dragHandleWidth = 20.0f;	//拖拽图标的相对偏移
+	constexpr float collapsedWidth = 54.0f;		//收纳时的宽度
+	constexpr float expandedWidth = 180.0f;		//完全展开时宽度
+	constexpr float buttonSize = 22.0f;			//收纳按钮大小
+
+	// 计算实际显示大小
+	ImVec2 toolbarSize = {
+		m_GizmoToolbarCollapsed ? collapsedWidth : expandedWidth,
+		toolbarHeight
+	};
+
+	// 基于实际显示大小做出存在范围限制
+	float maxOffsetX = std::max(0.0f, sceneSize.x - toolbarSize.x);
+	float maxOffsetY = std::max(0.0f, sceneSize.y - toolbarSize.y);
+	m_GizmoToolbarOffset.x = std::clamp(m_GizmoToolbarOffset.x, 0.0f, maxOffsetX);
+	m_GizmoToolbarOffset.y = std::clamp(m_GizmoToolbarOffset.y, 0.0f, maxOffsetY);
+
+	// ToolBar的屏幕位置
+	ImVec2 toolbarPos = {
+		sceneMin.x + m_GizmoToolbarOffset.x,
+		sceneMin.y + m_GizmoToolbarOffset.y
+	};
+
+	ImDrawList* drawList = ImGui::GetWindowDrawList();
+	drawList->AddRectFilled(
+		toolbarPos,
+		ImVec2{ toolbarPos.x + toolbarSize.x, toolbarPos.y + toolbarSize.y },
+		IM_COL32(0, 0, 0, 140),
+		rounding
+	);
+
+	ImGui::SetCursorScreenPos(toolbarPos);
+	ImGui::InvisibleButton("##GizmoToolbarDragHandle", ImVec2{ dragHandleWidth, toolbarHeight });	//不可视按钮，但是可以检测到交互意图
+	if (ImGui::IsItemActive() && ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {					//判定是否对不可视按钮进行拖拽交互
+		ImVec2 delta = ImGui::GetIO().MouseDelta;
+		m_GizmoToolbarOffset.x += delta.x;
+		m_GizmoToolbarOffset.y += delta.y;
 	}
 
+	// 绘制ToolBar拖动手柄（打三行点，每行两个）
+	ImVec2 gripCenter = {
+		toolbarPos.x + dragHandleWidth * 0.5f,
+		toolbarPos.y + toolbarHeight * 0.5f
+	};
+	for (int row = -1; row <= 1; row++) {
+		drawList->AddCircleFilled(ImVec2{ gripCenter.x - 3.0f, gripCenter.y + row * 5.0f }, 1.35f, IM_COL32(210, 210, 210, 220));
+		drawList->AddCircleFilled(ImVec2{ gripCenter.x + 3.0f, gripCenter.y + row * 5.0f }, 1.35f, IM_COL32(210, 210, 210, 220));
+	}
+
+	// 绘制收纳按钮
+	float contentY = toolbarPos.y + (toolbarHeight - buttonSize) * 0.5f;
+	ImGui::SetCursorScreenPos(ImVec2{ toolbarPos.x + dragHandleWidth + 5.0f, contentY });
+	if (ImGui::Button(m_GizmoToolbarCollapsed ? ">" : "<", ImVec2{ buttonSize, buttonSize })) {
+		m_GizmoToolbarCollapsed = !m_GizmoToolbarCollapsed;
+	}
+
+	// 平移，选装，缩放选项
+	if (!m_GizmoToolbarCollapsed) {
+		ImGui::SameLine();
+		if (ImGui::RadioButton("T", m_GizmoOperation & ImGuizmo::TRANSLATE)) {
+			m_GizmoOperation = (ImGuizmo::OPERATION)(m_GizmoOperation ^ ImGuizmo::TRANSLATE);
+		}
+		ImGui::SameLine();
+		if (ImGui::RadioButton("R", m_GizmoOperation & ImGuizmo::ROTATE)) {
+			m_GizmoOperation = (ImGuizmo::OPERATION)(m_GizmoOperation ^ ImGuizmo::ROTATE);
+		}
+		ImGui::SameLine();
+		if (ImGui::RadioButton("S", m_GizmoOperation & ImGuizmo::SCALE)) {
+			m_GizmoOperation = (ImGuizmo::OPERATION)(m_GizmoOperation ^ ImGuizmo::SCALE);
+		}
+	}
+
+	// 确保至少可以使用移动手柄
+	if (m_GizmoOperation == 0) {
+		m_GizmoOperation = ImGuizmo::TRANSLATE;
+	}
 
 };
 

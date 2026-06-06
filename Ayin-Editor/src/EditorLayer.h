@@ -30,7 +30,7 @@ private:
 	bool OnKeyPressed(Ayin::KeyPressedEvent& event);
 
 	//操作手柄
-	void DrawGiamoToolbarOverlay(ImVec2 leftTopPos);
+	void DrawGizmoToolbarOverlay(ImVec2 sceneMin, ImVec2 sceneSize);
 
 	//场景导入导出
 	void OpenScene();
@@ -52,6 +52,8 @@ private:
 	ImGuizmo::MODE m_GizmoMode = ImGuizmo::MODE::LOCAL;
 	ImGuizmo::OPERATION m_GizmoOperation = ImGuizmo::OPERATION::TRANSLATE;
 	ImGuizmo::MOVETYPE m_GizmoMoveType = ImGuizmo::MOVETYPE::MT_NONE;//不确定，好像没用上
+	ImVec2 m_GizmoToolbarOffset = { 8.0f, 8.0f };//GizmoToolBar在Viewport中的相对偏移
+	bool m_GizmoToolbarCollapsed = false;//是否收纳
 
 	//ECS测试
 	Ayin::Ref<Ayin::Scene> m_ActiveScene;						
@@ -205,5 +207,4 @@ public:
 
 };
 AYIN_SCRIPT(CameraControllerScript);
-
 
