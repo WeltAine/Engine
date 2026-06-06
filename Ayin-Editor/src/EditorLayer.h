@@ -44,7 +44,7 @@ private:
 
 	Ayin::Ref<Ayin::Texture2D> m_ViewTexture;		//游戏视窗帧缓冲对应纹理
 
-	glm::i32vec2 m_ViewportSize = {0.0f, 0.0f};		//游戏视窗大小
+	glm::i32vec2 m_SceneSize = {0.0f, 0.0f};		//Viewport中场景Image/Framebuffer尺寸
 
 	ImGuizmo::MODE m_GizmoMode = ImGuizmo::MODE::LOCAL;
 	ImGuizmo::OPERATION m_GizmoOperation = ImGuizmo::OPERATION::TRANSLATE;
