@@ -21,7 +21,7 @@ namespace Ayin {
 
 	bool Input::IsKeyPressed(KeyCode keyCode) { return WindowsInput::IsKeyPressedImpl(keyCode); };
 
-	bool Input::GetMouseButton(MouseCode button) { return WindowsInput::GetMouseButtonImpl(button); };
+	bool Input::IsMouseButtonPressed(MouseCode button) { return WindowsInput::IsMouseButtonPressedImpl(button); };
 	glm::vec2 Input::GetMousePosition() { return WindowsInput::GetMousePositionImpl(); };
 	float Input::GetMouseX() { return WindowsInput::GetMouseXImpl(); };
 	float Input::GetMouseY() { return WindowsInput::GetMouseYImpl(); };
@@ -71,7 +71,7 @@ namespace Ayin {
 		return ( state == GLFW_PRESS || state == GLFW_REPEAT );
 	}
 
-	bool WindowsInput::GetMouseButtonImpl(MouseCode button)
+	bool WindowsInput::IsMouseButtonPressedImpl(MouseCode button)
 	{
 		GLFWwindow* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
 		

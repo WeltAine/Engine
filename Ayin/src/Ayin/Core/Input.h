@@ -32,7 +32,7 @@ namespace Ayin {
 
 		static bool IsKeyPressed(KeyCode keyCode);
 
-		static bool GetMouseButton(MouseCode button);
+		static bool IsMouseButtonPressed(MouseCode button);
 		static glm::vec2 GetMousePosition();
 		static float GetMouseX();
 		static float GetMouseY();

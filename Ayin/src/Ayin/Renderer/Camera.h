@@ -57,7 +57,7 @@ namespace Ayin {
 	{
 		Camera::CameraType Type = Camera::CameraType::Perspective;
 
-		float FOV = 60, Height = 2;//高尽可能不变，该参数为正交相机使用，一般只有缩放可以改变它，大多数情况不应该直接控制
+		float FOV = 60, Height = 2;//高尽可能不变，该参数为正交相机使用，一般只有缩放可以改变它，大多数情况不应该直接控制（除非你的实现中准备了自己的控制参数）
 
 		float AspectRatio = 16.0f / 9.0f;
 
