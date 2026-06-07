@@ -15,7 +15,7 @@ static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);//没帧初始颜
 
 
 EditorLayer::EditorLayer()
-	:Ayin::Layer("SandBox2DLayer"), m_CameraController(Ayin::CameraProp{ .Type = Ayin::Camera::CameraType::Orthogonal })
+	:Ayin::Layer("SandBox2DLayer"), m_EditorCamera{ 2.0f, 1280.0f / 720, 60.0f, 0.1f, 100.0f }
 {
 };
 
@@ -31,7 +31,7 @@ void EditorLayer::OnAttach() {
 	m_SceneSize.x = 1280;
 	m_SceneSize.y = 720;
 
-	m_ActiveScene = Ayin::CreateRef<Ayin::Scene>();
+	NewScene();
 
 	//x 设置场景
 	//xfor (float y = -5.0f; y < 5.0f; y += 0.5f)
@@ -65,14 +65,6 @@ void EditorLayer::OnAttach() {
 		sprite.Color = { glm::vec4{ 0.8f, 0.2f, 0.5f, 0.5f } };
 	}
 
-
-	m_SceneCamera = m_ActiveScene->CreateEntity("MainCamera");
-	m_SceneCamera.GetComponents<Ayin::TransformComponent>().Position.z = 10.0f;
-	m_SceneCamera.AddComponent<Ayin::CameraComponent>(Ayin::CameraProp{ .Type{Ayin::Camera::CameraType::Perspective} });
-
-
-	m_SceneCamera.AddComponent<Ayin::NativeScriptComponent>().Bind<CameraControllerScript>();
-
 	m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 
 };
@@ -92,13 +84,13 @@ void EditorLayer::OnUpdate(Ayin::Timestep deltaTime) {
 	{
 		m_Framebuffer->Resize((uint32_t)m_SceneSize.x, (uint32_t)m_SceneSize.y);
 
-		Ayin::WindowResizeEvent resizeEvent{ (unsigned int)m_SceneSize.x, (unsigned int)m_SceneSize.y };
+		//编辑器相机比例调整
+		m_EditorCamera.SetCameraSize((unsigned int)m_SceneSize.x, (unsigned int)m_SceneSize.y);
 
-		//相机比例调整
-		m_CameraController.OnEvent(resizeEvent);
-		//x m_SceneCamera.GetComponents<Ayin::CameraComponent>().Camera.SetCameraSize(m_ViewportSize.x, m_ViewportSize.y);
+		//调整场景中相机的比例
 		m_ActiveScene->OnViewportResize(m_SceneSize.x, m_SceneSize.y);
 
+		//跳针GPU的输出映射范围
 		Ayin::Renderer::OnWindowResize(m_SceneSize.x, m_SceneSize.y);
 		//! Application::OnWindowsResize()中的调整并没有删去
 		//! 我们已知，两帧之间处理事件，且处理的是上一帧的，指令-》ImGui-》事件-》输出画面-》。。。
@@ -121,12 +113,7 @@ void EditorLayer::OnUpdate(Ayin::Timestep deltaTime) {
 
 		Ayin::Renderer2D::ResetStatistics();
 
-
-
-		//x m_TextureEntity.GetComponents<Ayin::TransformComponent>().Rotation = glm::vec3{ 0.0f, 0.0f, rotation };
-
-		m_ActiveScene->OnUpdate(deltaTime);
-
+		m_ActiveScene->OnUpdateEditor(deltaTime, m_EditorCamera);
 
 		Ayin::RenderCommand::SetClearColor({ clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w });
 
@@ -161,20 +148,19 @@ void EditorLayer::OnImGuiRender() {
 		ImGui::Begin("Viewport");
 
 		if (ImGui::IsWindowFocused() && ImGui::IsWindowHovered()) {}		//聚焦且鼠标位于窗口上
-		//x m_CameraController.OnUpdate(Ayin::Time::GetFrameInterval());
-
+			m_EditorCamera.OnUpdate(Ayin::Time::GetFrameInterval());
 
 		ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();			//获取Viewport的可用绘制大小（也就是等于Image的实际绘制大小）
 
 		// 显示场景
-		float halfZoomLevel = m_SceneCamera.GetComponents<Ayin::CameraComponent>().Camera.GetCameraZoomLevel() * 0.5f;
-
 		m_ViewTexture = m_Framebuffer->GetColorAttachment();
-		ImGui::Image((void*)(long long int)(uint32_t)(*m_ViewTexture), viewportPanelSize, ImVec2{ 0.5f - halfZoomLevel, 0.5f + halfZoomLevel }, ImVec2{ 0.5f + halfZoomLevel, 0.5f - halfZoomLevel });
+		ImGui::Image((void*)(long long int)(uint32_t)(*m_ViewTexture), viewportPanelSize, ImVec2{ 0.0f, 1.0f }, ImVec2{ 1.0f, 0.0f });
 		//首先常规的纹理概念下，纹理左下角为00，右上角为11，openGL中也是如此
 		//ImGui的坐标是左上角原点，窗口区域为第一象限，在它的纹理显示时也是这个坐标系来放置纹理，导致图片旋转180度
 		//OpenGL中坐标是常见的数学布局
-		//后两个参数就是用来更改ImGui左上角和右上角所使用的纹理uv
+		//后两个参数就是用来更改ImGui左上角和右下角所使用的纹理uv
+
+
 
 		// Gizmo数据准备（绘制位置和范围）
 		ImVec2 sceneMin = ImGui::GetItemRectMin();					//获取Image的起始绘制位置
@@ -188,19 +174,17 @@ void EditorLayer::OnImGuiRender() {
 
 		if(m_SceneHierarchyPanel.GetSelectedEntity())
 		{
-			// 相机
-			Ayin::SceneCamera& camera = m_SceneCamera.GetComponents<Ayin::CameraComponent>().Camera;
 			// 实体transform
 			Ayin::TransformComponent& selectedEntityTransform = const_cast<Ayin::Entity&>(m_SceneHierarchyPanel.GetSelectedEntity()).GetComponents<Ayin::TransformComponent>();
 			glm::mat4 transform = selectedEntityTransform;
 
 			//ImGuizmo显示配置
-			ImGuizmo::SetOrthographic((camera.GetCameraType() == Ayin::Camera::CameraType::Orthogonal) ? true : false);
+			ImGuizmo::SetOrthographic((m_EditorCamera.GetCameraType() == Ayin::Camera::CameraType::Orthogonal) ? true : false);
 			ImGuizmo::SetDrawlist();// 制到当前Viewport窗口，保证在Image之后叠加显示
 			ImGuizmo::SetRect(sceneMin.x, sceneMin.y, sceneSize.x, sceneSize.y);//用于NDC
 
 			ImGuizmo::Manipulate(
-				glm::value_ptr(camera.GetViewMatrix()), glm::value_ptr(camera.GetProjectionMatrix()),
+				glm::value_ptr(m_EditorCamera.GetViewMatrix()), glm::value_ptr(m_EditorCamera.GetProjectionMatrix()),
 				m_GizmoOperation, m_GizmoMode,
 				glm::value_ptr(transform), nullptr, nullptr, nullptr, nullptr
 			);
@@ -212,6 +196,7 @@ void EditorLayer::OnImGuiRender() {
 
 				selectedEntityTransform.Position = positiong;
 				selectedEntityTransform.Rotation = glm::degrees(rotation);
+				//x selectedEntityTransform.Scale += (scale / selectedEntityTransform.Scale) - glm::vec3{ 1.0f, 1.0f, 1.0f };（有bug，而且易触发）
 				selectedEntityTransform.Scale = scale;
 
 			}
@@ -296,7 +281,7 @@ void EditorLayer::DrawGizmoToolbarOverlay(ImVec2 sceneMin, ImVec2 sceneSize) {
 	constexpr float rounding = 5.0f;			//ToolBar矩形圆角
 	constexpr float dragHandleWidth = 20.0f;	//拖拽图标的相对偏移
 	constexpr float collapsedWidth = 54.0f;		//收纳时的宽度
-	constexpr float expandedWidth = 180.0f;		//完全展开时宽度
+	constexpr float expandedWidth = 260.0f;		//完全展开时宽度
 	constexpr float buttonSize = 22.0f;			//收纳按钮大小
 
 	// 计算实际显示大小
@@ -350,7 +335,7 @@ void EditorLayer::DrawGizmoToolbarOverlay(ImVec2 sceneMin, ImVec2 sceneSize) {
 		m_GizmoToolbarCollapsed = !m_GizmoToolbarCollapsed;
 	}
 
-	// 平移，选装，缩放选项
+	// 平移，选装，缩放，投影选项
 	if (!m_GizmoToolbarCollapsed) {
 		ImGui::SameLine();
 		if (ImGui::RadioButton("T", m_GizmoOperation & ImGuizmo::TRANSLATE)) {
@@ -364,6 +349,31 @@ void EditorLayer::DrawGizmoToolbarOverlay(ImVec2 sceneMin, ImVec2 sceneSize) {
 		if (ImGui::RadioButton("S", m_GizmoOperation & ImGuizmo::SCALE)) {
 			m_GizmoOperation = (ImGuizmo::OPERATION)(m_GizmoOperation ^ ImGuizmo::SCALE);
 		}
+
+		//2D | 3D
+		bool is2DMode = m_EditorCamera.GetCameraType() == Ayin::Camera::CameraType::Orthogonal;
+		ImVec4 activeTextColor = ImVec4{ 1.0f, 0.75f, 0.25f, 1.0f };	//选中时颜色
+		ImVec4 inactiveTextColor = ImVec4{ 0.75f, 0.75f, 0.75f, 1.0f };	//未选中时颜色
+		//分割线
+		ImGui::SameLine();
+		ImGui::TextUnformatted("|");
+		ImGui::SameLine();
+
+		ImGui::PushStyleColor(ImGuiCol_Text, is2DMode ? activeTextColor : inactiveTextColor);
+		if (ImGui::Button("2D", ImVec2{ 28.0f, buttonSize })) {
+			m_EditorCamera.SetEditorCameraMode(Ayin::Camera::CameraType::Orthogonal);
+		}
+		ImGui::PopStyleColor();
+
+		ImGui::SameLine(0.0f, 2.0f);
+		ImGui::TextUnformatted("|");
+		ImGui::SameLine(0.0f, 2.0f);
+
+		ImGui::PushStyleColor(ImGuiCol_Text, !is2DMode ? activeTextColor : inactiveTextColor);
+		if (ImGui::Button("3D", ImVec2{ 28.0f, buttonSize })) {
+			m_EditorCamera.SetEditorCameraMode(Ayin::Camera::CameraType::Perspective);
+		}
+		ImGui::PopStyleColor();
 	}
 
 	// 确保至少可以使用移动手柄
@@ -386,14 +396,6 @@ void EditorLayer::OpenScene() {
 		Ayin::SceneSerializer sceneSerializer{ m_ActiveScene };
 		sceneSerializer.Deserializer(*filePath);
 
-		//{ //测试用
-			m_SceneCamera = m_ActiveScene->GetEntitiesByComponents<Ayin::CameraComponent>()[0];
-		//	auto& nsc = m_SceneCamera.AddComponent<Ayin::NativeScriptComponent>();
-		//	if (!nsc.HasScript()) {
-		//		nsc.Bind<CameraControllerScript>();
-		//	}
-		//}
-
 		m_ActiveScene->OnViewportResize(m_SceneSize.x, m_SceneSize.y);
 
 		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
@@ -406,11 +408,9 @@ void EditorLayer::NewScene() {
 	m_ActiveScene = Ayin::CreateRef<Ayin::Scene>();
 	m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 
-	{ //测试用
-		m_SceneCamera = m_ActiveScene->CreateEntity("MainCamera");
-		m_SceneCamera.AddComponent<Ayin::CameraComponent>();
-		m_SceneCamera.AddComponent<Ayin::NativeScriptComponent>().Bind<CameraControllerScript>();
-	}
+	Ayin::Entity mainCamera = m_ActiveScene->CreateEntity("MainCamera");
+	mainCamera.GetComponents<Ayin::TransformComponent>().Position.z = 10.0f;
+	mainCamera.AddComponent<Ayin::CameraComponent>(Ayin::CameraProp{ .Type{Ayin::Camera::CameraType::Perspective} });
 
 	m_ActiveScene->OnViewportResize(m_SceneSize.x, m_SceneSize.y);
 

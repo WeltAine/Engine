@@ -50,7 +50,7 @@ namespace Ayin{
 
 	}
 
-	void Scene::OnUpdate(Timestep deltaTime) {
+	void Scene::OnUpdateRuntime(Timestep deltaTime) {
 	
 
 		//x 系统更新
@@ -112,8 +112,8 @@ namespace Ayin{
 
 			spriteGroup.sort<TransformComponent>([&cameraComponent](const TransformComponent& transform_1, const TransformComponent& transform_2) -> bool
 					{
-					    glm::mat4 ViewMatrix = cameraComponent.Camera.GetViewMatrix();
-						return (ViewMatrix* glm::vec4{ transform_1.Position, 1.0f }).z < (ViewMatrix * glm::vec4{ transform_2.Position, 1.0f }).z;	//简称：真的情况排在前头
+					    glm::mat4 viewMatrix = cameraComponent.Camera.GetViewMatrix();
+						return (viewMatrix* glm::vec4{ transform_1.Position, 1.0f }).z < (viewMatrix * glm::vec4{ transform_2.Position, 1.0f }).z;	//简称：真的情况排在前头
 					});
 
 			Renderer2D::BeginScene(cameraComponent.Camera);
@@ -132,6 +132,42 @@ namespace Ayin{
 			Renderer2D::EndScene();
 		}
 
+	};
+
+
+	void Scene::OnUpdateEditor(Timestep deltaTime, EditorCamera& editorCamera) {
+		
+
+		// 渲染更新
+		{
+
+			auto spriteGroup = m_Registry.group<SpriteRendererComponent>(entt::get<TransformComponent>);
+
+			spriteGroup.sort<TransformComponent>([&editorCamera](const TransformComponent& transform_1, const TransformComponent& transform_2) -> bool {
+				
+				glm::mat4 viewMatrix = editorCamera.GetViewMatrix();
+
+				return  (viewMatrix * glm::vec4{ transform_1.Position,1.0f }).z < (viewMatrix * glm::vec4{ transform_2.Position,1.0f }).z;
+
+				});
+
+			Renderer2D::BeginScene(editorCamera);
+
+			for (auto&& [entity, sprite, transform] : spriteGroup.each()) {
+				//是倒着遍历的
+
+
+				if (sprite.Texture2D.get() == nullptr)
+					Renderer2D::DrawQuad(transform.Position, transform.Rotation, transform.Scale, sprite.Color);
+				else
+					Renderer2D::DrawQuad(transform.Position, transform.Rotation, transform.Scale, sprite.Texture2D);
+
+			}
+
+			Renderer2D::EndScene();
+		}
+
+	
 	};
 
 

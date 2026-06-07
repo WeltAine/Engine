@@ -2,6 +2,7 @@
 
 #include "Ayin/Core/Core.h"
 #include "Ayin/Core/Timestep.h"
+#include "Ayin/Scene/EditorCamera.h"
 
 #include <entt/entt.hpp>
 #include <string>
@@ -25,7 +26,8 @@ namespace Ayin {
 		Entity CreateEntity(const std::string& name = "Entity");
 		void DestroyEntity(const Entity& entity);
 
-		void OnUpdate(Timestep deltaTime);
+		void OnUpdateRuntime(Timestep deltaTime);
+		void OnUpdateEditor(Timestep deltaTime, EditorCamera& editorCamera);
 
 		// 根据展示窗口调整相机比例（是所有相机）
 		void OnViewportResize(int width, int height);

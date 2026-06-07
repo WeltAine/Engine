@@ -39,7 +39,7 @@ private:
 
 private:
 
-	Ayin::CameraController m_CameraController;		//相机控制器
+	Ayin::EditorCamera m_EditorCamera;				//相机控制器
 
 	Ayin::Ref<Ayin::Texture2D> m_Texture;			//测试用纹理
 
@@ -57,10 +57,8 @@ private:
 
 	//ECS测试
 	Ayin::Ref<Ayin::Scene> m_ActiveScene;						
-	//x Ayin::Entity m_TextureEntity;
-	Ayin::Entity m_SceneCamera;
 
-//面板测试
+	//面板测试
 	Ayin::SceneHierarchyPanel m_SceneHierarchyPanel;
 	Ayin::PropertiesPanel m_PropertiesPanel;
 
