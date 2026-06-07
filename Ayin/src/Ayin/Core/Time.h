@@ -10,6 +10,8 @@
 
 namespace Ayin {
 
+
+	// 全局计时器（运行时间，当前帧间隔）
 	class AYIN_API Time {
 
 		friend class Application;
