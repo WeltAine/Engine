@@ -14,7 +14,7 @@ layout(location = 7) in int a_TextureIndex;
 out vec2 v_UV;
 out vec4 v_Color;
 out vec2 v_TilingFactor;
-flat out int v_TextureIndex;
+flat out int v_TextureIndex;    //flat 是 GLSL 里的插值限定符
 
 uniform mat4 u_ProjectionViewMatrix;
 

@@ -43,10 +43,11 @@ namespace Ayin {
 
 		//x 因为我们的Texture纹理暂时不支持动态尺寸的纹理，而且设计上还太简单不支持格式参数（这需要使用Image的API，或者说我们可以在调整窗口时销毁，之后重建）
 		// 已经改进Texture，基于适配器某事添加通用的构造方法
-		Ref<Texture2D> m_ColorAttachmentTexture;			//颜色附件
-		Ref<Texture2D> m_ResolveAttachmentTexture;			//解析帧缓冲附件（Sample > 1 时使用）
-
+		std::vector<uint32_t> m_ColorAttachments;			//所有颜色附件
 		uint32_t m_DepthAndStencilAttachment = 0;			//深度和模板附件
+
+		std::vector<Ref<Texture2D>> m_ResolveAttachmentTextures;			//解析帧缓冲颜色附件
+		uint32_t m_ResolveDepthAndStencilAttachment = 0;					//解析帧缓冲深度和模板附件
 		
 
 	};
