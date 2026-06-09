@@ -11,6 +11,8 @@ namespace Ayin {
 
 	EditorCamera::EditorCamera() {
 	
+		m_Orientation = glm::quatLookAt(glm::normalize(-m_Position), glm::vec3{ 0.0f, 1.0f, 0.0f });
+
 		UpdateViewMatrix();
 		UpdateProjectionMatrix();
 
@@ -21,6 +23,8 @@ namespace Ayin {
 		:BaseHeight(height), BaseFOV(fov), minFOVZoom(BaseFOV / 150.0f)
 	{
 	
+		m_Orientation = glm::quatLookAt(glm::normalize(-m_Position), glm::vec3{ 0.0f, 1.0f, 0.0f });
+
 		m_CameraProp.Height = BaseHeight;
 		m_CameraProp.FOV = BaseFOV;
 
@@ -170,18 +174,18 @@ namespace Ayin {
 
 		switch (m_CameraProp.Type) {
 			
-		case(Camera::CameraType::Orthogonal): {
+			case(Camera::CameraType::Orthogonal): {
 
-			m_ProjectionMatrix = glm::ortho(-right, right, -top, top, m_CameraProp.NearPlaneDistance, m_CameraProp.FarPlaneDistance);
-			break;
+				m_ProjectionMatrix = glm::ortho(-right, right, -top, top, m_CameraProp.NearPlaneDistance, m_CameraProp.FarPlaneDistance);
+				break;
 
-		};
-		case(Camera::CameraType::Perspective): {
+			};
+			case(Camera::CameraType::Perspective): {
 
-			m_ProjectionMatrix = glm::perspective(glm::radians(m_CameraProp.FOV), m_CameraProp.AspectRatio, m_CameraProp.NearPlaneDistance, m_CameraProp.FarPlaneDistance);
-			break;
+				m_ProjectionMatrix = glm::perspective(glm::radians(m_CameraProp.FOV), m_CameraProp.AspectRatio, m_CameraProp.NearPlaneDistance, m_CameraProp.FarPlaneDistance);
+				break;
 
-		};		
+			};		
 		
 		}
 

@@ -162,6 +162,7 @@ void EditorLayer::OnImGuiRender() {
 			ImGuizmo::SetOrthographic((m_EditorCamera.GetCameraType() == Ayin::Camera::CameraType::Orthogonal) ? true : false);
 			ImGuizmo::SetDrawlist();// 制到当前Viewport窗口，保证在Image之后叠加显示
 			ImGuizmo::SetRect(sceneMin.x, sceneMin.y, sceneSize.x, sceneSize.y);//用于NDC
+			ImGuizmo::SetGizmoSizeClipSpace((m_GizmoOperation & ImGuizmo::ROTATE) ? 0.16f : 0.1f);
 
 			ImGuizmo::Manipulate(
 				glm::value_ptr(m_EditorCamera.GetViewMatrix()), glm::value_ptr(m_EditorCamera.GetProjectionMatrix()),
@@ -174,12 +175,17 @@ void EditorLayer::OnImGuiRender() {
 				
 				auto&&[positiong, rotation, scale] = Ayin::Math::DecomposeTransform(transform);
 
-				selectedEntityTransform.Position = positiong;
-				selectedEntityTransform.Rotation = glm::degrees(rotation);
-				//x selectedEntityTransform.Scale += (scale / selectedEntityTransform.Scale) - glm::vec3{ 1.0f, 1.0f, 1.0f };（有bug，而且易触发）
-				selectedEntityTransform.Scale = scale;
+				if (glm::all(glm::isfinite(positiong)) && glm::all(glm::isfinite(rotation)) && glm::all(glm::isfinite(scale))) {
+
+					selectedEntityTransform.Position = positiong;
+					selectedEntityTransform.Rotation = glm::degrees(rotation);
+					//x selectedEntityTransform.Scale += (scale / selectedEntityTransform.Scale) - glm::vec3{ 1.0f, 1.0f, 1.0f };（有bug，而且易触发）
+					selectedEntityTransform.Scale = scale;
+
+				}
 
 			}
+			//! - `ImGuizmo #302`: scale 在物体位于 origin 或相机 perspective 正对物体时会异常，拖动可能导致 transform 全部变 NaN。
 
 		}
 
