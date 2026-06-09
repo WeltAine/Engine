@@ -32,7 +32,7 @@ namespace Ayin {
 			// 遮挡后面 SameLine() 上的 InputText，导致其无法接收鼠标事件
 			sceneFlags &= ~ImGuiTreeNodeFlags_SpanFullWidth;//去掉整行高亮
 
-			bool open = ImGui::TreeNodeEx("##SceneRoot", sceneFlags);
+			bool open = ImGui::TreeNodeEx("##SceneRoot", sceneFlags);//无场景名称
 
 			//编辑框绘制
 			ImGui::SameLine();
@@ -46,7 +46,7 @@ namespace Ayin {
 			}
 			ImGui::PopStyleColor(3);
 
-			if (!ImGui::IsItemActive() && ImGui::IsMouseClicked(0))//! m_JustStartedEditing是用于堵住时序漏洞的，因为第一次进入这里时
+			if (!ImGui::IsItemActive() && ImGui::IsMouseClicked(0))
 				m_EditingSceneName = false;
 
 			//绘制场景中节点
