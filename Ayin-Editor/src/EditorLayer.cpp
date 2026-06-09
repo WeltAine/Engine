@@ -33,26 +33,9 @@ void EditorLayer::OnAttach() {
 
 	NewScene();
 
-	//x 设置场景
-	//xfor (float y = -5.0f; y < 5.0f; y += 0.5f)
-	//x{
-	//x	for (float x = -5.0f; x < 5.0f; x += 0.5f)
-	//x	{
-	//x		std::string entityName = fmt::format("Entity_{:.1f}_{:.1f}", x, y);
-	//x		Ayin::Entity entity = m_ActiveScene->CreateEntity(entityName);
-	//x		auto& transform = entity.GetComponents<Ayin::TransformComponent>();
-	//x		transform = Ayin::TransformComponent{ glm::vec3{ x, y, -10.0f }, glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 1.0f, 1.0f, 1.0f } };
-	//x		auto& sprite = entity.AddComponent<Ayin::SpriteRendererComponent>();
-	//x		sprite.Color = { (x + 5.0f) / 10.0f, 0.4f, (y + 5.0f) / 10.0f, 0.7f };
-	//x	}
-	//x}
-
+	//场景测试
 	{
-		//x m_TextureEntity = m_ActiveScene->CreateEntity("TextureEntity");
 		auto&& entity = m_ActiveScene->CreateEntity("TextureEntity");
-		//x auto& transform = m_TextureEntity.GetComponents<Ayin::TransformComponent>();
-		//x transform = Ayin::TransformComponent{ glm::vec3{ 0.0f, 0.0f, -5.0f }, glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 1.0f, 1.0f, 1.0f } };
-		//x m_TextureEntity.AddComponent<Ayin::SpriteRendererComponent>().Texture2D = m_Texture;
 		entity.AddComponent<Ayin::SpriteRendererComponent>().Texture2D = m_Texture;
 	}
 
@@ -60,10 +43,11 @@ void EditorLayer::OnAttach() {
 	{
 		Ayin::Entity entity = m_ActiveScene->CreateEntity();
 		auto& transform = entity.GetComponents<Ayin::TransformComponent>();
-		transform = Ayin::TransformComponent{ glm::vec3{ 0.0f, 0.0f, 0.0f }, glm::vec3{ 0.0f, 0.0f, 60.0f }, glm::vec3{ 1.0f, 1.0f, 1.0f } };
+		transform = Ayin::TransformComponent{ glm::vec3{ 0.0f, 0.0f, 5.0f }, glm::vec3{ 0.0f, 0.0f, 60.0f }, glm::vec3{ 1.0f, 1.0f, 1.0f } };
 		auto& sprite = entity.AddComponent<Ayin::SpriteRendererComponent>();
 		sprite.Color = { glm::vec4{ 0.8f, 0.2f, 0.5f, 0.5f } };
 	}
+	//
 
 	m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 
@@ -85,7 +69,7 @@ void EditorLayer::OnUpdate(Ayin::Timestep deltaTime) {
 		m_Framebuffer->Resize((uint32_t)m_SceneSize.x, (uint32_t)m_SceneSize.y);
 
 		//编辑器相机比例调整
-		m_EditorCamera.SetCameraSize((unsigned int)m_SceneSize.x, (unsigned int)m_SceneSize.y);
+		m_EditorCamera.SetCameraAspect(float(m_SceneSize.x) / m_SceneSize.y);
 
 		//调整场景中相机的比例
 		m_ActiveScene->OnViewportResize(m_SceneSize.x, m_SceneSize.y);
@@ -98,10 +82,6 @@ void EditorLayer::OnUpdate(Ayin::Timestep deltaTime) {
 		//! 而Application中的会在glfwPollEvents();时立刻处理，而ImGui此刻只是放入消息队列，等待NewFrame
 		//! 所以同一个事件Application::OnWindowsResize()会先于ImGui::NewFrame触发，先于Ayin::Renderer::OnWindowResize触发
 	}
-
-
-	//x static float rotation = 0;
-	//x rotation += deltaTime * 50.0f;
 
 	{
 		AYIN_PROFILE_SCOPE("Renderer Draw");
@@ -147,7 +127,7 @@ void EditorLayer::OnImGuiRender() {
 	{
 		ImGui::Begin("Viewport");
 
-		if (ImGui::IsWindowFocused() && ImGui::IsWindowHovered()) {}		//聚焦且鼠标位于窗口上
+		if (ImGui::IsWindowFocused() && ImGui::IsWindowHovered())			//聚焦且鼠标位于窗口上
 			m_EditorCamera.OnUpdate(Ayin::Time::GetFrameInterval());
 
 		ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();			//获取Viewport的可用绘制大小（也就是等于Image的实际绘制大小）

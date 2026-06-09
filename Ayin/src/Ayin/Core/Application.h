@@ -60,7 +60,7 @@ namespace Ayin {
 
 
 	private:
-		std::unique_ptr<Window> m_Window;
+		Scope<Window> m_Window;
 		bool m_IsVisible = true;					//窗口内容是否可见（好像没什么必要的样子，或者说这个字段应该移动到Window本身中）
 		bool m_Running = true;
 

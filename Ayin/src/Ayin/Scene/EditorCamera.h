@@ -26,7 +26,7 @@ namespace Ayin {
 
 		void SetEditorCameraMode(Camera::CameraType cameraType);
 
-		inline void SetCameraSize(int width, int height) { m_CameraProp.AspectRatio = (float)width / (float)height; UpdateProjectionMatrix(); };
+		inline void SetCameraAspect(float aspectRatio) { m_CameraProp.AspectRatio = aspectRatio; UpdateProjectionMatrix(); };
 
 		inline CameraProp GetEditorCameraProp() const { return m_CameraProp; };
 
@@ -51,8 +51,8 @@ namespace Ayin {
 
 		CameraProp m_CameraProp;
 
-		glm::vec3 m_Position{ 0.0f, 0.0f, 10.0f };
-		glm::quat m_Orientation{ 1.0f, 0.0f, 0.0f, 0.0f };
+		glm::vec3 m_Position{ 3.0f, 3.0f, 10.0f };
+		glm::quat m_Orientation{ 1.0f, 0.0f, 0.0f, 0.0f };	//没有任何旋转，glm::quat( w, x, y, z )，四元数公式：q = w + xi + yj + zk；w：实数部分（标量）→ 代表旋转角度，x, y, z：虚数部分（向量）→ 代表旋转轴
 
 		float m_MoveSpeed = 5.0f;
 		float m_RotateSpeed = 0.15f;
