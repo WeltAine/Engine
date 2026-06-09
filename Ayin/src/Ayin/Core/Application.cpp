@@ -30,6 +30,9 @@ namespace Ayin {
 
 		m_Window = std::unique_ptr<Window>(Window::Create());
 
+		// 启动时让主窗口的中文输入法处于英文输入状态，避免 WASD/快捷键被当作拼音文本输入。
+		Platform::SetInputMethodToEnglish();
+
 		//当窗口发生事件时（通过GLFW），窗口类会调用OnEvent回调，由我们来处理，Application成了中介者，而窗口成为了组件，这道函指则是组件与中介之间的沟通桥梁
 		m_Window->SetEventCallback(AYIN_BIND_EVENT_FUN(Application::OnEvent));
 

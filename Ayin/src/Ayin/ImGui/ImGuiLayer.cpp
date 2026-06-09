@@ -6,6 +6,7 @@
 #include "Ayin/Events/MouseEvent.h"
 
 #include "Ayin/Core/Application.h"
+#include "Ayin/Utils/PlatformUtils.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -160,6 +161,13 @@ namespace Ayin {
 		AYIN_PROFILE_FUNCTION();
 
 		ImGuiIO& io = ImGui::GetIO();
+
+		// ImGui 需要文本输入时恢复 IME，离开文本框后重新禁用。
+		// 这样 Viewport/WASD/快捷键默认不被中文输入法截获，但 InputText 仍然能输入中文。
+		if (io.WantTextInput)
+			Platform::RestoreImeForMainWindow();
+		else
+			Platform::DisableImeForMainWindow();
 
 		//渲染
 		ImGui::Render();
