@@ -8,6 +8,9 @@
 #include <fstream>
 #include <sstream>
 #include <map>
+#include <algorithm>
+#include <unordered_map>
+#include <unordered_set>
 
 
 namespace {
@@ -79,8 +82,8 @@ namespace Ayin {
 		for (auto entityID : m_Scene->m_Registry.storage<entt::entity>()) {
 
 			Entity entity = { entityID, m_Scene.get() };
-			if (!entity)
-				return;
+			if (!entity || !entity.HasComponents<IDComponent>())
+				continue;
 
 			SceneSerializerContext::SetCurrentEntity(entity);
 
@@ -160,13 +163,22 @@ namespace Ayin {
 		// 反序列化回场景
 		m_Scene->SetName(sceneData.SceneName);
 
+		std::unordered_map<uint64_t, uint64_t> uuidMap;
+		std::unordered_set<uint64_t> serializedUUIDs;
+
 		for (auto& entityEntry : sceneData.Entities) {
 
-			Entity entity = m_Scene->CreateEntity("Entity");
+			Entity entity = m_Scene->CreateEntityWithUUID(entityEntry.UUID);
+			uint64_t actualUUID = entity.GetComponents<IDComponent>().ID;
+			if (entityEntry.UUID != 0) {
+				if (serializedUUIDs.insert(entityEntry.UUID).second) {
+					uuidMap[entityEntry.UUID] = actualUUID;
+				} else {
+					AYIN_CORE_WARN("Duplicated entity UUID '{}' in scene file, remap ambiguous", entityEntry.UUID);
+				}
+			}
 
 			SceneSerializerContext::SetCurrentEntity(entity);
-
-			entity.GetComponents<IDComponent>().ID = entityEntry.UUID;
 
 			for (auto& [compName, rawJson] : entityEntry.Components) {
 
@@ -179,9 +191,86 @@ namespace Ayin {
 
 			}
 
+			entity.GetComponents<IDComponent>().ID = actualUUID;
+
 		}
 
 		SceneSerializerContext::EraseEntityContext();
+
+		auto resolveUUID = [&uuidMap, this](uint64_t uuid) -> uint64_t {
+			if (uuid == 0) {
+				return 0;
+			}
+
+			if (auto it = uuidMap.find(uuid); it != uuidMap.end()) {
+				return it->second;
+			}
+
+			return m_Scene->FindEntityByUUID(uuid) ? uuid : 0;
+		};
+
+		// 修复旧文件或手改文件中的父子关系，确保 ParentID 与 ChildrenIDs 双向一致
+		{
+			std::unordered_map<uint64_t, uint64_t> parentByChild;
+			std::unordered_set<uint64_t> childrenWithExplicitParent;
+			auto&& relationshipView = m_Scene->m_Registry.view<IDComponent, RelationshipComponent>();
+			for (auto&& [entity, id, relationship] : relationshipView.each()) {
+				uint64_t parentID = resolveUUID(relationship.ParentID);
+				Entity parent = m_Scene->FindEntityByUUID(parentID);
+				if (!parent || parent == Entity{ entity, m_Scene.get() } || parent.HasComponents<AttachmentComponent>()) {
+					continue;
+				}
+
+				parentByChild[id.ID] = parentID;
+				childrenWithExplicitParent.insert(id.ID);
+			}
+
+			for (auto&& [entity, id, relationship] : relationshipView.each()) {
+				for (uint64_t childID : relationship.ChildrenIDs) {
+					uint64_t resolvedChildID = resolveUUID(childID);
+					Entity child = m_Scene->FindEntityByUUID(resolvedChildID);
+					if (!child || child.HasComponents<AttachmentComponent>() || resolvedChildID == id.ID || childrenWithExplicitParent.contains(resolvedChildID) || parentByChild.contains(resolvedChildID)) {
+						continue;
+					}
+
+					parentByChild[resolvedChildID] = id.ID;
+				}
+			}
+
+			for (auto&& [entity, id, relationship] : relationshipView.each()) {
+				relationship.ParentID = 0;
+				relationship.ChildrenIDs.clear();
+			}
+
+			for (auto&& [childID, parentID] : parentByChild) {
+				Entity child = m_Scene->FindEntityByUUID(childID);
+				Entity parent = m_Scene->FindEntityByUUID(parentID);
+				m_Scene->SetParent(child, parent, false);
+			}
+		}
+
+		// 附属实体只承载脚本；无 owner 或无脚本组件的旧数据会被清理，避免隐藏垃圾实体被继续序列化
+		{
+			std::vector<Entity> invalidAttachments;
+			auto&& attachmentView = m_Scene->m_Registry.view<AttachmentComponent>();
+			for (auto&& [entity, attachment] : attachmentView.each()) {
+				Entity attachmentEntity{ entity, m_Scene.get() };
+				attachment.OwnerID = resolveUUID(attachment.OwnerID);
+				if (!m_Scene->FindEntityByUUID(attachment.OwnerID) || !attachmentEntity.HasComponents<NativeScriptComponent>()) {
+					invalidAttachments.push_back(attachmentEntity);
+					continue;
+				}
+
+				attachmentEntity.AddComponent<HiddenEntityComponent>();
+				if (attachmentEntity.HasComponents<RelationshipComponent>()) {
+					attachmentEntity.RemoveComponents<RelationshipComponent>();
+				}
+			}
+
+			for (Entity attachmentEntity : invalidAttachments) {
+				m_Scene->DestroyEntity(attachmentEntity);
+			}
+		}
 
 		auto&& nativeScriptComponentView = m_Scene->m_Registry.view<NativeScriptComponent>();
 
@@ -204,7 +293,15 @@ namespace Ayin {
 				AYIN_CORE_ASSERT(nsc.InstantiateFunction, "Script '{}' is not bound", nsc.ScriptName);
 				nsc.InstantiateFunction();
 				if (nsc.ScriptableInstance != nullptr) {
-					nsc.ScriptableInstance->m_Entity = Entity{ entity, m_Scene.get() };
+					Entity scriptTarget{ entity, m_Scene.get() };
+					if (auto* attachment = m_Scene->m_Registry.try_get<AttachmentComponent>(entity)) {
+						scriptTarget = m_Scene->FindEntityByUUID(attachment->OwnerID);
+						if (!scriptTarget) {
+							return;
+						}
+					}
+
+					nsc.ScriptableInstance->m_Entity = scriptTarget;
 				}
 			});
 
