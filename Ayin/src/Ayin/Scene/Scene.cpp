@@ -384,19 +384,19 @@ namespace Ayin{
 					return;
 				}
 
+				Entity scriptTarget{ entity, this };
+				if (auto* attachment = m_Registry.try_get<AttachmentComponent>(entity)) {
+					scriptTarget = FindEntityByUUID(attachment->OwnerID);
+					if (!scriptTarget) {
+						return;
+					}
+				}
+
 				if (!nsc.ScriptableInstance) {//没有脚本实例
 					AYIN_CORE_ASSERT(nsc.InstantiateFunction, "Script '{}' is not bound", nsc.ScriptName);
 					nsc.InstantiateFunction();
 					if (nsc.ScriptableInstance == nullptr) {
 						return;
-					}
-
-					Entity scriptTarget{ entity, this };
-					if (auto* attachment = m_Registry.try_get<AttachmentComponent>(entity)) {
-						scriptTarget = FindEntityByUUID(attachment->OwnerID);
-						if (!scriptTarget) {
-							return;
-						}
 					}
 
 					nsc.ScriptableInstance->m_Entity = scriptTarget;
