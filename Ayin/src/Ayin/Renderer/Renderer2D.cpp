@@ -109,7 +109,7 @@ namespace Ayin {
 		s_Data.QuadBatchBufferPtr = s_Data.QuadBatchBufferBase;
 
 		//Shader
-		s_Data.QuadShader = Shader::Create("O:/CppProgram/Ayin/assets/shader/2D/QuadShader.glsl");
+		s_Data.QuadShader = Shader::Create("assets/shader/2D/QuadShader.glsl");
 
 		//默认Texture
 		s_Data.WhiteTexture = Texture2D::Create(100, 100);
@@ -275,4 +275,3 @@ namespace Ayin {
 
 
 }
-

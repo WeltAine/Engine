@@ -7,6 +7,8 @@
 // 目前直接作为OpenGL侧的实现（之后会拆出，如果有时间接入其它API）
 namespace Ayin {
 
+	std::unordered_map<std::string, Ref<Shader>> ShaderLibrary::s_Shaders;
+
 	//////////////////////////////////////////////////////////////////////////////////////////
 	/// Shader ///////////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////////////////////
@@ -41,13 +43,11 @@ namespace Ayin {
 	/// ShaderLibrary ////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////////////////////
 
-	Ref<Shader> ShaderLibrary::Load(const std::string& name, const std::string& filePath) {
-
-		Ref<Shader> shader = Shader::Create(filePath);
-		Add(name, shader);
-
-		return shader;
-	}
+	//x Ref<Shader> ShaderLibrary::Load(const std::string& name, const std::string& filePath) {
+	//x 	Ref<Shader> shader = Shader::Create(filePath);
+	//x 	Add(name, shader);
+	//x 	return shader;
+	//x }
 
 	Ref<Shader> ShaderLibrary::Load(const std::string& filePath) {
 
@@ -61,7 +61,7 @@ namespace Ayin {
 	void ShaderLibrary::Add(const std::string& name, const Ref<Shader>& shader) {
 
 		AYIN_CORE_ASSERT(!Exists(name), "That name already exists in the ShaderLibrary");
-		m_Shaders[name] = shader;
+		s_Shaders[name] = shader;
 
 	}
 
@@ -69,8 +69,8 @@ namespace Ayin {
 		Add(shader->GetName(), shader);
 	}
 
-	bool ShaderLibrary::Exists(const std::string& name) const {
-		return m_Shaders.find(name) != m_Shaders.end();
+	bool ShaderLibrary::Exists(const std::string& name) {
+		return s_Shaders.find(name) != s_Shaders.end();
 	}
 
 }

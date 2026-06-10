@@ -2,7 +2,9 @@
 
 #include "Ayin/Core/Core.h"
 
+#include <cstdint>
 #include <string>
+#include <unordered_map>
 
 namespace Ayin {
 
@@ -37,6 +39,26 @@ namespace Ayin {
 		//ToDo: 我们需要考虑一下支持格式参数了
 		static Ref<Texture2D> Create(const std::string& path);
 		static Ref<Texture2D> Create(int width, int height, void* data = nullptr);
+
+	};
+
+	class AYIN_API Texture2DLibrary {
+
+	public:
+
+		// 不允许文件外的导入
+		static Ref<Texture2D> Load(const std::string& filePath);
+
+		static void Add(const std::string& name, const Ref<Texture2D>& texture);
+
+		static Ref<Texture2D> Get(const std::string& name);
+
+		static bool Exists(const std::string& name);
+
+	private:
+
+		static std::unordered_map<std::string, Ref<Texture2D>> s_Textures;
+
 
 	};
 }

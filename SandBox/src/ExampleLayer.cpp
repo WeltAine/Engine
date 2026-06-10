@@ -77,14 +77,14 @@ ExampleLayer::ExampleLayer()
 	}
 
 	// 着色器
-	m_ShaderLibrary.Load("O:/CppProgram/Ayin/assets/shader/shader.glsl");
-	m_TextureShader = Ayin::Shader::Create("O:/CppProgram/Ayin/assets/shader/TextureShader.glsl");
+	m_ShaderLibrary.Load("assets/shader/shader.glsl");
+	m_TextureShader = Ayin::Shader::Create("assets/shader/TextureShader.glsl");
 
 
 	//纹理
-	m_Texture = Ayin::Texture2D::Create("O:/CppProgram/Ayin/assets/textures/texture.png");//不支持中文路径
+	m_Texture = Ayin::Texture2D::Create("assets/textures/texture.png");//不支持中文路径
 
-	m_BlendTexture = Ayin::Texture2D::Create("O:/CppProgram/Ayin/assets/textures/blendTexture.png");
+	m_BlendTexture = Ayin::Texture2D::Create("assets/textures/blendTexture.png");
 	m_TextureShader->SetInt("ourTexture", 0);
 	//! sampler2D本质是一个int对应纹理单元的槽位（你也可以在shader代码中用location来指定）
 
@@ -166,4 +166,3 @@ void ExampleLayer::OnImGuiRender() {
 	ImGui::End();
 
 }
-

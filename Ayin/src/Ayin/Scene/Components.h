@@ -16,8 +16,12 @@
 
 #include "Ayin/Core/ObjectPool.h"
 
+#include "Ayin/Utils/PlatformUtils.h"
+
 #include "Ayin/Scene/ComponentRegistry.h"
 
+#include <filesystem>
+#include <system_error>
 #include <imgui.h>
 #include <entt/entt.hpp>
 #include <concepts>
@@ -268,6 +272,9 @@ namespace Ayin {
 	struct SpriteRendererComponent {
 	
 		//ToDo 调整一下
+		static constexpr const char* NoneTexturePath = "None";
+
+		std::string FilePath = NoneTexturePath;
 		Ref<Texture2D> Texture2D = nullptr;
 		glm::vec4 Color{1.0f, 1.0f, 1.0f, 1.0f};
 	
@@ -278,14 +285,83 @@ namespace Ayin {
 		static void OnGui(Entity& entity) {
 			auto& sprite = entity.GetComponents<Ayin::SpriteRendererComponent>();
 			ImGui::ColorEdit4("Color", &sprite.Color.x);
-			// Texture2D 暂时不处理
+
+			char buffer[512] = {};
+			strncpy_s(buffer, sprite.FilePath.c_str(), sizeof(buffer) - 1);
+			if (ImGui::InputText("Texture Path", buffer, sizeof(buffer))) {
+				sprite.FilePath = buffer;
+			}
+			if (ImGui::IsItemDeactivatedAfterEdit()) {
+				sprite.SetTexture(sprite.FilePath);
+			}
+
+			if (ImGui::Button("Browse Texture")) {
+				auto filePath = FileDialogs::OpenFile({ {"Texture", "png,jpg,jpeg,bmp,tga"} }, "assets/textures");
+				if (filePath) {
+					sprite.SetTexture(*filePath);
+				}
+			}
 		};
 
 		static ::entt::id_type ComponentStorageID() { return ::entt::type_hash<SpriteRendererComponent>::value(); };
 
+		inline void SetTexture(const std::string& filePath) {
+
+			// 保持序列化路径和运行时纹理引用同步。
+			std::string texturePath = NormalizeTexturePath(filePath);
+			if (texturePath.empty() || texturePath == NoneTexturePath) {
+				FilePath = NoneTexturePath;
+				Texture2D = nullptr;
+				return;
+			}
+
+			FilePath = texturePath;
+			std::error_code error;
+			if (!std::filesystem::exists(texturePath, error)) {
+				AYIN_CORE_WARN("Texture file does not exist: {0}", texturePath);
+				Texture2D = nullptr;
+				return;
+			}
+
+			Texture2D = Texture2DLibrary::Load(texturePath);
+
+		};
+
+		// 绝对路径相对化
+		static std::string NormalizeTexturePath(const std::string& filePath) {
+
+			if (filePath.empty() || filePath == NoneTexturePath)
+				return NoneTexturePath;
+
+			std::filesystem::path path{ filePath };	//路径对象，不检查文件是否存在，只是解析路径字符串，如盘符、目录、文件名、分隔符
+			std::error_code error;					//文件系统函数运行错误
+			if (path.is_absolute()) {				//是否为绝对路径
+				std::filesystem::path workingDirectory = std::filesystem::current_path(error);					//当前进程工作目录
+				error.clear();	//复用错误，所以清除一下
+				std::filesystem::path relativePath = std::filesystem::relative(path, workingDirectory, error);	// path 相对于 workingDirctory 的相对目录，premake 中调整了工作目录
+				if (!error && !relativePath.empty() && *relativePath.begin() != "..") {
+					//无错误，相对路径非空，相对路径不以..开头（因为我们的工作目录已经调到了项目根目录，如果再有 .. 则说明脱离项目文件范围了）
+					path = relativePath;
+				}
+			}
+
+			return path.generic_string();
+
+		};
+
+		inline void read_FilePath(const std::string& filePath) {
+			SetTexture(filePath);
+		};
+
+		inline std::string write_FilePath() {
+			return FilePath;
+		};
+
 		struct glaze {
 			using T = SpriteRendererComponent;
-			static constexpr auto value = glz::object("Color", &T::Color);
+			static constexpr auto value = glz::object(
+				"FilePath", glz::custom<&T::read_FilePath, &T::write_FilePath>,
+				"Color", &T::Color);
 		};
 
 	};

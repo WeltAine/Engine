@@ -24,7 +24,8 @@ void EditorLayer::OnAttach() {
 
 	AYIN_PROFILE_FUNCTION();
 
-	m_Texture = Ayin::Texture2D::Create("O:/CppProgram/Ayin/assets/textures/blendTexture.png");
+	const std::string testTexturePath = "assets/textures/blendTexture.png";
+	m_Texture = Ayin::Texture2DLibrary::Load(testTexturePath);
 
 	Ayin::FramebufferSpecification specification{ .Size{1280, 720}, .Samples = 1, .AttachmentsSpecification{Ayin::FramebufferAttachmentFormat::Color, Ayin::FramebufferAttachmentFormat::Red_Integer, Ayin::FramebufferAttachmentFormat::Depth_Stencil} };
 	m_Framebuffer = Ayin::Framebuffer::Create(specification);
@@ -36,7 +37,7 @@ void EditorLayer::OnAttach() {
 	//场景测试
 	{
 		auto&& entity = m_ActiveScene->CreateEntity("TextureEntity");
-		entity.AddComponent<Ayin::SpriteRendererComponent>().Texture2D = m_Texture;
+		entity.AddComponent<Ayin::SpriteRendererComponent>().SetTexture(testTexturePath);
 	}
 
 

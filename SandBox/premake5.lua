@@ -7,6 +7,7 @@ project "SandBox"
     
     targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}") --输出路径
     objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}") --中间文件路径
+	debugdir "%{wks.location}" --调试工作目录固定到仓库根目录，资源路径可使用 assets/...
 
     buildoptions 
     {
