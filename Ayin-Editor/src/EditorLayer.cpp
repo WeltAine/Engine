@@ -26,7 +26,7 @@ void EditorLayer::OnAttach() {
 
 	m_Texture = Ayin::Texture2D::Create("O:/CppProgram/Ayin/assets/textures/blendTexture.png");
 
-	Ayin::FramebufferSpecification specification{ .Size{1280, 720}, .Samples = 1 };
+	Ayin::FramebufferSpecification specification{ .Size{1280, 720}, .Samples = 1, .AttachmentsSpecification{Ayin::FramebufferAttachmentFormat::Color, Ayin::FramebufferAttachmentFormat::Depth_Stencil} };
 	m_Framebuffer = Ayin::Framebuffer::Create(specification);
 	m_SceneSize.x = 1280;
 	m_SceneSize.y = 720;
@@ -133,8 +133,8 @@ void EditorLayer::OnImGuiRender() {
 		ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();			//获取Viewport的可用绘制大小（也就是等于Image的实际绘制大小）
 
 		// 显示场景
-		m_ViewTexture = m_Framebuffer->GetColorAttachment();
-		ImGui::Image((void*)(long long int)(uint32_t)(*m_ViewTexture), viewportPanelSize, ImVec2{ 0.0f, 1.0f }, ImVec2{ 1.0f, 0.0f });
+		m_ViewTexture = m_Framebuffer->GetColorAttachmentRendererID();
+		ImGui::Image((void*)(long long int)m_ViewTexture, viewportPanelSize, ImVec2{ 0.0f, 1.0f }, ImVec2{ 1.0f, 0.0f });
 		//首先常规的纹理概念下，纹理左下角为00，右上角为11，openGL中也是如此
 		//ImGui的坐标是左上角原点，窗口区域为第一象限，在它的纹理显示时也是这个坐标系来放置纹理，导致图片旋转180度
 		//OpenGL中坐标是常见的数学布局

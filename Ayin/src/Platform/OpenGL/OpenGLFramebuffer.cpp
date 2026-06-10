@@ -4,12 +4,32 @@
 
 #include "Glad/glad.h"
 
-#include "Platform/OpenGL/OpenGLTexture.h"
-
 namespace Ayin {
 
 	namespace Utils {
 
+		static GLenum FramebufferAttachmentFormatToInternalFormat(FramebufferAttachmentFormat format) {
+
+			switch (format) {
+
+				case FramebufferAttachmentFormat::Color: return GL_RGBA8;
+				case FramebufferAttachmentFormat::Red_Integer: return GL_R32I;
+				case FramebufferAttachmentFormat::Depth_Stencil: return GL_DEPTH32F_STENCIL8;
+				default: break;
+
+			}
+
+			AYIN_CORE_ASSERT(false, "Unsupported framebuffer attachment format");
+			return GL_NONE;
+
+		}
+
+		static GLenum FramebufferAttachmentFormatToFilter(FramebufferAttachmentFormat format) {
+
+			// 整数颜色附件不能线性过滤，resolve/blit和纹理参数都必须使用最近点采样。
+			return format == FramebufferAttachmentFormat::Red_Integer ? GL_NEAREST : GL_LINEAR;
+
+		}
 
 		static bool IsColorAttachment(FramebufferAttachmentFormat format) {
 			return format != FramebufferAttachmentFormat::Depth_Stencil && format != FramebufferAttachmentFormat::None;
@@ -28,10 +48,11 @@ namespace Ayin {
 		}
 
 
-		static void SetTextureParameters(uint32_t textureID) {
+		static void SetTextureParameters(uint32_t textureID, FramebufferAttachmentFormat format) {
 
-			glTextureParameteri(textureID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);//缩小时是使用临近的四个像素加权平均
-			glTextureParameteri(textureID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			GLenum filter = FramebufferAttachmentFormatToFilter(format);
+			glTextureParameteri(textureID, GL_TEXTURE_MIN_FILTER, filter);//缩小时是使用临近的四个像素加权平均
+			glTextureParameteri(textureID, GL_TEXTURE_MAG_FILTER, filter);
 			glTextureParameteri(textureID, GL_TEXTURE_WRAP_S, GL_REPEAT);
 			glTextureParameteri(textureID, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
@@ -128,6 +149,7 @@ namespace Ayin {
 		glDeleteFramebuffers(2, framebuffers);
 
 		glDeleteTextures(static_cast<GLsizei>(m_ColorAttachments.size()), m_ColorAttachments.data());
+		glDeleteTextures(static_cast<GLsizei>(m_ResolveColorAttachments.size()), m_ResolveColorAttachments.data());
 		glDeleteTextures(1, &m_DepthAndStencilAttachment);
 		glDeleteTextures(1, &m_ResolveDepthAndStencilAttachment);
 
@@ -142,26 +164,35 @@ namespace Ayin {
 			glDeleteFramebuffers(2, framebuffers);
 
 			glDeleteTextures(static_cast<GLsizei>(m_ColorAttachments.size()), m_ColorAttachments.data());
+			glDeleteTextures(static_cast<GLsizei>(m_ResolveColorAttachments.size()), m_ResolveColorAttachments.data());
 			glDeleteTextures(1, &m_DepthAndStencilAttachment);
 			glDeleteTextures(1, &m_ResolveDepthAndStencilAttachment);
 
 		}
 
+		//获取规格，检测是否有深度模板附件
 		const auto& attachmentFormats = m_FramebufferSpecification.AttachmentsSpecification.AttachmentFormats;
 		bool hasDepthStencilAttachment = Utils::HasDepthStencilAttachment(m_FramebufferSpecification.AttachmentsSpecification);
+
 
 		//清理附件记录（主帧缓冲和解析帧缓冲）
 		m_ColorAttachments.clear();
 		m_ColorAttachments.resize(attachmentFormats.size(), 0);
+
+		m_ResolveColorAttachments.clear();
+		m_ResolveColorAttachments.resize(attachmentFormats.size(), 0);
+
 		m_DepthAndStencilAttachment = 0;
 		m_ResolveDepthAndStencilAttachment = 0;
 
-		m_ResolveAttachmentTextures.clear();
-		m_ResolveAttachmentTextures.resize(attachmentFormats.size(), nullptr);
 
 		//创建帧缓冲
 		glCreateFramebuffers(1, &m_FramebufferID);
 		glCreateFramebuffers(1, &m_ResolveFramebufferID);
+
+
+		//--------------------------------------------------------------------------------------------------------------------
+
 
 		//主帧缓冲和解析帧缓冲的颜色附件
 		for (int slot = 0; slot < static_cast<int>(attachmentFormats.size()); slot++) {
@@ -170,18 +201,21 @@ namespace Ayin {
 				continue;
 
 			//配置主帧缓冲颜色附件
-			GLenum colorTarget = m_FramebufferSpecification.Samples > 1 ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
 			//! 关于Switch和if，如果路径之间的差异是流程级别的，就使用switch，其余使用if，以减少样板代码
 			uint32_t colorAttachment = 0;
-			glCreateTextures(colorTarget, 1, &colorAttachment);
 
 			switch (m_FramebufferSpecification.Samples) {
 			
 			case(1): {
 
 				glCreateTextures(GL_TEXTURE_2D, 1, &colorAttachment);
-				glTextureStorage2D(colorAttachment, 1, GL_RGBA8, m_FramebufferSpecification.Size.x, m_FramebufferSpecification.Size.y);
-				Utils::SetTextureParameters(colorAttachment);
+				glTextureStorage2D(
+					colorAttachment,
+					1,
+					Utils::FramebufferAttachmentFormatToInternalFormat(attachmentFormats[slot]),
+					m_FramebufferSpecification.Size.x, m_FramebufferSpecification.Size.y);
+
+				Utils::SetTextureParameters(colorAttachment, attachmentFormats[slot]);
 
 				break;
 			};
@@ -192,7 +226,7 @@ namespace Ayin {
 				glTextureStorage2DMultisample(
 					colorAttachment,
 					m_FramebufferSpecification.Samples,
-					GL_RGBA8,
+					Utils::FramebufferAttachmentFormatToInternalFormat(attachmentFormats[slot]),
 					m_FramebufferSpecification.Size.x,
 					m_FramebufferSpecification.Size.y,
 					GL_TRUE
@@ -214,13 +248,22 @@ namespace Ayin {
 			//配置解析缓冲颜色附件
 			uint32_t resolveColorAttachment = 0;
 			glCreateTextures(GL_TEXTURE_2D, 1, &resolveColorAttachment);
-			glTextureStorage2D(resolveColorAttachment, 1, GL_RGBA8, m_FramebufferSpecification.Size.x, m_FramebufferSpecification.Size.y);
-			Utils::SetTextureParameters(resolveColorAttachment);
+			glTextureStorage2D(
+				resolveColorAttachment,
+				1,
+				Utils::FramebufferAttachmentFormatToInternalFormat(attachmentFormats[slot]),
+				m_FramebufferSpecification.Size.x, m_FramebufferSpecification.Size.y);
+
+			Utils::SetTextureParameters(resolveColorAttachment, attachmentFormats[slot]);
 
 			glNamedFramebufferTexture(m_ResolveFramebufferID, GL_COLOR_ATTACHMENT0 + slot, resolveColorAttachment, 0);
-			m_ResolveAttachmentTextures[slot] = std::make_shared<OpenGLTexture2D>(resolveColorAttachment, m_FramebufferSpecification.Size.x, m_FramebufferSpecification.Size.y);
+			m_ResolveColorAttachments[slot] = resolveColorAttachment;
 		
 		}
+
+
+		//--------------------------------------------------------------------------------------------------------------------
+
 
 		if (hasDepthStencilAttachment) {
 
@@ -228,31 +271,31 @@ namespace Ayin {
 
 			switch (m_FramebufferSpecification.Samples) {
 			
-			case(1): {
+				case 1: {
 
-				glCreateTextures(GL_TEXTURE_2D, 1, &m_DepthAndStencilAttachment);
-				glTextureStorage2D(m_DepthAndStencilAttachment, 1, GL_DEPTH32F_STENCIL8, m_FramebufferSpecification.Size.x, m_FramebufferSpecification.Size.y);
-				Utils::SetDepthStencilTextureParameters(m_DepthAndStencilAttachment);
+					glCreateTextures(GL_TEXTURE_2D, 1, &m_DepthAndStencilAttachment);
+					glTextureStorage2D(m_DepthAndStencilAttachment, 1, GL_DEPTH32F_STENCIL8, m_FramebufferSpecification.Size.x, m_FramebufferSpecification.Size.y);
+					Utils::SetDepthStencilTextureParameters(m_DepthAndStencilAttachment);
 
-				break;
+					break;
 
-			};
+				}
 
-			default: {
+				default: {
 			
-				glCreateTextures(GL_TEXTURE_2D_MULTISAMPLE, 1, &m_DepthAndStencilAttachment);
-				glTextureStorage2DMultisample(
-					m_DepthAndStencilAttachment,
-					m_FramebufferSpecification.Samples,
-					GL_DEPTH32F_STENCIL8,
-					m_FramebufferSpecification.Size.x,
-					m_FramebufferSpecification.Size.y,
-					GL_TRUE
-				);
+					glCreateTextures(GL_TEXTURE_2D_MULTISAMPLE, 1, &m_DepthAndStencilAttachment);
+					glTextureStorage2DMultisample(
+						m_DepthAndStencilAttachment,
+						m_FramebufferSpecification.Samples,
+						GL_DEPTH32F_STENCIL8,
+						m_FramebufferSpecification.Size.x,
+						m_FramebufferSpecification.Size.y,
+						GL_TRUE
+					);
 
-				break;
+					break;
 
-			}
+				}
 			
 			}
 
@@ -323,27 +366,128 @@ namespace Ayin {
 
 	}
 
-	Ref<Texture2D> OpenGLFramebuffer::GetColorAttachment(int index) const {
 
-		if (index < 0 || index >= static_cast<int>(m_ResolveAttachmentTextures.size()) || m_ResolveAttachmentTextures[index] == nullptr) {
+	bool OpenGLFramebuffer::ResolveAttachment(uint32_t attachmentIndex) const {
+
+		if (attachmentIndex >= m_ResolveColorAttachments.size() || m_ResolveColorAttachments[attachmentIndex] == 0) {//规避越界，规避空洞
 			AYIN_CORE_ASSERT(false, "Framebuffer color attachment index is not a valid color slot!");
-			return nullptr;
+			return false;
 		}
 
 		//配置要读和写入的buffer
-		glNamedFramebufferReadBuffer(m_FramebufferID, GL_COLOR_ATTACHMENT0 + index);
-		glNamedFramebufferDrawBuffer(m_ResolveFramebufferID, GL_COLOR_ATTACHMENT0 + index);
+		glNamedFramebufferReadBuffer(m_FramebufferID, GL_COLOR_ATTACHMENT0 + attachmentIndex);
+		glNamedFramebufferDrawBuffer(m_ResolveFramebufferID, GL_COLOR_ATTACHMENT0 + attachmentIndex);
 
 		//传输
+		FramebufferAttachmentFormat format = m_FramebufferSpecification.AttachmentsSpecification.AttachmentFormats[attachmentIndex];
 		glBlitNamedFramebuffer(
 			m_FramebufferID, m_ResolveFramebufferID,
 			0, 0, m_FramebufferSpecification.Size.x, m_FramebufferSpecification.Size.y,
 			0, 0, m_FramebufferSpecification.Size.x, m_FramebufferSpecification.Size.y,
 			GL_COLOR_BUFFER_BIT,
-			GL_LINEAR
+			Utils::FramebufferAttachmentFormatToFilter(format)
 		);
 
-		return m_ResolveAttachmentTextures[index];
+
+		//! internalFormat, // GPU 内部存储格式
+		//! format,         // CPU 数据的通道布局
+		//! type,           // CPU 数据的分量类型
+		//! 之前就很疑惑这些参数传递的信息明显时重复的
+		//? 那为什么不能一个符号搞定
+		//! 因为 OpenGL 允许“CPU 数据格式”和“GPU 存储格式”不同。
+		//! 比如：
+		/*	glTexImage2D(..., GL_RGBA8, ..., GL_RGB, GL_UNSIGNED_BYTE, data);
+			 意思是：
+				CPU 给的是 RGB 三通道 unsigned byte
+				GPU 存成 RGBA8 四通道
+				缺失的 alpha 由 OpenGL 补成 1
+		*/
+
+		// Resolve会临时改写read/draw buffer。这里恢复本类默认布局，避免影响后续渲染或读取。
+		Utils::SetFramebufferDrawBuffers(m_FramebufferID, m_FramebufferSpecification.AttachmentsSpecification);
+		Utils::SetFramebufferDrawBuffers(m_ResolveFramebufferID, m_FramebufferSpecification.AttachmentsSpecification);
+
+		return true;
+
+	}
+
+
+	uint32_t OpenGLFramebuffer::GetColorAttachmentRendererID(uint32_t attachmentIndex) const {
+
+		if (!ResolveAttachment(attachmentIndex))
+			return 0;
+
+		return m_ResolveColorAttachments[attachmentIndex];
+
+	}
+
+
+	Framebuffer::PixelValue OpenGLFramebuffer::ReadPixel(uint32_t attachmentIndex, int x, int y) const {
+
+		if (x < 0 || y < 0 || x >= m_FramebufferSpecification.Size.x || y >= m_FramebufferSpecification.Size.y) {
+			AYIN_CORE_ASSERT(false, "Framebuffer pixel coordinates are out of bounds!");
+			return PixelInvalid{};
+		}
+
+		if (!ResolveAttachment(attachmentIndex))
+			return PixelInvalid{};
+
+		switch (m_FramebufferSpecification.AttachmentsSpecification.AttachmentFormats[attachmentIndex]) {
+
+			case FramebufferAttachmentFormat::Color: {
+
+				PixelRGBA8 pixel{};
+				//不配置FBO的Read，防止干扰山下文
+				glGetTextureSubImage(
+					m_ResolveColorAttachments[attachmentIndex],
+					0,
+					x, y, 0,			//起始读取深度
+					1, 1, 1,			//读取深度偏移
+					GL_RGBA,
+					GL_UNSIGNED_BYTE,
+					sizeof(pixel),
+					&pixel
+				);
+
+				//! OpenGL 的这个 API 同时服务 1D/2D/3D/array/cubemap，所以保留了 zoffset 和 depth 参数。
+				//! 对于普通 GL_TEXTURE_2D，zoffset 必须是 0，depth 必须是 1。因为 2D 纹理没有多层 z 方向.
+				//! 如果是 3D 纹理，depth=4 可能表示读 4 个 z-slice；如果是 2D array texture，zoffset 表示 array layer，depth 表示读取几个 layer
+
+				return pixel;
+
+			}
+
+			case FramebufferAttachmentFormat::Red_Integer: {
+
+				PixelR32I pixel{};
+
+				//不配置FBO的Read，防止干扰山下文
+				glGetTextureSubImage(
+					m_ResolveColorAttachments[attachmentIndex],
+					0,
+					x, y, 0,			//起始读取深度
+					1, 1, 1,			//读取深度偏移
+					GL_RED_INTEGER,		// GL_RED 是普通颜色通道，可能参与归一化/浮点颜色路径（50 -> 50 / 255.0）；GL_RED_INTEGER 真实整数通道，不归一化、不当颜色值处理
+					GL_INT,
+					sizeof(pixel),
+					&pixel
+				);
+
+				return pixel;
+
+			}
+
+			default: {
+
+				AYIN_CORE_ASSERT(false, "Unsupported framebuffer pixel format");
+				return PixelR32I{ 0 };
+
+			}
+
+
+		}
+
+		return PixelInvalid{};
 
 	}
 

@@ -1,18 +1,37 @@
 #pragma once
 
 #include "Ayin/Core/Core.h"
-#include "Ayin/Renderer/Texture.h"
+#include <cstdint>
 #include <glm/glm.hpp>
 #include <initializer_list>
 #include <vector>
+#include <variant>
 
 namespace Ayin {
 
 	enum class FramebufferAttachmentFormat {
 
 		None = 0,
-		Color,
+		Color,			//RGBA附件
+		Red_Integer,	//单通道附件
 		Depth_Stencil
+
+	};
+
+	struct AYIN_API PixelR32I {
+
+		int value;
+
+	};
+
+	struct AYIN_API PixelRGBA8 {
+
+		uint8_t R, G, B, A;
+
+	};
+
+	struct AYIN_API PixelInvalid {
+
 
 	};
 
@@ -73,6 +92,9 @@ namespace Ayin {
 
 	class AYIN_API Framebuffer {
 
+	public:
+
+		using PixelValue = std::variant<PixelRGBA8, PixelR32I, PixelInvalid>;
 
 	public:
 
@@ -85,7 +107,10 @@ namespace Ayin {
 
 		virtual void Resize(int width, int height) = 0;
 
-		virtual Ref<Texture2D> GetColorAttachment(int index = 0) const = 0;
+		// 返回颜色附件的底层渲染器纹理ID。Framebuffer不持有Texture2D抽象，避免格式语义泄漏。
+		virtual uint32_t GetColorAttachmentRendererID(uint32_t attachmentIndex = 0) const = 0;
+
+		virtual PixelValue ReadPixel(uint32_t attachmentIndex, int x, int y) const = 0;
 
 		const FramebufferSpecification& GetSpecification() { return m_FramebufferSpecification; };
 

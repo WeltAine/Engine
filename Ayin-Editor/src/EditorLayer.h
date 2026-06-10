@@ -45,7 +45,7 @@ private:
 
 	Ayin::Ref<Ayin::Framebuffer> m_Framebuffer;		//游戏视窗帧缓冲
 
-	Ayin::Ref<Ayin::Texture2D> m_ViewTexture;		//游戏视窗帧缓冲对应纹理
+	uint32_t m_ViewTexture = 0;							//游戏视窗帧缓冲对应纹理ID
 
 	glm::i32vec2 m_SceneSize = {0.0f, 0.0f};		//Viewport中场景Image/Framebuffer尺寸
 
@@ -205,4 +205,3 @@ public:
 
 };
 AYIN_SCRIPT(CameraControllerScript);
-

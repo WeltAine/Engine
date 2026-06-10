@@ -4,8 +4,6 @@
 
 #include "Ayin/Renderer/Framebuffer.h"
 
-#include "Ayin/Renderer/Texture.h"
-
 namespace Ayin {
 
 
@@ -30,8 +28,17 @@ namespace Ayin {
 
 		inline virtual operator uint32_t() { return m_FramebufferID; };
 
-		// 返回可被屏幕直接渲染的单采样（解析）纹理
-		virtual Ref<Texture2D> GetColorAttachment(int index = 0) const override;
+		// 返回可被屏幕直接渲染的单采样（解析）纹理ID
+		virtual uint32_t GetColorAttachmentRendererID(uint32_t attachmentIndex = 0) const override;
+
+		// 读取附件信息（目前仅支持颜色附件）
+		virtual PixelValue ReadPixel(uint32_t attachmentIndex, int x, int y) const override;
+
+
+	private:
+
+		// 将指定颜色附件同步到解析FBO，并恢复本类维护的FBO读写配置
+		bool ResolveAttachment(uint32_t attachmentIndex) const;
 
 
 	private:
@@ -46,7 +53,7 @@ namespace Ayin {
 		std::vector<uint32_t> m_ColorAttachments;			//所有颜色附件
 		uint32_t m_DepthAndStencilAttachment = 0;			//深度和模板附件
 
-		std::vector<Ref<Texture2D>> m_ResolveAttachmentTextures;			//解析帧缓冲颜色附件
+		std::vector<uint32_t> m_ResolveColorAttachments;					//解析帧缓冲颜色附件
 		uint32_t m_ResolveDepthAndStencilAttachment = 0;					//解析帧缓冲深度和模板附件
 		
 
