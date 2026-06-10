@@ -3,6 +3,7 @@
 #include "Ayin/Core/Core.h"
 #include "Ayin/core/Log.h"
 #include <string>
+#include <vector>
 
 #include <glm/glm.hpp>
 #include <glm/ext/matrix_transform.hpp> // translate, rotate, scale, identity
@@ -58,6 +59,65 @@ namespace Ayin {
 	};
 	AYIN_COMPONENT(IDComponent);
 
+	// ----------层级关系组件-----------
+	struct RelationshipComponent {
+
+		uint64_t ParentID = 0;
+		std::vector<uint64_t> ChildrenIDs;
+
+		RelationshipComponent() = default;
+		RelationshipComponent(const RelationshipComponent&) = default;
+
+		static ::entt::id_type ComponentStorageID() { return ::entt::type_hash<RelationshipComponent>::value(); };
+
+		struct glaze {
+			using T = RelationshipComponent;
+			static constexpr auto value = glz::object(
+				"ParentID", &T::ParentID,
+				"ChildrenIDs", &T::ChildrenIDs
+			);
+		};
+
+	};
+	AYIN_COMPONENT(RelationshipComponent);
+
+	// ----------附属实体组件-----------
+	struct AttachmentComponent {
+
+		uint64_t OwnerID = 0;
+
+		AttachmentComponent() = default;
+		AttachmentComponent(uint64_t ownerID) : OwnerID{ ownerID } {}
+		AttachmentComponent(const AttachmentComponent&) = default;
+
+		static ::entt::id_type ComponentStorageID() { return ::entt::type_hash<AttachmentComponent>::value(); };
+
+		struct glaze {
+			using T = AttachmentComponent;
+			static constexpr auto value = glz::object("OwnerID", &T::OwnerID);
+		};
+
+	};
+	AYIN_COMPONENT(AttachmentComponent);
+
+	// ----------隐藏实体标记组件-----------
+	struct HiddenEntityComponent {
+
+		bool Hidden = true;
+
+		HiddenEntityComponent() = default;
+		HiddenEntityComponent(const HiddenEntityComponent&) = default;
+
+		static ::entt::id_type ComponentStorageID() { return ::entt::type_hash<HiddenEntityComponent>::value(); };
+
+		struct glaze {
+			using T = HiddenEntityComponent;
+			static constexpr auto value = glz::object("Hidden", &T::Hidden);
+		};
+
+	};
+	AYIN_COMPONENT(HiddenEntityComponent);
+
 
 	// ----------名称组件-----------
 	struct TagComponent{
@@ -99,7 +159,7 @@ namespace Ayin {
 		glm::vec3 Scale		{ 1.0f, 1.0f, 1.0f };
 
 
-		inline operator glm::mat4() {
+		inline glm::mat4 GetLocalTransform() const {
 		
 			glm::mat4 translate{ 1.0f }, rotation{ 1.0f }, scale{ 1.0f };
 
@@ -131,6 +191,12 @@ namespace Ayin {
 			
 
 			return translate * rotation * scale;
+
+		};
+
+		inline operator glm::mat4() const {
+
+			return GetLocalTransform();
 
 		};
 

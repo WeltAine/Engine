@@ -5,6 +5,7 @@
 #include "Ayin/Scene/EditorCamera.h"
 
 #include <entt/entt.hpp>
+#include <glm/glm.hpp>
 #include <string>
 #include <vector>
 
@@ -24,7 +25,17 @@ namespace Ayin {
 		~Scene() = default;
 
 		Entity CreateEntity(const std::string& name = "Entity");
+		Entity CreateAttachmentEntity(Entity owner);
 		void DestroyEntity(const Entity& entity);
+		Entity FindEntityByUUID(uint64_t uuid);
+		std::vector<Entity> GetAttachmentEntities(Entity owner);
+
+		void SetParent(Entity child, Entity parent, bool keepWorldTransform = true);
+		void Unparent(Entity child, bool keepWorldTransform = true);
+		std::vector<Entity> GetChildren(Entity entity);
+		Entity GetParent(Entity entity);
+
+		glm::mat4 CalculateWorldTransform(Entity entity);
 
 		void OnUpdateRuntime(Timestep deltaTime);
 		void OnUpdateEditor(Timestep deltaTime, EditorCamera& editorCamera);
@@ -41,6 +52,11 @@ namespace Ayin {
 
 	private:
 
+		Entity CreateEntityWithUUID(uint64_t uuid = 0);
+		uint64_t GenerateUniqueUUID(uint64_t preferredUUID = 0);
+		bool IsUUIDAvailable(uint64_t uuid, entt::entity ignoredEntity = entt::null);
+		bool IsValidEntity(Entity entity) const;
+
 		entt::registry m_Registry;
 		std::string m_SceneName = "Untitled";
 
@@ -52,7 +68,6 @@ namespace Ayin {
 		auto&& view = m_Registry.view<ComponentTypes...>(entt::exclude_t<ExcludeComponentTypes...>{});
 
 		std::vector<Entity> entities;
-		entities.reserve(view.size());
 
 		view.each([&entities, this](entt::entity entity, auto&& ...) {
 				entities.emplace_back(entity, this);
