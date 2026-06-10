@@ -376,37 +376,7 @@ namespace Ayin{
 		//x 	CameraSystem::OnUpdate(m_Registry);
 		//x }
 
-		// 脚本初始化（挂在实际脚本）、更新
-		{
-			m_Registry.view<NativeScriptComponent>().each([=](entt::entity entity, NativeScriptComponent& nsc) {
-
-				if (!nsc.HasScript()) {//没有绑定脚本类型
-					return;
-				}
-
-				Entity scriptTarget{ entity, this };
-				if (auto* attachment = m_Registry.try_get<AttachmentComponent>(entity)) {
-					scriptTarget = FindEntityByUUID(attachment->OwnerID);
-					if (!scriptTarget) {
-						return;
-					}
-				}
-
-				if (!nsc.ScriptableInstance) {//没有脚本实例
-					AYIN_CORE_ASSERT(nsc.InstantiateFunction, "Script '{}' is not bound", nsc.ScriptName);
-					nsc.InstantiateFunction();
-					if (nsc.ScriptableInstance == nullptr) {
-						return;
-					}
-
-					nsc.ScriptableInstance->m_Entity = scriptTarget;
-					nsc.ScriptableInstance->OnCreate();
-				}
-
-				nsc.ScriptableInstance->OnUpdate(deltaTime);
-
-				});
-		}
+		OnUpdateScripts(deltaTime);
 
 
 
@@ -456,6 +426,13 @@ namespace Ayin{
 
 	};
 
+	void Scene::OnUpdateSimulation(Timestep deltaTime, EditorCamera& editorCamera) {
+
+		OnUpdateScripts(deltaTime);
+		OnUpdateEditor(deltaTime, editorCamera);
+
+	};
+
 
 	void Scene::OnUpdateEditor(Timestep deltaTime, EditorCamera& editorCamera) {
 		
@@ -486,6 +463,40 @@ namespace Ayin{
 		}
 
 	
+	};
+
+	void Scene::OnUpdateScripts(Timestep deltaTime) {
+
+		// 脚本初始化（挂在实际脚本）、更新。附属脚本实体运行时会把脚本目标切回它的Owner实体。
+		m_Registry.view<NativeScriptComponent>().each([=](entt::entity entity, NativeScriptComponent& nsc) {
+
+			if (!nsc.HasScript()) {//没有绑定脚本类型
+				return;
+			}
+
+			Entity scriptTarget{ entity, this };
+			if (auto* attachment = m_Registry.try_get<AttachmentComponent>(entity)) {
+				scriptTarget = FindEntityByUUID(attachment->OwnerID);
+				if (!scriptTarget) {
+					return;
+				}
+			}
+
+			if (!nsc.ScriptableInstance) {//没有脚本实例
+				AYIN_CORE_ASSERT(nsc.InstantiateFunction, "Script '{}' is not bound", nsc.ScriptName);
+				nsc.InstantiateFunction();
+				if (nsc.ScriptableInstance == nullptr) {
+					return;
+				}
+
+				nsc.ScriptableInstance->m_Entity = scriptTarget;
+				nsc.ScriptableInstance->OnCreate();
+			}
+
+			nsc.ScriptableInstance->OnUpdate(deltaTime);
+
+		});
+
 	};
 
 

@@ -21,6 +21,7 @@ project "Ayin-Editor"
         "%{wks.location}/Ayin/Dependency/spdlog/include",
         "%{wks.location}/Ayin/src",
         "%{wks.location}/Ayin/Dependency",
+        "%{wks.location}/OrbitGame/src",
         "src",
         "%{IncludeDir.glm}",
         "%{IncludeDir.entt}",
@@ -43,7 +44,9 @@ project "Ayin-Editor"
     files --构建时包含的文件
     {
         "src/**.h",
-        "src/**.cpp"
+        "src/**.cpp",
+        "%{wks.location}/OrbitGame/src/OrbitGame.h",
+        "%{wks.location}/OrbitGame/src/OrbitGame.cpp"
     }
 
 

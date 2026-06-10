@@ -8,6 +8,8 @@
 
 #include "Ayin/Math/Math.h"
 
+#include "OrbitGame.h"
+
 #include <glm/glm.hpp>
 
 
@@ -31,6 +33,7 @@ void EditorLayer::OnAttach() {
 	m_Framebuffer = Ayin::Framebuffer::Create(specification);
 	m_SceneSize.x = 1280;
 	m_SceneSize.y = 720;
+	OrbitGame::RegisterScripts();
 
 	NewScene();
 
@@ -73,7 +76,9 @@ void EditorLayer::OnUpdate(Ayin::Timestep deltaTime) {
 		m_EditorCamera.SetCameraAspect(float(m_SceneSize.x) / m_SceneSize.y);
 
 		//调整场景中相机的比例
-		m_ActiveScene->OnViewportResize(m_SceneSize.x, m_SceneSize.y);
+		if (m_ActiveScene) {
+			m_ActiveScene->OnViewportResize(m_SceneSize.x, m_SceneSize.y);
+		}
 
 		//跳针GPU的输出映射范围
 		Ayin::Renderer::OnWindowResize(m_SceneSize.x, m_SceneSize.y);
@@ -96,7 +101,19 @@ void EditorLayer::OnUpdate(Ayin::Timestep deltaTime) {
 
 		Ayin::Renderer2D::ResetStatistics();
 
-		m_ActiveScene->OnUpdateEditor(deltaTime, m_EditorCamera);
+		if (m_ActiveScene) {
+			switch (m_SceneState) {
+				case SceneState::Edit:
+					m_ActiveScene->OnUpdateEditor(deltaTime, m_EditorCamera);
+					break;
+				case SceneState::Play:
+					m_ActiveScene->OnUpdateRuntime(deltaTime);
+					break;
+				case SceneState::Simulate:
+					m_ActiveScene->OnUpdateSimulation(deltaTime, m_EditorCamera);
+					break;
+			}
+		}
 
 		Ayin::RenderCommand::SetClearColor({ clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w });
 
@@ -126,11 +143,12 @@ void EditorLayer::OnImGuiRender() {
 	ImGuiID dockspaceID = ImGui::GetID("##ui.dock_space");
 
 	ImGui::DockSpaceOverViewport(dockspaceID, viewport, ImGuiDockNodeFlags_PassthruCentralNode);
+	DrawMainMenuBar();
 
 	{
 		ImGui::Begin("Viewport");
 
-		if (ImGui::IsWindowFocused() && ImGui::IsWindowHovered())			//聚焦且鼠标位于窗口上
+		if (m_SceneState != SceneState::Play && ImGui::IsWindowFocused() && ImGui::IsWindowHovered())			//聚焦且鼠标位于窗口上
 			m_EditorCamera.OnUpdate(Ayin::Time::GetFrameInterval());
 
 		ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();			//获取Viewport的可用绘制大小（也就是等于Image的实际绘制大小）
@@ -155,7 +173,7 @@ void EditorLayer::OnImGuiRender() {
 		ImGui::SetNextWindowViewport(ImGui::GetMainViewport()->ID);
 		ImGuizmo::BeginFrame();
 
-		if(m_SceneHierarchyPanel.GetSelectedEntity() && m_SceneHierarchyPanel.GetSelectedEntity().HasComponents<Ayin::TransformComponent>())
+		if(m_SceneState != SceneState::Play && m_SceneHierarchyPanel.GetSelectedEntity() && m_SceneHierarchyPanel.GetSelectedEntity().HasComponents<Ayin::TransformComponent>())
 		{
 			// 实体transform
 			Ayin::TransformComponent& selectedEntityTransform = const_cast<Ayin::Entity&>(m_SceneHierarchyPanel.GetSelectedEntity()).GetComponents<Ayin::TransformComponent>();
@@ -201,7 +219,9 @@ void EditorLayer::OnImGuiRender() {
 
 		}
 
-		DrawGizmoToolbarOverlay(sceneMin, sceneSize);
+		if (m_SceneState != SceneState::Play) {
+			DrawGizmoToolbarOverlay(sceneMin, sceneSize);
+		}
 
 		m_SceneSize = { sceneSize.x, sceneSize.y };					//记录场景尺寸（Image实际绘制大小范围）（用于缩放时更新GPU资源大小）
 
@@ -224,35 +244,6 @@ void EditorLayer::OnImGuiRender() {
 
 	m_PropertiesPanel.SetContext(m_ActiveScene, m_SceneHierarchyPanel.GetSelectedEntity());
 	m_PropertiesPanel.OnImGuiRender();
-
-
-
-	// 序列化反序列化菜单
-	{
-	
-		if (ImGui::BeginMainMenuBar()) {
-			
-			if (ImGui::BeginMenu("FILE")) {
-			
-				if (ImGui::MenuItem("SaveScene")) {
-					SaveScene();
-				}
-				if (ImGui::MenuItem("OpenScene")) {
-					OpenScene();
-				}
-				if (ImGui::MenuItem("CreateScene")) {
-					NewScene();
-				}
-
-				ImGui::EndMenu();
-			
-			}
-			
-		
-			ImGui::EndMainMenuBar();
-		}
-
-	}
 };
 
 void EditorLayer::OnEvent(Ayin::Event& event) {};
@@ -272,6 +263,104 @@ bool EditorLayer::OnKeyPressed(Ayin::KeyPressedEvent& keyPressedEvent) {
 	}
 
 };
+
+void EditorLayer::DrawMainMenuBar() {
+
+	if (!ImGui::BeginMainMenuBar()) {
+		return;
+	}
+
+	bool isEditing = m_SceneState == SceneState::Edit;
+	if (ImGui::BeginMenu("FILE")) {
+		if (ImGui::MenuItem("SaveScene", nullptr, false, isEditing)) {
+			SaveScene();
+		}
+		if (ImGui::MenuItem("OpenScene", nullptr, false, isEditing)) {
+			OpenScene();
+		}
+		if (ImGui::MenuItem("CreateScene", nullptr, false, isEditing)) {
+			NewScene();
+		}
+		if (ImGui::MenuItem("CreateOrbitCombatScene", nullptr, false, isEditing)) {
+			NewOrbitCombatScene();
+		}
+
+		ImGui::EndMenu();
+	}
+
+	// 主菜单栏没有自动居中布局，这里用窗口宽度手动挪动光标，把运行控制放在视觉中心。
+	constexpr float controlWidth = 245.0f;
+	float centerCursorX = (ImGui::GetWindowWidth() - controlWidth) * 0.5f;
+	ImGui::SetCursorPosX(std::max(ImGui::GetCursorPosX(), centerCursorX));
+
+	if (m_SceneState == SceneState::Edit) {
+		if (ImGui::Button("Play", ImVec2{ 70.0f, 0.0f })) {
+			StartScene(SceneState::Play);
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Simulate", ImVec2{ 90.0f, 0.0f })) {
+			StartScene(SceneState::Simulate);
+		}
+	} else {
+		ImGui::TextUnformatted(m_SceneState == SceneState::Play ? "Playing" : "Simulating");
+		ImGui::SameLine();
+		if (ImGui::Button("Stop", ImVec2{ 70.0f, 0.0f })) {
+			StopScene();
+		}
+	}
+
+	ImGui::EndMainMenuBar();
+
+}
+
+void EditorLayer::StartScene(SceneState sceneState) {
+
+	if (m_SceneState != SceneState::Edit) {
+		StopScene();
+	}
+
+	if (!m_ActiveScene) {
+		return;
+	}
+
+	m_EditorScene = m_ActiveScene;
+	Ayin::SceneSerializer editorSceneSerializer{ m_EditorScene };
+	std::string sceneJson = editorSceneSerializer.SerializeToString();
+	if (sceneJson.empty()) {
+		m_EditorScene = nullptr;
+		return;
+	}
+
+	m_ActiveScene = Ayin::CreateRef<Ayin::Scene>();
+	Ayin::SceneSerializer runtimeSceneSerializer{ m_ActiveScene };
+	if (!runtimeSceneSerializer.DeserializeFromString(sceneJson)) {
+		m_ActiveScene = m_EditorScene;
+		m_EditorScene = nullptr;
+		return;
+	}
+
+	m_SceneState = sceneState;
+	m_ActiveScene->OnViewportResize(m_SceneSize.x, m_SceneSize.y);
+	m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+
+}
+
+void EditorLayer::StopScene() {
+
+	if (m_SceneState == SceneState::Edit) {
+		return;
+	}
+
+	m_ActiveScene = m_EditorScene;
+	m_EditorScene = nullptr;
+	m_SceneState = SceneState::Edit;
+
+	if (m_ActiveScene) {
+		m_ActiveScene->OnViewportResize(m_SceneSize.x, m_SceneSize.y);
+	}
+	m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+
+}
 
 void EditorLayer::DrawGizmoToolbarOverlay(ImVec2 sceneMin, ImVec2 sceneSize) {
 
@@ -385,6 +474,7 @@ void EditorLayer::DrawGizmoToolbarOverlay(ImVec2 sceneMin, ImVec2 sceneSize) {
 //场景导入导出
 void EditorLayer::OpenScene() {
 
+	StopScene();
 	std::optional<std::string> filePath = Ayin::FileDialogs::OpenFile({ {"Scenen", "json"}}, nullptr);
 
 	if (filePath) {
@@ -403,7 +493,10 @@ void EditorLayer::OpenScene() {
 
 void EditorLayer::NewScene() {
 
+	StopScene();
 	m_ActiveScene = Ayin::CreateRef<Ayin::Scene>();
+	m_EditorScene = nullptr;
+	m_SceneState = SceneState::Edit;
 	m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 
 	Ayin::Entity mainCamera = m_ActiveScene->CreateEntity("MainCamera");
@@ -414,8 +507,20 @@ void EditorLayer::NewScene() {
 
 };
 
+void EditorLayer::NewOrbitCombatScene() {
+
+	StopScene();
+	m_ActiveScene = OrbitGame::CreateOrbitCombatScene();
+	m_EditorScene = nullptr;
+	m_SceneState = SceneState::Edit;
+	m_ActiveScene->OnViewportResize(m_SceneSize.x, m_SceneSize.y);
+	m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+
+}
+
 void EditorLayer::SaveScene() {
 
+	StopScene();
 	std::optional<std::string> filePath = Ayin::FileDialogs::SaveFile({ {"Scenen", "json"} }, "Scene");
 	
 	if (filePath) {

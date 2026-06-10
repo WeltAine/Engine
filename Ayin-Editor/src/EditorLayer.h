@@ -25,9 +25,18 @@ public:
 	virtual void OnEvent(Ayin::Event& event) override;
 
 private:
+	enum class SceneState {
+		Edit = 0,
+		Play,
+		Simulate
+	};
+
 
 	//快捷键
 	bool OnKeyPressed(Ayin::KeyPressedEvent& event);
+	void DrawMainMenuBar();
+	void StartScene(SceneState sceneState);
+	void StopScene();
 
 	//操作手柄
 	void DrawGizmoToolbarOverlay(ImVec2 sceneMin, ImVec2 sceneSize);
@@ -35,6 +44,7 @@ private:
 	//场景导入导出
 	void OpenScene();
 	void NewScene();
+	void NewOrbitCombatScene();
 	void SaveScene();
 
 private:
@@ -57,6 +67,8 @@ private:
 
 	//ECS测试
 	Ayin::Ref<Ayin::Scene> m_ActiveScene;						
+	Ayin::Ref<Ayin::Scene> m_EditorScene;
+	SceneState m_SceneState = SceneState::Edit;
 
 	//面板测试
 	Ayin::SceneHierarchyPanel m_SceneHierarchyPanel;

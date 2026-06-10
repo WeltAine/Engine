@@ -38,6 +38,7 @@ namespace Ayin {
 		glm::mat4 CalculateWorldTransform(Entity entity);
 
 		void OnUpdateRuntime(Timestep deltaTime);
+		void OnUpdateSimulation(Timestep deltaTime, EditorCamera& editorCamera);
 		void OnUpdateEditor(Timestep deltaTime, EditorCamera& editorCamera);
 
 		// 根据展示窗口调整相机比例（是所有相机）
@@ -56,6 +57,7 @@ namespace Ayin {
 		uint64_t GenerateUniqueUUID(uint64_t preferredUUID = 0);
 		bool IsUUIDAvailable(uint64_t uuid, entt::entity ignoredEntity = entt::null);
 		bool IsValidEntity(Entity entity) const;
+		void OnUpdateScripts(Timestep deltaTime);
 
 		entt::registry m_Registry;
 		std::string m_SceneName = "Untitled";
