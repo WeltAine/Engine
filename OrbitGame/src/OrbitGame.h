@@ -50,6 +50,7 @@ namespace OrbitGame {
 		void OnUpdate(Ayin::Timestep deltaTime) override;
 
 	};
+	AYIN_SCRIPT(OrbitCameraScript);
 
 	class OrbitGameControllerScript : public Ayin::ScriptableEntity {
 
@@ -89,14 +90,9 @@ namespace OrbitGame {
 		float m_OrbiterAngularVelocity = 1.4f;
 		float m_OrbiterRadialVelocity = 0.0f;
 		float m_OrbiterSelfRotation = 0.0f;
-		float m_OrbiterGravity = 7.5f;
-		float m_OrbiterPullStrength = 6.5f;
-		float m_OrbiterReleaseStrength = 2.6f;
-		float m_OrbiterOrbitCorrection = 1.35f;
-		float m_OrbiterDrag = 0.04f;
+		float m_OrbiterRadiusDecaySpeed = 0.22f;
+		float m_OrbiterRadiusExpandSpeed = 0.95f;
 		bool m_PlayerDead = false;
-
-		glm::vec3 m_OrbiterVelocity{ 0.0f, 2.2f, 0.0f };
 
 	public:
 
@@ -116,19 +112,14 @@ namespace OrbitGame {
 				"OrbiterAngularVelocity", &T::m_OrbiterAngularVelocity,
 				"OrbiterRadialVelocity", &T::m_OrbiterRadialVelocity,
 				"OrbiterSelfRotation", &T::m_OrbiterSelfRotation,
-				"OrbiterGravity", &T::m_OrbiterGravity,
-				"OrbiterPullStrength", &T::m_OrbiterPullStrength,
-				"OrbiterReleaseStrength", &T::m_OrbiterReleaseStrength,
-				"OrbiterOrbitCorrection", &T::m_OrbiterOrbitCorrection,
-				"OrbiterDrag", &T::m_OrbiterDrag,
-				"OrbiterVelocity", &T::m_OrbiterVelocity,
+				"OrbiterRadiusDecaySpeed", &T::m_OrbiterRadiusDecaySpeed,
+				"OrbiterRadiusExpandSpeed", &T::m_OrbiterRadiusExpandSpeed,
 				"PlayerDead", &T::m_PlayerDead
 			);
 		};
 
 	};
-
-	void RegisterScripts();
+	AYIN_SCRIPT(OrbitGameControllerScript);
 
 	Ayin::Ref<Ayin::Scene> CreateOrbitCombatScene();
 	Ayin::Ref<Ayin::Scene> LoadOrbitCombatScene();

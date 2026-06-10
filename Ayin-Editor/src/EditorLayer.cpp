@@ -8,11 +8,7 @@
 
 #include "Ayin/Math/Math.h"
 
-#include "OrbitGame.h"
-
 #include <glm/glm.hpp>
-
-#include <filesystem>
 
 
 static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);//没帧初始颜色
@@ -35,7 +31,6 @@ void EditorLayer::OnAttach() {
 	m_Framebuffer = Ayin::Framebuffer::Create(specification);
 	m_SceneSize.x = 1280;
 	m_SceneSize.y = 720;
-	OrbitGame::RegisterScripts();
 
 	NewScene();
 
@@ -148,6 +143,11 @@ void EditorLayer::OnImGuiRender() {
 	DrawMainMenuBar();
 
 	{
+		if (m_FocusViewportNextFrame) {
+			ImGui::SetNextWindowFocus();
+			m_FocusViewportNextFrame = false;
+		}
+
 		ImGui::Begin("Viewport");
 
 		if (m_SceneState != SceneState::Play && ImGui::IsWindowFocused() && ImGui::IsWindowHovered())			//聚焦且鼠标位于窗口上
@@ -283,13 +283,6 @@ void EditorLayer::DrawMainMenuBar() {
 		if (ImGui::MenuItem("CreateScene", nullptr, false, isEditing)) {
 			NewScene();
 		}
-		if (ImGui::MenuItem("CreateOrbitCombatScene", nullptr, false, isEditing)) {
-			NewOrbitCombatScene();
-		}
-		if (ImGui::MenuItem("SaveOrbitCombatScene", nullptr, false, isEditing)) {
-			SaveOrbitCombatScene();
-		}
-
 		ImGui::EndMenu();
 	}
 
@@ -345,6 +338,9 @@ void EditorLayer::StartScene(SceneState sceneState) {
 	}
 
 	m_SceneState = sceneState;
+	if (sceneState == SceneState::Simulate) {
+		m_FocusViewportNextFrame = true;
+	}
 	m_ActiveScene->OnViewportResize(m_SceneSize.x, m_SceneSize.y);
 	m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 
@@ -512,17 +508,6 @@ void EditorLayer::NewScene() {
 
 };
 
-void EditorLayer::NewOrbitCombatScene() {
-
-	StopScene();
-	m_ActiveScene = OrbitGame::CreateOrbitCombatScene();
-	m_EditorScene = nullptr;
-	m_SceneState = SceneState::Edit;
-	m_ActiveScene->OnViewportResize(m_SceneSize.x, m_SceneSize.y);
-	m_SceneHierarchyPanel.SetContext(m_ActiveScene);
-
-}
-
 void EditorLayer::SaveScene() {
 
 	StopScene();
@@ -534,16 +519,3 @@ void EditorLayer::SaveScene() {
 	} 
 
 };
-
-void EditorLayer::SaveOrbitCombatScene() {
-
-	StopScene();
-	if (!m_ActiveScene) {
-		return;
-	}
-
-	std::filesystem::create_directories(std::filesystem::path{ OrbitGame::OrbitCombatScenePath }.parent_path());
-	Ayin::SceneSerializer sceneSerializer{ m_ActiveScene };
-	sceneSerializer.Serializer(OrbitGame::OrbitCombatScenePath);
-
-}

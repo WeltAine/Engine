@@ -107,12 +107,9 @@ namespace OrbitGame {
 		ImGui::DragFloat("Radius", &m_OrbiterRadius, 0.01f, m_OrbiterMinRadius, m_OrbiterMaxRadius);
 		ImGui::DragFloat("Min Radius", &m_OrbiterMinRadius, 0.01f, 0.1f, m_OrbiterMaxRadius);
 		ImGui::DragFloat("Max Radius", &m_OrbiterMaxRadius, 0.01f, m_OrbiterMinRadius, 10.0f);
-		ImGui::DragFloat("Gravity", &m_OrbiterGravity, 0.05f, 0.1f, 50.0f);
-		ImGui::DragFloat("Pull Strength", &m_OrbiterPullStrength, 0.05f, 0.0f, 50.0f);
-		ImGui::DragFloat("Release Strength", &m_OrbiterReleaseStrength, 0.05f, 0.0f, 50.0f);
-		ImGui::DragFloat("Orbit Correction", &m_OrbiterOrbitCorrection, 0.01f, 0.0f, 10.0f);
-		ImGui::DragFloat("Drag", &m_OrbiterDrag, 0.001f, 0.0f, 2.0f);
-		ImGui::DragFloat3("Velocity", &m_OrbiterVelocity.x, 0.01f);
+		ImGui::DragFloat("Angular Velocity", &m_OrbiterAngularVelocity, 0.01f, -10.0f, 10.0f);
+		ImGui::DragFloat("Decay Speed", &m_OrbiterRadiusDecaySpeed, 0.01f, 0.0f, 10.0f);
+		ImGui::DragFloat("Expand Speed", &m_OrbiterRadiusExpandSpeed, 0.01f, 0.0f, 10.0f);
 
 	}
 
@@ -255,62 +252,20 @@ namespace OrbitGame {
 
 		auto& transform = orbiter.GetComponents<Ayin::TransformComponent>();
 		glm::vec3 playerPosition = player.GetComponents<Ayin::TransformComponent>().Position;
-		glm::vec3 toPlayer = playerPosition - transform.Position;
-		toPlayer.z = 0.0f;
-
-		float distance = glm::length(toPlayer);
-		if (distance < 0.001f) {
-			transform.Position = playerPosition + glm::vec3{ m_OrbiterRadius, 0.0f, 0.1f };
-			toPlayer = playerPosition - transform.Position;
-			toPlayer.z = 0.0f;
-			distance = glm::length(toPlayer);
-		}
-
-		glm::vec3 directionToPlayer = toPlayer / std::max(distance, 0.001f);
-		glm::vec3 directionFromPlayer = -directionToPlayer;
-		glm::vec3 tangentDirection{ -directionFromPlayer.y, directionFromPlayer.x, 0.0f };
-
-		// 玩家是唯一有质量的“行星”：蓝块不会直接继承玩家位移，只被玩家位置产生的引力拖动。
-		float safeDistance = std::clamp(distance, m_OrbiterMinRadius, m_OrbiterMaxRadius);
-		float inverseDistance = 1.0f / safeDistance;
-		float inverseDistanceSquared = inverseDistance * inverseDistance;
-
-		glm::vec3 acceleration = directionToPlayer * m_OrbiterGravity * inverseDistanceSquared;
 		bool pulling = Ayin::Input::IsKeyPressed(AYIN_KEY_SPACE);
-		acceleration += (pulling ? directionToPlayer * m_OrbiterPullStrength : directionFromPlayer * m_OrbiterReleaseStrength) * inverseDistanceSquared;
-		if (distance > m_OrbiterMaxRadius) {
-			acceleration += directionToPlayer * (distance - m_OrbiterMaxRadius) * 0.85f;
+		m_OrbiterRadialVelocity = (pulling ? m_OrbiterRadiusExpandSpeed : 0.0f) - m_OrbiterRadiusDecaySpeed;
+		m_OrbiterRadius = std::clamp(m_OrbiterRadius + m_OrbiterRadialVelocity * deltaTime, m_OrbiterMinRadius, m_OrbiterMaxRadius);
+
+		float radiusForSpeed = std::max(m_OrbiterRadius, 0.001f);
+		float speedScale = std::sqrt(std::max(m_OrbiterMinRadius, m_OrbiterMaxRadius) / radiusForSpeed);
+		float angularVelocity = m_OrbiterAngularVelocity * speedScale;
+		m_OrbiterAngle += angularVelocity * deltaTime;
+		if (m_OrbiterAngle > s_TwoPi || m_OrbiterAngle < -s_TwoPi) {
+			m_OrbiterAngle = std::fmod(m_OrbiterAngle, s_TwoPi);
 		}
 
-		// 只做轻微轨道修正：根据当前半径给一个近快远慢的目标切向速度，避免卫星很快坠毁或飞走。
-		float currentTangentialSpeed = glm::dot(m_OrbiterVelocity, tangentDirection);
-		float targetTangentialSpeed = std::sqrt(std::max(0.01f, m_OrbiterGravity) * inverseDistance);
-		if (currentTangentialSpeed < 0.0f) {
-			targetTangentialSpeed = -targetTangentialSpeed;
-		}
-		acceleration += tangentDirection * (targetTangentialSpeed - currentTangentialSpeed) * m_OrbiterOrbitCorrection * inverseDistance;
-
-		m_OrbiterVelocity += acceleration * deltaTime;
-		m_OrbiterVelocity *= std::clamp(1.0f - m_OrbiterDrag * deltaTime, 0.0f, 1.0f);
-
-		float maxSpeed = 7.5f;
-		float speed = glm::length(m_OrbiterVelocity);
-		if (speed > maxSpeed) {
-			m_OrbiterVelocity = glm::normalize(m_OrbiterVelocity) * maxSpeed;
-		}
-
-		transform.Position += m_OrbiterVelocity * deltaTime;
-		transform.Position.z = 0.1f;
-
-		glm::vec3 fromPlayer = transform.Position - playerPosition;
-		fromPlayer.z = 0.0f;
-		float newDistance = std::max(glm::length(fromPlayer), 0.001f);
-		m_OrbiterRadius = newDistance;
-		m_OrbiterAngle = std::atan2(fromPlayer.y, fromPlayer.x);
-		m_OrbiterRadialVelocity = glm::dot(m_OrbiterVelocity, fromPlayer / newDistance);
-		m_OrbiterAngularVelocity = (fromPlayer.x * m_OrbiterVelocity.y - fromPlayer.y * m_OrbiterVelocity.x) / (newDistance * newDistance);
-
-		m_OrbiterSelfRotation = std::fmod(m_OrbiterSelfRotation + (160.0f + glm::length(m_OrbiterVelocity) * 55.0f) * deltaTime, 360.0f);
+		m_OrbiterSelfRotation = std::fmod(m_OrbiterSelfRotation + (160.0f + std::abs(angularVelocity) * 55.0f) * deltaTime, 360.0f);
+		transform.Position = playerPosition + glm::vec3{ std::cos(m_OrbiterAngle) * m_OrbiterRadius, std::sin(m_OrbiterAngle) * m_OrbiterRadius, 0.1f };
 		transform.Rotation = { 0.0f, 0.0f, m_OrbiterSelfRotation };
 
 	}
@@ -404,9 +359,7 @@ namespace OrbitGame {
 		m_PlayerDead = true;
 		m_OrbiterRadius = 2.1f;
 		m_OrbiterAngle = 0.0f;
-		m_OrbiterAngularVelocity = 0.0f;
 		m_OrbiterRadialVelocity = 0.0f;
-		m_OrbiterVelocity = { 0.0f, 2.2f, 0.0f };
 
 		player.GetComponents<Ayin::TransformComponent>().Position = { 0.0f, 0.0f, 0.0f };
 		orbiter.GetComponents<Ayin::TransformComponent>().Position = { m_OrbiterRadius, 0.0f, 0.1f };
@@ -423,27 +376,13 @@ namespace OrbitGame {
 		m_PlayerDead = false;
 		m_OrbiterRadius = std::clamp(m_OrbiterRadius, m_OrbiterMinRadius, m_OrbiterMaxRadius);
 
+		Ayin::Entity player = FindNamedEntity(PlayerName);
 		Ayin::Entity orbiter = FindNamedEntity(OrbiterName);
-		if (orbiter) {
-			Ayin::Entity player = FindNamedEntity(PlayerName);
-			glm::vec3 playerPosition = player ? player.GetComponents<Ayin::TransformComponent>().Position : glm::vec3{ 0.0f };
-			glm::vec3 fromPlayer = orbiter.GetComponents<Ayin::TransformComponent>().Position - playerPosition;
-			fromPlayer.z = 0.0f;
-			if (glm::length(fromPlayer) < 0.001f) {
-				orbiter.GetComponents<Ayin::TransformComponent>().Position = playerPosition + glm::vec3{ m_OrbiterRadius, 0.0f, 0.1f };
-			}
-			if (glm::length(m_OrbiterVelocity) < 0.001f) {
-				m_OrbiterVelocity = { 0.0f, 2.2f, 0.0f };
-			}
+		if (player && orbiter) {
+			glm::vec3 playerPosition = player.GetComponents<Ayin::TransformComponent>().Position;
+			orbiter.GetComponents<Ayin::TransformComponent>().Position = playerPosition + glm::vec3{ std::cos(m_OrbiterAngle) * m_OrbiterRadius, std::sin(m_OrbiterAngle) * m_OrbiterRadius, 0.1f };
 		}
 		EnsureEnemyCount();
-
-	}
-
-	void RegisterScripts() {
-
-		Ayin::ScriptRegistry::Registry<OrbitCameraScript>("OrbitCameraScript");
-		Ayin::ScriptRegistry::Registry<OrbitGameControllerScript>("OrbitGameControllerScript");
 
 	}
 
@@ -457,7 +396,6 @@ namespace OrbitGame {
 
 	Ayin::Ref<Ayin::Scene> LoadOrbitCombatScene() {
 
-		RegisterScripts();
 		if (std::filesystem::exists(OrbitCombatScenePath)) {
 			std::ifstream input{ OrbitCombatScenePath };
 			if (input.is_open()) {
@@ -482,7 +420,6 @@ namespace OrbitGame {
 			return;
 		}
 
-		RegisterScripts();
 		scene->SetName("Orbit Combat Demo");
 
 		Ayin::Entity mainCamera = scene->CreateEntity(MainCameraName);

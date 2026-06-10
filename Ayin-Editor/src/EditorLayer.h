@@ -44,9 +44,7 @@ private:
 	//场景导入导出
 	void OpenScene();
 	void NewScene();
-	void NewOrbitCombatScene();
 	void SaveScene();
-	void SaveOrbitCombatScene();
 
 private:
 
@@ -65,6 +63,7 @@ private:
 	ImGuizmo::MOVETYPE m_GizmoMoveType = ImGuizmo::MOVETYPE::MT_NONE;//不确定，好像没用上
 	ImVec2 m_GizmoToolbarOffset = { 8.0f, 8.0f };//GizmoToolBar在Viewport中的相对偏移
 	bool m_GizmoToolbarCollapsed = false;//是否收纳
+	bool m_FocusViewportNextFrame = false;
 
 	//ECS测试
 	Ayin::Ref<Ayin::Scene> m_ActiveScene;						
