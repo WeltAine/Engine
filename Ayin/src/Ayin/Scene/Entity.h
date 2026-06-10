@@ -4,12 +4,17 @@
 #include "Ayin/Scene/Scene.h"
 
 #include <entt/entt.hpp>
+#include <concepts>
+#include <string>
 
 
 //ToDo 使用反射库，而不是这样别扭的形式添加数据（一些以id为参数的函数会存在是因为我们没法将id_type转回类型）
 
 
 namespace Ayin {
+
+	class ScriptableEntity;
+	struct NativeScriptComponent;
 
 	//! 概念：检查组件是否有依赖组件
 	//! 组件中的依赖通过using Requires = entt::type_list<...>来表达
@@ -31,6 +36,11 @@ namespace Ayin {
 
 		template<typename ComponentType, typename... Args>
 		ComponentType& AddComponent(Args&&... args);
+
+		template<typename ScriptType>
+			requires std::derived_from<ScriptType, ScriptableEntity> && std::default_initializable<ScriptType>
+		Entity AddScript();
+		Entity AddScript(const std::string& scriptName);
 
 		/// <summary>
 		/// 加载组件所依赖的n个前置组件

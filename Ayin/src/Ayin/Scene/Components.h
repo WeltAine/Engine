@@ -384,15 +384,15 @@ namespace Ayin {
 
 			static ObjectPool<ScriptType> pool;
 
+			// 回收旧脚本
+			if (ScriptableInstance != nullptr) {
+				Unbind();
+			}
+
 			// 更新赋名
 			auto scriptName = ScriptType{}.GetScriptName();
 			ScriptName = (scriptName && !scriptName->empty()) ? *scriptName : NoneScriptName;
-
-			// 回收旧脚本
-			if (ScriptableInstance != nullptr) {
-				ScriptableInstance->OnDestroy();
-				DestroyInstanceFunction();
-			}
+			ScriptData = NullScriptData;
 
 			// 注册新回调
 			InstantiateFunction = [&]() {
@@ -407,14 +407,29 @@ namespace Ayin {
 			return !ScriptName.empty() && ScriptName != NoneScriptName;
 		}
 
+		void Unbind() {
+
+			if (ScriptableInstance != nullptr) {
+				ScriptableInstance->OnDestroy();
+				if (DestroyInstanceFunction) {
+					DestroyInstanceFunction();
+				} else {
+					ScriptableInstance = nullptr;
+				}
+			}
+
+			ScriptName = NoneScriptName;
+			ScriptData = NullScriptData;
+			InstantiateFunction = nullptr;
+			DestroyInstanceFunction = nullptr;
+
+		}
+
 
 		NativeScriptComponent() = default;
 		~NativeScriptComponent() {
 
-			if (ScriptableInstance != nullptr) {
-				ScriptableInstance->OnDestroy();
-				DestroyInstanceFunction();
-			}
+			Unbind();
 			
 		}
 
@@ -455,6 +470,25 @@ namespace Ayin {
 	};
 	AYIN_COMPONENT(NativeScriptComponent);
 	AYIN_COMPONENTUI(NativeScriptComponent, NativeScriptComponent::OnGui);
+
+	template<typename ScriptType>
+		requires std::derived_from<ScriptType, ScriptableEntity> && std::default_initializable<ScriptType>
+	Entity Entity::AddScript() {
+
+		if (!m_Scene || !HasComponents<IDComponent>()) {
+			return {};
+		}
+
+		Entity scriptEntity = m_Scene->CreateAttachmentEntity(*this);
+		if (!scriptEntity) {
+			return {};
+		}
+
+		scriptEntity.AddComponent<NativeScriptComponent>().Bind<ScriptType>();
+
+		return scriptEntity;
+
+	}
 
 
 }

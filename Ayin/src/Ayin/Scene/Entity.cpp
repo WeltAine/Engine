@@ -1,6 +1,8 @@
 #include <AyinPch.h>
 
 #include "Ayin/Scene/Entity.h"
+#include "Ayin/Scene/Components.h"
+#include "Ayin/Scene/ScriptRegistry.h"
 
 namespace Ayin {
 
@@ -32,6 +34,27 @@ namespace Ayin {
 		if (componentPool) {
 			componentPool->remove(m_EntityHandle);
 		}
+	}
+
+	Entity Entity::AddScript(const std::string& scriptName) {
+
+		if (!m_Scene || !HasComponents<IDComponent>()) {
+			return {};
+		}
+
+		Entity scriptEntity = m_Scene->CreateAttachmentEntity(*this);
+		if (!scriptEntity) {
+			return {};
+		}
+
+		NativeScriptComponent& nsc = scriptEntity.AddComponent<NativeScriptComponent>();
+		if (!ScriptRegistry::BindScriptByScriptName(nsc, scriptName)) {
+			m_Scene->DestroyEntity(scriptEntity);
+			return {};
+		}
+
+		return scriptEntity;
+
 	}
 	
 

@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <optional>
 #include <string>
+#include <vector>
 
 
 
@@ -44,6 +45,8 @@ namespace Ayin {
 		static bool DeserializeScriptByScriptName(NativeScriptComponent& nsc, const std::string& scriptName, const std::string& json);
 
 		static bool BindScriptByScriptName(NativeScriptComponent& nsc, const std::string& scriptName);
+
+		static std::vector<std::string> GetAvailableScriptNames();
 
 
 	private:

@@ -2,6 +2,8 @@
 
 #include "Ayin/Scene/ScriptRegistry.h"
 
+#include <algorithm>
+
 namespace Ayin {
 
 
@@ -70,6 +72,22 @@ namespace Ayin {
 		return false;
 
 	};
+
+	std::vector<std::string> ScriptRegistry::GetAvailableScriptNames() {
+
+		std::vector<std::string> scriptNames;
+		auto& allScriptDescriptors = GetAllScriptDescriptors();
+		scriptNames.reserve(allScriptDescriptors.size());
+
+		for (auto&& [scriptName, _] : allScriptDescriptors) {
+			scriptNames.push_back(scriptName);
+		}
+
+		std::sort(scriptNames.begin(), scriptNames.end());
+
+		return scriptNames;
+
+	}
 
 
 }
