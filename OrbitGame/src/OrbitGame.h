@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>
 
 #include <string>
+#include <vector>
 
 namespace OrbitGame {
 
@@ -59,6 +60,17 @@ namespace OrbitGame {
 		void OnGui() override;
 
 	private:
+		Ayin::Entity FindNamedEntity(const std::string& name);
+		std::vector<Ayin::Entity> GetEnemies();
+		glm::vec3 GenerateEnemySpawnPosition(const glm::vec3& playerPosition);
+		void EnsureCoreEntities();
+		void EnsureEnemyCount();
+		void UpdatePlayer(float deltaTime);
+		void UpdateOrbiter(float deltaTime);
+		void UpdateEnemies(float deltaTime);
+		void ResolveCollisions(float deltaTime);
+		void RespawnEnemies();
+		void KillPlayer();
 		void ResetRuntimeState();
 
 	private:
@@ -67,6 +79,7 @@ namespace OrbitGame {
 		float m_EnemyMaxHealth = 1.0f;
 		float m_EnemyDamagePerSecond = 0.75f;
 		int m_TargetEnemyCount = 5;
+		float m_ArenaHalfSize = 5.6f;
 
 		float m_OrbiterRadius = 2.1f;
 		float m_OrbiterMinRadius = 0.48f;
@@ -75,6 +88,7 @@ namespace OrbitGame {
 		float m_OrbiterAngularVelocity = 1.4f;
 		float m_OrbiterRadialVelocity = 0.0f;
 		float m_OrbiterSelfRotation = 0.0f;
+		bool m_PlayerDead = false;
 
 		glm::vec3 m_LastPlayerPosition{ 0.0f };
 
@@ -88,13 +102,15 @@ namespace OrbitGame {
 				"EnemyMaxHealth", &T::m_EnemyMaxHealth,
 				"EnemyDamagePerSecond", &T::m_EnemyDamagePerSecond,
 				"TargetEnemyCount", &T::m_TargetEnemyCount,
+				"ArenaHalfSize", &T::m_ArenaHalfSize,
 				"OrbiterRadius", &T::m_OrbiterRadius,
 				"OrbiterMinRadius", &T::m_OrbiterMinRadius,
 				"OrbiterMaxRadius", &T::m_OrbiterMaxRadius,
 				"OrbiterAngle", &T::m_OrbiterAngle,
 				"OrbiterAngularVelocity", &T::m_OrbiterAngularVelocity,
 				"OrbiterRadialVelocity", &T::m_OrbiterRadialVelocity,
-				"OrbiterSelfRotation", &T::m_OrbiterSelfRotation
+				"OrbiterSelfRotation", &T::m_OrbiterSelfRotation,
+				"PlayerDead", &T::m_PlayerDead
 			);
 		};
 
