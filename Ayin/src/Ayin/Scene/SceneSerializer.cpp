@@ -71,8 +71,32 @@ namespace Ayin {
 
 	void SceneSerializer::Serializer(const std::string& filepath) {
 
-		if (m_Scene.get() == nullptr)
+		std::string jsonStr = SerializeToString();
+		if (jsonStr.empty()) {
 			return;
+		}
+
+		std::ofstream ofs(filepath);
+		if (!ofs.is_open()) {
+			AYIN_CORE_ERROR("Failed to open file for writing: {}", filepath);
+			return;
+		}
+		ofs << jsonStr;
+
+	};
+
+	void SceneSerializer::SerializerRuntime(const std::string& filepath) {
+		//ToDo 目前和编辑时序列化一样，后续可以考虑运行时不序列化一些编辑器专用组件
+		Serializer(filepath);
+	};
+
+	std::string SceneSerializer::SerializeToString() {
+
+		if (m_Scene.get() == nullptr) {
+			return {};
+		}
+
+		SceneSerializerContext::SetCurrentScene(m_Scene);
 
 		// 创建场景序列化中间结构
 		SceneJson sceneData;
@@ -114,25 +138,15 @@ namespace Ayin {
 		auto result = glz::write_json(sceneData);
 		if (!result) {
 			AYIN_CORE_ERROR("Failed to serialize scene to JSON: {}", glz::format_error(result.error()));
+			SceneSerializerContext::EraseEntityContext();
 
-			return;
+			return {};
 		}
-		std::string jsonStr = std::move(*result);
-
-		std::ofstream ofs(filepath);
-		if (!ofs.is_open()) {
-			AYIN_CORE_ERROR("Failed to open file for writing: {}", filepath);
-			return;
-		}
-		ofs << jsonStr;
 
 		SceneSerializerContext::EraseEntityContext();
 
-	};
+		return std::move(*result);
 
-	void SceneSerializer::SerializerRuntime(const std::string& filepath) {
-		//ToDo 目前和编辑时序列化一样，后续可以考虑运行时不序列化一些编辑器专用组件
-		Serializer(filepath);
 	};
 
 	void SceneSerializer::Deserializer(const std::string& filepath) {
@@ -150,14 +164,30 @@ namespace Ayin {
 
 		std::stringstream buffer;
 		buffer << ifs.rdbuf();
-		std::string jsonStr = buffer.str();
+		DeserializeFromString(buffer.str());
+
+	};
+
+	void SceneSerializer::DeserializerRuntime(const std::string& filepath) {
+		//ToDo 目前和编辑时序列化一样，后续可以考虑运行时不序列化一些编辑器专用组件
+		Deserializer(filepath);
+	};
+
+	bool SceneSerializer::DeserializeFromString(const std::string& jsonStr) {
+
+		// 确保有可以反序列化的对象
+		if (m_Scene.get() == nullptr || jsonStr.empty()) {
+			return false;
+		}
+
+		SceneSerializerContext::SetCurrentScene(m_Scene);
 
 		// 构建反序列化中间层
 		SceneJson sceneData;
 		auto err = glz::read_json(sceneData, jsonStr);
 		if (err) {
 			AYIN_CORE_ERROR("Failed to parse scene JSON: {}", glz::format_error(err, jsonStr));
-			return;
+			return false;
 		}
 
 		// 反序列化回场景
@@ -322,11 +352,8 @@ namespace Ayin {
 			});
 
 
-	};
+		return true;
 
-	void SceneSerializer::DeserializerRuntime(const std::string& filepath) {
-		//ToDo 目前和编辑时序列化一样，后续可以考虑运行时不序列化一些编辑器专用组件
-		Deserializer(filepath);
 	};
 
 

@@ -8,6 +8,7 @@
 #include "Ayin/Scene/Entity.h"
 
 #include <optional>
+#include <string>
 
 //! 系统哦是非OOP的，器核心更加聚焦于系统的功能过程，所以关于那些过程中的非自生所长期持有的临时变量，应当由外部提供
 // 比如打印机只负责打印，而不是生成纸张
@@ -30,9 +31,11 @@ namespace Ayin {
 
 		void Serializer(const std::string& filepath);
 		void SerializerRuntime(const std::string& filepath);
+		std::string SerializeToString();
 
 		void Deserializer(const std::string& filepath);
 		void DeserializerRuntime(const std::string& filepath);
+		bool DeserializeFromString(const std::string& jsonStr);
 
 	private:
 
