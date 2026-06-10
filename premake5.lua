@@ -47,8 +47,8 @@ group "" --结束分组，回到默认分组
 
 include "Ayin" --引入Ayin项目
 include "Ayin-Editor" --引入Ayin-Editor项目
+include "OrbitGame" --引入环绕战斗示例项目
 -- include "SandBox" --引入SandBox项目
-
 
 
 

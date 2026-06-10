@@ -5,7 +5,7 @@ cd /d "%~dp0"
 
 :: 指定仅允许操作的目标文件夹 
 :: 仅在这些文件夹内执行删除操作，依赖库文件夹（如Dependency）不要加入！
-set "TARGET_PROJECT_FOLDERS=Ayin Ayin-Editor SandBox"
+set "TARGET_PROJECT_FOLDERS=Ayin Ayin-Editor SandBox OrbitGame"
 :: 排除的依赖库目录（防止误操作）
 set "EXCLUDE_FOLDER=Dependency"
 
