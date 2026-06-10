@@ -4,6 +4,8 @@
 
 #include "Glad/glad.h"
 
+#include <type_traits>
+
 namespace Ayin {
 
 	namespace Utils {
@@ -422,6 +424,82 @@ namespace Ayin {
 	}
 
 
+	void OpenGLFramebuffer::ClearColorAttachment(uint32_t attachmentIndex, PixelValue value) {
+
+		if (attachmentIndex >= m_ColorAttachments.size() || m_ColorAttachments[attachmentIndex] == 0) {
+			AYIN_CORE_ASSERT(false, "Framebuffer color attachment index is not a valid color slot!");
+			return;
+		}
+
+		FramebufferAttachmentFormat format = m_FramebufferSpecification.AttachmentsSpecification.AttachmentFormats[attachmentIndex];
+
+
+		//-PixelValue 是 std::variant<PixelRGBA8, PixelR32I, PixelInvalid>。
+		//	- std::visit(lambda, value) 会根据 value 当前实际装着哪种类型，在运行时调用对应版本的 lambda。
+		//	- 但 lambda 的 auto&& pixel 是泛型 lambda，本质上是一个带模板 operator() 的对象。
+		//	- 编译器会为 variant 里每一种可能类型都实例化一份 lambda：(标准库负责实现)
+		//	- operator() < PixelRGBA8 > (PixelRGBA8 && pixel)
+		//	- operator() < PixelR32I > (PixelR32I && pixel)
+		//	- operator() < PixelInvalid > (PixelInvalid && pixel)
+		//	所以这里：
+		/*
+			using PixelType = std::decay_t<decltype(pixel)>;
+			if constexpr (std::is_same_v<PixelType, PixelRGBA8>) {
+		*/
+		//	不是在运行时判断 pixel 的类型，而是在“当前被调用的那一份模板实例”里做编译期分支裁剪。
+
+
+		std::visit([&](auto&& pixel) {
+
+			using PixelType = std::decay_t<decltype(pixel)>;	//把类型“退化”成更普通、更适合比较的形式。去掉引用：PixelRGBA8& -> PixelRGBA8； 去掉顶层 const / volatile：const PixelRGBA8->PixelRGBA8；数组 / 函数类型也会退化成指针
+			//remove_cvref_t 只会去掉 const/volatile 和引用
+
+			if constexpr (std::is_same_v<PixelType, PixelRGBA8>) {
+
+				if (format != FramebufferAttachmentFormat::Color) {
+					AYIN_CORE_ASSERT(false, "Framebuffer pixel value type does not match attachment format!");
+					return;
+				}
+
+				// glClearNamedFramebufferfv清理的是FBO颜色附件，天然支持MSAA附件，不直接关心底层纹理target。
+				float color[4] = {
+					pixel.R / 255.0f,
+					pixel.G / 255.0f,
+					pixel.B / 255.0f,
+					pixel.A / 255.0f
+				};
+
+				glClearNamedFramebufferfv(m_FramebufferID, GL_COLOR, attachmentIndex, color);
+				glClearNamedFramebufferfv(m_ResolveFramebufferID, GL_COLOR, attachmentIndex, color);
+				return;
+
+			}
+			else if constexpr (std::is_same_v<PixelType, PixelR32I>) {
+
+				if (format != FramebufferAttachmentFormat::Red_Integer) {
+					AYIN_CORE_ASSERT(false, "Framebuffer pixel value type does not match attachment format!");
+					return;
+				}
+
+				// GL_RED_INTEGER 真实整数通道，不归一化、不当颜色值处理；用iv路径清理整数颜色附件。
+				int color[4] = { pixel.value, 0, 0, 0 };
+				glClearNamedFramebufferiv(m_FramebufferID, GL_COLOR, attachmentIndex, color);
+				glClearNamedFramebufferiv(m_ResolveFramebufferID, GL_COLOR, attachmentIndex, color);
+				return;
+
+			}
+			else if constexpr (std::is_same_v<PixelType, PixelInvalid>) {
+
+				AYIN_CORE_ASSERT(false, "Cannot clear framebuffer attachment with invalid pixel value!");
+				return;
+
+			}
+
+		}, value);
+
+	}
+
+
 	Framebuffer::PixelValue OpenGLFramebuffer::ReadPixel(uint32_t attachmentIndex, int x, int y) const {
 
 		if (x < 0 || y < 0 || x >= m_FramebufferSpecification.Size.x || y >= m_FramebufferSpecification.Size.y) {
@@ -480,7 +558,7 @@ namespace Ayin {
 			default: {
 
 				AYIN_CORE_ASSERT(false, "Unsupported framebuffer pixel format");
-				return PixelR32I{ 0 };
+				return PixelInvalid{};
 
 			}
 

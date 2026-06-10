@@ -92,6 +92,8 @@ namespace Ayin{
 	void OpenGLRendererAPI::Clear() const
 	{
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		//对于Framebuffer，清除那些颜色附件取决于，那些附件被设置为Draw。
 	}
 
 	void OpenGLRendererAPI::ClearDefaultFramebufferColor(glm::vec4 color) const

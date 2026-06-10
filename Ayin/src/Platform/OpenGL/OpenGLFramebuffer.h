@@ -31,6 +31,10 @@ namespace Ayin {
 		// 返回可被屏幕直接渲染的单采样（解析）纹理ID
 		virtual uint32_t GetColorAttachmentRendererID(uint32_t attachmentIndex = 0) const override;
 
+		// 按附件格式清理颜色附件，同时同步主FBO和解析FBO
+		virtual void ClearColorAttachment(uint32_t attachmentIndex, PixelValue value) override;
+
+
 		// 读取附件信息（目前仅支持颜色附件）
 		virtual PixelValue ReadPixel(uint32_t attachmentIndex, int x, int y) const override;
 

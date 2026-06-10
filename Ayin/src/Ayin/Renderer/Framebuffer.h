@@ -110,6 +110,9 @@ namespace Ayin {
 		// 返回颜色附件的底层渲染器纹理ID。Framebuffer不持有Texture2D抽象，避免格式语义泄漏。
 		virtual uint32_t GetColorAttachmentRendererID(uint32_t attachmentIndex = 0) const = 0;
 
+		// 按附件格式清理颜色附件。传入的PixelValue类型必须和附件格式匹配。
+		virtual void ClearColorAttachment(uint32_t attachmentIndex, PixelValue value) = 0;
+
 		virtual PixelValue ReadPixel(uint32_t attachmentIndex, int x, int y) const = 0;
 
 		const FramebufferSpecification& GetSpecification() { return m_FramebufferSpecification; };

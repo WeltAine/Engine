@@ -26,7 +26,7 @@ void EditorLayer::OnAttach() {
 
 	m_Texture = Ayin::Texture2D::Create("O:/CppProgram/Ayin/assets/textures/blendTexture.png");
 
-	Ayin::FramebufferSpecification specification{ .Size{1280, 720}, .Samples = 1, .AttachmentsSpecification{Ayin::FramebufferAttachmentFormat::Color, Ayin::FramebufferAttachmentFormat::Depth_Stencil} };
+	Ayin::FramebufferSpecification specification{ .Size{1280, 720}, .Samples = 1, .AttachmentsSpecification{Ayin::FramebufferAttachmentFormat::Color, Ayin::FramebufferAttachmentFormat::Red_Integer, Ayin::FramebufferAttachmentFormat::Depth_Stencil} };
 	m_Framebuffer = Ayin::Framebuffer::Create(specification);
 	m_SceneSize.x = 1280;
 	m_SceneSize.y = 720;
@@ -90,6 +90,8 @@ void EditorLayer::OnUpdate(Ayin::Timestep deltaTime) {
 		m_Framebuffer->Bind();
 
 		Ayin::RenderCommand::Clear();
+
+		m_Framebuffer->ClearColorAttachment(1, Ayin::PixelR32I{-1});
 
 		Ayin::Renderer2D::ResetStatistics();
 
