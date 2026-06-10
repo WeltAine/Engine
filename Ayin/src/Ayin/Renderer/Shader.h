@@ -2,7 +2,11 @@
 
 #include "Ayin/Core/Core.h"
 
+#include <cstdint>
 #include <glm/glm.hpp>
+
+#include <string>
+#include <unordered_map>
 
 
 namespace Ayin {
@@ -73,7 +77,7 @@ namespace Ayin {
 	//////////////////////////////////////////////////////////////////////////////////////////
 
 
-	class ShaderLibrary {
+	class AYIN_API ShaderLibrary {
 
 
 	public:
@@ -83,26 +87,26 @@ namespace Ayin {
 		/// </summary>
 		/// <param name="filePath"></param>
 		/// <returns></returns>
-		Ref<Shader> Load(const std::string& filePath);
-		Ref<Shader> Load(const std::string& name, const std::string& filePath);
+		static Ref<Shader> Load(const std::string& filePath);
+		//x Ref<Shader> Load(const std::string& name, const std::string& filePath);	//对于文件构建的shader，不应该我们来命名
 
 		/// <summary>
 		/// 添加着色器到库中
 		/// </summary>
 		/// <param name="shader"></param>
-		void Add(const Ref<Shader>& shader);
-		void Add(const std::string& name, const Ref<Shader>& shader);
+		static void Add(const Ref<Shader>& shader);
+		static void Add(const std::string& name, const Ref<Shader>& shader);	//因对代码中编码出来的 glsl文件
 
-		inline Ref<Shader> Get(const std::string& name) {
+		inline static Ref<Shader> Get(const std::string& name) {
 			AYIN_CORE_ASSERT(Exists(name), "No Name_Index was found in the ShaderLibrary");
-			return m_Shaders[name]; 
+			return s_Shaders[name]; 
 		};
 
 		//考虑到未来底层数据结构可能发生变化，所以留一个接口做收束整合
-		bool Exists(const std::string& name) const;
+		static bool Exists(const std::string& name);
 
 	private:
 
-		std::unordered_map < std::string, Ref<Shader> > m_Shaders;
+		static std::unordered_map < std::string, Ref<Shader> > s_Shaders;
 	};
 }

@@ -16,7 +16,7 @@ void SandBox2D::OnAttach() {
 
 	AYIN_PROFILE_FUNCTION();
 
-	m_Texture = Ayin::Texture2D::Create("O:/CppProgram/Ayin/assets/textures/blendTexture.png");
+	m_Texture = Ayin::Texture2D::Create("assets/textures/blendTexture.png");
 
 };
 void SandBox2D::OnDetach() {

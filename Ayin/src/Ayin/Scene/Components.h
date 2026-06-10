@@ -202,6 +202,9 @@ namespace Ayin {
 	struct SpriteRendererComponent {
 	
 		//ToDo 调整一下
+		static constexpr const char* NoneTexturePath = "None";
+
+		std::string FilePath = NoneTexturePath;
 		Ref<Texture2D> Texture2D = nullptr;
 		glm::vec4 Color{1.0f, 1.0f, 1.0f, 1.0f};
 	
@@ -217,9 +220,31 @@ namespace Ayin {
 
 		static ::entt::id_type ComponentStorageID() { return ::entt::type_hash<SpriteRendererComponent>::value(); };
 
+		inline void SetTexture(const std::string& filePath) {
+			// 保持序列化路径和运行时纹理引用同步。
+			if (filePath.empty() || filePath == NoneTexturePath) {
+				FilePath = NoneTexturePath;
+				Texture2D = nullptr;
+				return;
+			}
+
+			FilePath = filePath;
+			Texture2D = Texture2DLibrary::Load(filePath);
+		};
+
+		inline void read_FilePath(const std::string& filePath) {
+			SetTexture(filePath);
+		};
+
+		inline std::string write_FilePath() {
+			return FilePath;
+		};
+
 		struct glaze {
 			using T = SpriteRendererComponent;
-			static constexpr auto value = glz::object("Color", &T::Color);
+			static constexpr auto value = glz::object(
+				"FilePath", glz::custom<&T::read_FilePath, &T::write_FilePath>, 
+				"Color", &T::Color);
 		};
 
 	};
