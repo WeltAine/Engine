@@ -12,6 +12,8 @@ namespace Ayin {
 
 
 	#pragma region 辅助方法(仅限于本文件使用)
+
+	// 分析对应 GL shader 类型，顶点或者片元
 	static GLenum ShaderTypeFromString(const std::string& type) {
 
 		if (type == "vertex")
@@ -25,6 +27,7 @@ namespace Ayin {
 
 	}
 
+	// GL Shader 类型的对应文本（目前就调试用）
 	static std::string ShaderTypeToString(GLenum type) {
 
 		switch (type) {
@@ -41,7 +44,7 @@ namespace Ayin {
 	}
 	#pragma endregion
 
-
+	// 通过文件构建的shader（以glsl文件名作为名称）
 	OpenGLShader::OpenGLShader(const std::string& filePath) {
 
 		AYIN_PROFILE_FUNCTION();
@@ -65,7 +68,7 @@ namespace Ayin {
 
 	}
 
-
+	// 代码中的shader（自定义名称）
 	OpenGLShader::OpenGLShader(const std::string& name, const std::string& vertexShaderSrc, const std::string& fragmentShaderSrc) 
 		:m_Name{name}
 	{
@@ -78,6 +81,7 @@ namespace Ayin {
 		Compile(shaderSources);
 	}
 
+	// 读取文件内容
 	std::string OpenGLShader::ReadFile(const std::string& filePath) {
 
 		AYIN_PROFILE_FUNCTION();
@@ -119,6 +123,7 @@ namespace Ayin {
 
 	}
 
+	// 字符串源码拆解为不同阶段的shader
 	std::unordered_map<GLenum, std::string> OpenGLShader::PreProcess(const std::string& source) {
 
 		AYIN_PROFILE_FUNCTION();
@@ -159,7 +164,7 @@ namespace Ayin {
 		return shaderSources;
 	}
 
-
+	// 源码中的各个 shader 进行编译
 	void OpenGLShader::Compile(const std::unordered_map<GLenum, std::string>& shaderSources) {
 
 		AYIN_PROFILE_FUNCTION();
