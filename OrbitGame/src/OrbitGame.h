@@ -14,6 +14,7 @@ namespace OrbitGame {
 	inline constexpr const char* PlayerName = "Player";
 	inline constexpr const char* OrbiterName = "OrbitOrbiter";
 	inline constexpr const char* EnemyPrefix = "Enemy";
+	inline constexpr const char* OrbitCombatScenePath = "assets/scenes/orbit_combat.json";
 
 	// 敌人血量不是引擎通用概念，所以作为示例项目自己的组件放在这里。
 	// SpriteRendererComponent 的 alpha 会由脚本根据 Health / MaxHealth 同步。
@@ -88,9 +89,14 @@ namespace OrbitGame {
 		float m_OrbiterAngularVelocity = 1.4f;
 		float m_OrbiterRadialVelocity = 0.0f;
 		float m_OrbiterSelfRotation = 0.0f;
+		float m_OrbiterGravity = 7.5f;
+		float m_OrbiterPullStrength = 6.5f;
+		float m_OrbiterReleaseStrength = 2.6f;
+		float m_OrbiterOrbitCorrection = 1.35f;
+		float m_OrbiterDrag = 0.04f;
 		bool m_PlayerDead = false;
 
-		glm::vec3 m_LastPlayerPosition{ 0.0f };
+		glm::vec3 m_OrbiterVelocity{ 0.0f, 2.2f, 0.0f };
 
 	public:
 
@@ -110,6 +116,12 @@ namespace OrbitGame {
 				"OrbiterAngularVelocity", &T::m_OrbiterAngularVelocity,
 				"OrbiterRadialVelocity", &T::m_OrbiterRadialVelocity,
 				"OrbiterSelfRotation", &T::m_OrbiterSelfRotation,
+				"OrbiterGravity", &T::m_OrbiterGravity,
+				"OrbiterPullStrength", &T::m_OrbiterPullStrength,
+				"OrbiterReleaseStrength", &T::m_OrbiterReleaseStrength,
+				"OrbiterOrbitCorrection", &T::m_OrbiterOrbitCorrection,
+				"OrbiterDrag", &T::m_OrbiterDrag,
+				"OrbiterVelocity", &T::m_OrbiterVelocity,
 				"PlayerDead", &T::m_PlayerDead
 			);
 		};
@@ -119,6 +131,7 @@ namespace OrbitGame {
 	void RegisterScripts();
 
 	Ayin::Ref<Ayin::Scene> CreateOrbitCombatScene();
+	Ayin::Ref<Ayin::Scene> LoadOrbitCombatScene();
 	void PopulateOrbitCombatScene(const Ayin::Ref<Ayin::Scene>& scene);
 	Ayin::Entity CreateOrbitEnemy(Ayin::Scene& scene, const std::string& name, const glm::vec3& position, float maxHealth);
 

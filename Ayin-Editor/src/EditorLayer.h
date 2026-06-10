@@ -46,6 +46,7 @@ private:
 	void NewScene();
 	void NewOrbitCombatScene();
 	void SaveScene();
+	void SaveOrbitCombatScene();
 
 private:
 

@@ -12,6 +12,8 @@
 
 #include <glm/glm.hpp>
 
+#include <filesystem>
+
 
 static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);//没帧初始颜色
 
@@ -284,6 +286,9 @@ void EditorLayer::DrawMainMenuBar() {
 		if (ImGui::MenuItem("CreateOrbitCombatScene", nullptr, false, isEditing)) {
 			NewOrbitCombatScene();
 		}
+		if (ImGui::MenuItem("SaveOrbitCombatScene", nullptr, false, isEditing)) {
+			SaveOrbitCombatScene();
+		}
 
 		ImGui::EndMenu();
 	}
@@ -529,3 +534,16 @@ void EditorLayer::SaveScene() {
 	} 
 
 };
+
+void EditorLayer::SaveOrbitCombatScene() {
+
+	StopScene();
+	if (!m_ActiveScene) {
+		return;
+	}
+
+	std::filesystem::create_directories(std::filesystem::path{ OrbitGame::OrbitCombatScenePath }.parent_path());
+	Ayin::SceneSerializer sceneSerializer{ m_ActiveScene };
+	sceneSerializer.Serializer(OrbitGame::OrbitCombatScenePath);
+
+}

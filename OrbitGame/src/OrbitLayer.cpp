@@ -56,8 +56,7 @@ void OrbitLayer::OnEvent(Ayin::Event& event) {
 
 void OrbitLayer::ResetScene() {
 
-	OrbitGame::RegisterScripts();
-	m_Scene = OrbitGame::CreateOrbitCombatScene();
+	m_Scene = OrbitGame::LoadOrbitCombatScene();
 
 	const Ayin::Window& window = Ayin::Application::Get().GetWindow();
 	m_Scene->OnViewportResize(window.GetWidth(), window.GetHeight());
