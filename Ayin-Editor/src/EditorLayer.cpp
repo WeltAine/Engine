@@ -154,11 +154,11 @@ void EditorLayer::OnImGuiRender() {
 		ImGui::SetNextWindowViewport(ImGui::GetMainViewport()->ID);
 		ImGuizmo::BeginFrame();
 
-		if(m_SceneHierarchyPanel.GetSelectedEntity())
+		if(m_SceneHierarchyPanel.GetSelectedEntity() && m_SceneHierarchyPanel.GetSelectedEntity().HasComponents<Ayin::TransformComponent>())
 		{
 			// 实体transform
 			Ayin::TransformComponent& selectedEntityTransform = const_cast<Ayin::Entity&>(m_SceneHierarchyPanel.GetSelectedEntity()).GetComponents<Ayin::TransformComponent>();
-			glm::mat4 transform = selectedEntityTransform;
+			glm::mat4 transform = m_ActiveScene->CalculateWorldTransform(m_SceneHierarchyPanel.GetSelectedEntity());
 
 			//ImGuizmo显示配置
 			ImGuizmo::SetOrthographic((m_EditorCamera.GetCameraType() == Ayin::Camera::CameraType::Orthogonal) ? true : false);
@@ -178,6 +178,15 @@ void EditorLayer::OnImGuiRender() {
 				auto&&[positiong, rotation, scale] = Ayin::Math::DecomposeTransform(transform);
 
 				if (glm::all(glm::isfinite(positiong)) && glm::all(glm::isfinite(rotation)) && glm::all(glm::isfinite(scale))) {
+
+					Ayin::Entity parent = m_ActiveScene->GetParent(m_SceneHierarchyPanel.GetSelectedEntity());
+					if (parent) {
+						transform = glm::inverse(m_ActiveScene->CalculateWorldTransform(parent)) * transform;
+						auto&& [localPosition, localRotation, localScale] = Ayin::Math::DecomposeTransform(transform);
+						positiong = localPosition;
+						rotation = localRotation;
+						scale = localScale;
+					}
 
 					selectedEntityTransform.Position = positiong;
 					selectedEntityTransform.Rotation = glm::degrees(rotation);
@@ -212,7 +221,7 @@ void EditorLayer::OnImGuiRender() {
 
 	m_SceneHierarchyPanel.OnImGuiRender();
 
-	m_PropertiesPanel.SetContext(m_SceneHierarchyPanel.GetSelectedEntity());
+	m_PropertiesPanel.SetContext(m_ActiveScene, m_SceneHierarchyPanel.GetSelectedEntity());
 	m_PropertiesPanel.OnImGuiRender();
 
 

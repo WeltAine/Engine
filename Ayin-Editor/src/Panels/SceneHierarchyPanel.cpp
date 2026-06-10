@@ -2,6 +2,8 @@
 
 #include "Panels/SceneHierarchyPanel.h"
 
+#include <algorithm>
+
 
 namespace Ayin {
 
@@ -15,7 +17,7 @@ namespace Ayin {
 
 	void SceneHierarchyPanel::OnImGuiRender() {
 	
-		std::vector<Entity> entitys = m_Scene->GetEntitiesByComponents<TagComponent>();
+		std::vector<Entity> entitys = m_Scene->GetEntitiesByComponents<TagComponent>(entt::exclude<HiddenEntityComponent>);
 
 		ImGui::Begin("HierarchyPanel");
 
@@ -23,7 +25,9 @@ namespace Ayin {
 
 		auto drawEntities = [&]() {
 			for (Entity& entity : entitys) {
-				DrawEntityNode(entity);
+				if (!m_Scene->GetParent(entity)) {
+					DrawEntityNode(entity);
+				}
 			}
 		};
 
@@ -50,6 +54,8 @@ namespace Ayin {
 				m_EditingSceneName = false;
 
 			//绘制场景中节点
+			DrawSceneRootDropTarget();
+
 			if (open) {
 				drawEntities();
 				ImGui::TreePop();
@@ -63,6 +69,8 @@ namespace Ayin {
 				m_EditingSceneName = true;
 				strncpy(m_SceneNameBuffer, m_Scene->GetName().c_str(), sizeof(m_SceneNameBuffer) - 1);
 			}
+
+			DrawSceneRootDropTarget();
 
 			if (open) {
 				drawEntities();
@@ -94,13 +102,28 @@ namespace Ayin {
 
 
 	void SceneHierarchyPanel::DrawEntityNode(Entity& node) {
-		
+
+		if (!node.HasComponents<TagComponent>() || node.HasComponents<HiddenEntityComponent>()) {
+			return;
+		}
+
 		TagComponent tag = node.GetComponents<TagComponent>();
+		std::vector<Entity> children = m_Scene->GetChildren(node);
+		children.erase(
+			std::remove_if(children.begin(), children.end(), [](Entity& child) {
+				return !child.HasComponents<TagComponent>() || child.HasComponents<HiddenEntityComponent>();
+			}),
+			children.end()
+		);
 
-		bool isOpen = (node == m_SelectedEntity || node == m_HoveredEntity);
-		ImGuiTreeNodeFlags nodeFlags = m_LeafNodeFlags | ((isOpen) ? ImGuiTreeNodeFlags_Selected : 0);
+		bool isHightLight = (node == m_SelectedEntity || node == m_HoveredEntity);
+		bool hasChildren = !children.empty();
+		bool deleted = false;
+		ImGuiTreeNodeFlags nodeFlags = (hasChildren ? m_ParentNodeFlags : m_LeafNodeFlags) | ((isHightLight) ? ImGuiTreeNodeFlags_Selected : 0);
 
-		ImGui::TreeNodeEx(tag.Name.data(), nodeFlags);
+		ImGui::PushID(static_cast<uint32_t>(node));
+
+		bool open = ImGui::TreeNodeEx(tag.Name.data(), nodeFlags);
 
 		if (ImGui::IsItemHovered()) {
 			m_HoveredEntity = node;
@@ -110,15 +133,27 @@ namespace Ayin {
 			m_SelectedEntity = node;
 		}
 
+		DrawEntityDragDrop(node);
+
 		if (ImGui::BeginPopupContextItem()) {
+
+			if (ImGui::MenuItem("Create Child Entity")) {
+
+				Entity child = m_Scene->CreateEntity();
+				m_Scene->SetParent(child, node, false);
+				m_SelectedEntity = child;
+
+			}
+
+			ImGui::Separator();
 
 			if (ImGui::MenuItem("Delete Entity")) {
 
-				if (node == m_SelectedEntity) {
-					m_SelectedEntity = {};
-				}
+				m_SelectedEntity = {};
+				m_HoveredEntity = {};
 
 				m_Scene->DestroyEntity(node);
+				deleted = true;
 
 			}
 
@@ -126,7 +161,69 @@ namespace Ayin {
 
 		}
 
+		if (open && hasChildren) {
+			if (!deleted) {
+				for (Entity& child : children) {
+					DrawEntityNode(child);
+				}
+			}
+			ImGui::TreePop();
+		}
+
+		ImGui::PopID();
+
 	};
+
+	void SceneHierarchyPanel::DrawSceneRootDropTarget() {
+
+		if (!ImGui::BeginDragDropTarget()) {
+			return;
+		}
+
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("AYIN_ENTITY")) {
+			AYIN_CORE_ASSERT(payload->DataSize == sizeof(entt::entity), "Invalid entity drag payload");
+			entt::entity entityHandle = *static_cast<entt::entity*>(payload->Data);
+			Entity draggedEntity{ entityHandle, m_Scene.get() };
+
+			if (draggedEntity) {
+				m_Scene->Unparent(draggedEntity);
+			}
+		}
+
+		ImGui::EndDragDropTarget();
+
+	}
+
+	void SceneHierarchyPanel::DrawEntityDragDrop(Entity& node) {
+
+		if (ImGui::BeginDragDropSource()) {
+			entt::entity entityHandle = node;
+			ImGui::SetDragDropPayload("AYIN_ENTITY", &entityHandle, sizeof(entityHandle));
+
+			if (node.HasComponents<TagComponent>()) {
+				ImGui::Text("%s", node.GetComponents<TagComponent>().Name.c_str());
+			} else {
+				ImGui::Text("Entity");
+			}
+
+			ImGui::EndDragDropSource();
+		}
+
+		if (ImGui::BeginDragDropTarget()) {
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("AYIN_ENTITY")) {
+				AYIN_CORE_ASSERT(payload->DataSize == sizeof(entt::entity), "Invalid entity drag payload");
+				entt::entity entityHandle = *static_cast<entt::entity*>(payload->Data);
+				Entity draggedEntity{ entityHandle, m_Scene.get() };
+
+				if (draggedEntity && draggedEntity != node) {
+					m_Scene->SetParent(draggedEntity, node);
+				}
+			}
+
+			ImGui::EndDragDropTarget();
+		}
+
+	}
 
 
 }

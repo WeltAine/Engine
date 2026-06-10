@@ -22,6 +22,8 @@ namespace Ayin {
 	private:
 
 		void DrawEntityNode(Entity& node);
+		void DrawSceneRootDropTarget();
+		void DrawEntityDragDrop(Entity& node);
 
 	private:
 

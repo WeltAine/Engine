@@ -13,6 +13,7 @@ namespace Ayin {
 		PropertiesPanel() = default;
 
 		inline void SetContext(const Entity& entity) { m_SelectedEntity = entity; }
+		inline void SetContext(const Ref<Scene>& scene, const Entity& entity) { m_Scene = scene; m_SelectedEntity = entity; }
 
 		inline const Entity& GetSelectedEntity() const { return m_SelectedEntity; }
 
@@ -21,11 +22,17 @@ namespace Ayin {
 	private:
 
 		void DrawComponentHeader(const ComponentDescriptor& desc);
+		void DrawNativeScriptComponentHeader(Entity& entity, bool destroyEntityOnRemove, const char* title);
+		void DrawNativeScriptComponent(Entity& entity);
 
 		void DrawAddComponentSearch();
+		void DrawAttachedNativeScripts();
+		void DrawInternalComponents();
+		bool IsInternalComponent(entt::id_type componentID) const;
 
 	private:
 
+		Ref<Scene> m_Scene;
 		Entity m_SelectedEntity;
 
 	};
@@ -124,5 +131,4 @@ namespace Ayin {
 // 
 // 样式
 // PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 })			修改 ImGui 的全局样式变量，并将修改压入样式栈
-
 
