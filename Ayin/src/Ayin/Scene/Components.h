@@ -392,7 +392,6 @@ namespace Ayin {
 			// 更新赋名
 			auto scriptName = ScriptType{}.GetScriptName();
 			ScriptName = (scriptName && !scriptName->empty()) ? *scriptName : NoneScriptName;
-			ScriptData = NullScriptData;
 
 			// 注册新回调
 			InstantiateFunction = [&]() {
