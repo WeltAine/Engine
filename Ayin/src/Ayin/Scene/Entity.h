@@ -63,6 +63,7 @@ namespace Ayin {
 
 
 		operator const entt::entity&() const { return m_EntityHandle; };
+		inline Scene* GetScene() const { return m_Scene; }
 
 		operator uint32_t() const { return (uint32_t)m_EntityHandle; };
 		operator bool() const { return m_EntityHandle != entt::null; }

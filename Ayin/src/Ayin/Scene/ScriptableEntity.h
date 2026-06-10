@@ -34,6 +34,9 @@ namespace Ayin{
 		//脚本绘制
 		virtual void OnGui() {};
 
+		inline Entity GetEntity() const { return m_Entity; }
+		inline Scene* GetScene() const { return m_Entity.GetScene(); }
+
 		template<typename... ComponentTypes>
 		decltype(auto) GetComponents();
 
