@@ -22,8 +22,10 @@ namespace Ayin {
 	namespace {
 
 #ifdef AYIN_PLATFORM_WINDOWS
-		HIMC s_MainWindowImeContext = nullptr;	//编辑（文字输入）的IME配置
-		bool s_MainWindowImeDisabled = false;	//编辑（文字输入）IME状态
+		HIMC s_MainWindowImeContext = nullptr;	//编辑（文字输入）的IME配置 / 对话 IME
+		bool s_MainWindowImeDisabled = false;	//编辑（文字输入）IME状态 / 当前是否使用了对话 IME
+
+		//! 应用初次启动时所使用的 IME 是由所在时区决定的，我们可以称之为 对话 IME ，如果你在中国，那么就是中文
 
 		// 辅助方法
 		HWND GetMainWindowHandle()
