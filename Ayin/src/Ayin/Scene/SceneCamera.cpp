@@ -31,7 +31,7 @@ namespace Ayin {
 			case(Camera::CameraType::Perspective): {
 
 				m_ProjectionMatrix = glm::perspective(
-					glm::radians(m_CameraProp.FOV),
+					m_CameraProp.FOVRadians,
 					m_CameraProp.AspectRatio,
 					m_CameraProp.NearPlaneDistance, m_CameraProp.FarPlaneDistance);
 
@@ -64,7 +64,7 @@ namespace Ayin {
 
 			case(Camera::CameraType::Perspective): {
 
-				m_ProjectionMatrix = glm::perspective(glm::radians(cameraProp.FOV),
+				m_ProjectionMatrix = glm::perspective(cameraProp.FOVRadians,
 					cameraProp.AspectRatio,
 					cameraProp.NearPlaneDistance,
 					cameraProp.FarPlaneDistance);
@@ -83,7 +83,7 @@ namespace Ayin {
 	void SceneCamera::RecalculateViewMatrix(const glm::vec3& position, const glm::vec3& rotation) {
 		AYIN_PROFILE_FUNCTION();
 
-		glm::mat4 rotationMatrix = glm::eulerAngleXYZ(glm::radians(rotation.x), glm::radians(rotation.y), glm::radians(rotation.z));
+		glm::mat4 rotationMatrix = glm::eulerAngleXYZ(rotation.x, rotation.y, rotation.z);
 
 		glm::mat4 transform = glm::translate(glm::identity<glm::mat4>(), position) * rotationMatrix;
 
@@ -115,7 +115,7 @@ namespace Ayin {
 			case(Camera::CameraType::Perspective): {
 
 				m_ProjectionMatrix = glm::perspective(
-					glm::radians(m_CameraProp.FOV),
+					m_CameraProp.FOVRadians,
 					m_CameraProp.AspectRatio,
 					m_CameraProp.NearPlaneDistance,
 					m_CameraProp.FarPlaneDistance);

@@ -44,8 +44,8 @@ namespace Ayin {
 	private:
 
 		const float BaseHeight = 2.0f;	//基础高度（不会变化）
-		const float BaseFOV = 60.0f;	//基础FOV（不会变化）(最大150)
-		const float minFOVZoom = 0.4f;
+		const float BaseFOVRadians = glm::radians(60.0f);	//基础FOV（不会变化）(最大150 degrees)
+		const float minFOVZoomFromRadians = BaseFOVRadians / glm::radians(150.0f);
 
 		float m_ZoomLevel = 1.0f;
 
@@ -55,7 +55,7 @@ namespace Ayin {
 		glm::quat m_Orientation{ 1.0f, 0.0f, 0.0f, 0.0f };	//没有任何旋转，glm::quat( w, x, y, z )，四元数公式：q = w + xi + yj + zk；w：实数部分（标量）→ 代表旋转角度，x, y, z：虚数部分（向量）→ 代表旋转轴
 
 		float m_MoveSpeed = 5.0f;
-		float m_RotateSpeed = 0.15f;
+		float m_RotateSpeed = glm::radians(0.15f);
 		float m_ZoomSpeed = 0.2f;
 
 		bool m_IsRotating = false;

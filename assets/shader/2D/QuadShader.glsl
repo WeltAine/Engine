@@ -5,7 +5,7 @@ layout(location = 0) in vec3 a_VertexPosition;
 layout(location = 1) in vec2 a_VertexUV;
 
 layout(location = 2) in vec3 a_Position;
-layout(location = 3) in vec3 a_Rotation;
+layout(location = 3) in vec3 a_RotationRadians;
 layout(location = 4) in vec3 a_Size;
 layout(location = 5) in vec4 a_Color;
 layout(location = 6) in vec2 a_TilingFactor;
@@ -19,12 +19,6 @@ flat out int v_TextureIndex;    //flat 是 GLSL 里的插值限定符
 uniform mat4 u_ProjectionViewMatrix;
 
 
-
-float Radians(float degrees){
-
-    return degrees * 0.017453292519943295;
-
-}
 
 mat4 RotateZ(float angle){
 
@@ -98,9 +92,9 @@ void main(){
 
     mat4 transform = mat4(1.0f);
 
-    mat4 pitch = RotateX(Radians(a_Rotation.x));
-    mat4 yaw = RotateY(Radians(a_Rotation.y));
-    mat4 roll = RotateZ(Radians(a_Rotation.z));
+    mat4 pitch = RotateX(a_RotationRadians.x);
+    mat4 yaw = RotateY(a_RotationRadians.y);
+    mat4 roll = RotateZ(a_RotationRadians.z);
 
 
     transform = Translate(a_Position) * pitch * yaw * roll * Scale(a_Size);

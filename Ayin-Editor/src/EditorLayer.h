@@ -158,7 +158,7 @@ private:
 		//死区半径
 		if (glm::length(rotation) > 50.0f) {
 
-			cameraTransform.Rotation -= glm::normalize(rotation) * m_CameraRotationSpeed * float(deltaTime);
+			cameraTransform.Rotation -= glm::normalize(rotation) * m_CameraRotationSpeedRadians * float(deltaTime);
 
 
 			lastRotation = { position.y, position.x, 0.0f };
@@ -177,14 +177,17 @@ private:
 
 	bool m_isRotate = false;                                                //是否开启旋转
 
-	float m_CameraTranslateSpeed = 1.0f, m_CameraRotationSpeed = 120.0f;
+	float m_CameraTranslateSpeed = 1.0f, m_CameraRotationSpeedRadians = glm::radians(120.0f);
 
 public:
 	virtual void OnGui() override {
 
 		ImGui::SeparatorText("Camera Controller");
 		ImGui::DragFloat("Translate Speed", &m_CameraTranslateSpeed, 0.01f);
-		ImGui::DragFloat("Rotation Speed", &m_CameraRotationSpeed, 1.0f);
+		float cameraRotationSpeedDegrees = glm::degrees(m_CameraRotationSpeedRadians);
+		if (ImGui::DragFloat("Rotation Speed (deg/s)", &cameraRotationSpeedDegrees, 1.0f)) {
+			m_CameraRotationSpeedRadians = glm::radians(cameraRotationSpeedDegrees);
+		}
 		ImGui::Checkbox("Enable Rotation", &m_isRotate);
 
 	};
@@ -196,7 +199,7 @@ public:
 
 		static constexpr auto value = glz::object(
 			"Translate Speed", &T::m_CameraTranslateSpeed,
-			"Rotation Speed", &T::m_CameraRotationSpeed,
+			"Rotation Speed Radians", &T::m_CameraRotationSpeedRadians,
 			"Enable Rotation", &T::m_isRotate
 		);
 

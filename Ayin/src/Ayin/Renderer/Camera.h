@@ -49,7 +49,7 @@ namespace Ayin {
 	/// <summary>
 	/// 相机参数结构体
 	/// <para> Type(透视) </para>
-	/// <para> FOV(60),	Height(2) </para>
+	/// <para> FOVRadians(60 degrees),	Height(2) </para>
 	/// <para> AspectRatio(16:9) </para>
 	/// <para> NearPlaneDistance(0.1), FarPlaneDistance(100) </para>
 	/// </summary>
@@ -57,7 +57,7 @@ namespace Ayin {
 	{
 		Camera::CameraType Type = Camera::CameraType::Perspective;
 
-		float FOV = 60, Height = 2;//高尽可能不变，该参数为正交相机使用，一般只有缩放可以改变它，大多数情况不应该直接控制（除非你的实现中准备了自己的控制参数）
+		float FOVRadians = glm::radians(60.0f), Height = 2;//高尽可能不变，该参数为正交相机使用，一般只有缩放可以改变它，大多数情况不应该直接控制（除非你的实现中准备了自己的控制参数）
 
 		float AspectRatio = 16.0f / 9.0f;
 
@@ -67,7 +67,7 @@ namespace Ayin {
 			using T = CameraProp;
 			static constexpr auto value = glz::object(
 				"Type", &T::Type,
-				"FOV", &T::FOV,
+				"FOVRadians", &T::FOVRadians,
 				"Height", &T::Height,
 				"AspectRatio", &T::AspectRatio,
 				"NearPlane", &T::NearPlaneDistance,

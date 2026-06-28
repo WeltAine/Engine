@@ -32,8 +32,8 @@ namespace Ayin{
 		inline const CameraProp& GetCameraProp() const { return m_CameraProp; };
 		inline const void SwitchCameraType(Camera::CameraType cameraType) { m_CameraProp.Type = cameraType; RecalculateProjectionMatrix(); }
 		inline CameraType GetCameraType() const { return m_CameraProp.Type; };
-		inline const void SetCameraFOV_H(float verticalFovAngle) { m_CameraProp.FOV = verticalFovAngle; RecalculateProjectionMatrix(); }
-		inline float GetCameraFOV_H() const { return m_CameraProp.FOV; };
+		inline const void SetCameraFOVRadians(float verticalFovAngleRadians) { m_CameraProp.FOVRadians = verticalFovAngleRadians; RecalculateProjectionMatrix(); }
+		inline float GetCameraFOVRadians() const { return m_CameraProp.FOVRadians; };
 
 		// 相机位置设置
 		inline void SetPosition(const glm::vec3& position) { m_CameraPosition = position; RecalculateViewMatrix(); };
@@ -49,7 +49,7 @@ namespace Ayin{
 
 		inline const glm::mat4& GetRotationMatrix() const {
 			//toMat4内部的旋转顺序是不可指定的，所以达不到我们的Rx*Ry*Rz
-			//x glm::toMat4(glm::quat{ glm::radians(m_CameraRotation) });
+			//x glm::toMat4(glm::quat{ m_CameraRotation });
 			/*
 			{
 				//四元数合成
@@ -61,9 +61,9 @@ namespace Ayin{
 			}
 			{
 				//矩阵合成
-				glm::mat4 pitch = glm::rotate(glm::identity<glm::mat4>(), glm::radians(Rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-				glm::mat4 yaw = glm::rotate(glm::identity<glm::mat4>(), glm::radians(Rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-				glm::mat4 roll = glm::rotate(glm::identity<glm::mat4>(), glm::radians(Rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+				glm::mat4 pitch = glm::rotate(glm::identity<glm::mat4>(), Rotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
+				glm::mat4 yaw = glm::rotate(glm::identity<glm::mat4>(), Rotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
+				glm::mat4 roll = glm::rotate(glm::identity<glm::mat4>(), Rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
 				rotation = pitch * yaw * roll;
 			}
 			{
@@ -72,7 +72,7 @@ namespace Ayin{
 			}
 			*/
 
-			return glm::eulerAngleXYZ(glm::radians(m_CameraRotation.x), glm::radians(m_CameraRotation.y), glm::radians(m_CameraRotation.z));
+			return glm::eulerAngleXYZ(m_CameraRotation.x, m_CameraRotation.y, m_CameraRotation.z);
 
 		};
 
@@ -110,7 +110,7 @@ namespace Ayin{
 		glm::vec3 m_CameraPosition = { 0.0f, 0.0f, 1.0f };						// 位置
 		glm::vec3 m_CameraRotation = { 0.0f, 0.0f, 0.0f };						// 角度
 
-		float m_CameraTranslateSpeed = 1.0f, m_CameraRotationSpeed = 120.0f;
+		float m_CameraTranslateSpeed = 1.0f, m_CameraRotationSpeedRadians = glm::radians(120.0f);
 
 	};
 

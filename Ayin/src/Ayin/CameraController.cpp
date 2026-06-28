@@ -19,7 +19,7 @@ namespace Ayin{
 		CameraController::CameraController(const CameraProp& cameraProp)
 			: m_CameraProp{cameraProp}
 		{
-			AYIN_ERROR("Now FOV: {0}", m_CameraProp.FOV);
+			AYIN_ERROR("Now FOV: {0}", m_CameraProp.FOVRadians);
 
 			// 设置相机状态
 			RecalculateViewMatrix();
@@ -56,7 +56,7 @@ namespace Ayin{
 
 			glm::mat4 rotation{ 1.0f };
 
-			//x glm::mat4 rotation = glm::toMat4(glm::quat{ glm::radians(m_CameraRotation) });
+			//x glm::mat4 rotation = glm::toMat4(glm::quat{ m_CameraRotation });
 			/*
 			{
 				//四元数合成
@@ -68,15 +68,15 @@ namespace Ayin{
 			}
 			{
 				//矩阵合成
-				glm::mat4 pitch = glm::rotate(glm::identity<glm::mat4>(), glm::radians(m_CameraRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-				glm::mat4 yaw = glm::rotate(glm::identity<glm::mat4>(), glm::radians(m_CameraRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-				glm::mat4 roll = glm::rotate(glm::identity<glm::mat4>(), glm::radians(m_CameraRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+				glm::mat4 pitch = glm::rotate(glm::identity<glm::mat4>(), m_CameraRotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
+				glm::mat4 yaw = glm::rotate(glm::identity<glm::mat4>(), m_CameraRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
+				glm::mat4 roll = glm::rotate(glm::identity<glm::mat4>(), m_CameraRotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
 				rotation = pitch * yaw * roll;
 			}
 			*/
 			{
 				//glm实验性方法
-				rotation = glm::eulerAngleXYZ(glm::radians(m_CameraRotation.x), glm::radians(m_CameraRotation.y), glm::radians(m_CameraRotation.z));
+				rotation = glm::eulerAngleXYZ(m_CameraRotation.x, m_CameraRotation.y, m_CameraRotation.z);
 			}
 
 			glm::mat4 transform = glm::translate(glm::identity<glm::mat4>(), m_CameraPosition) * rotation;
@@ -109,7 +109,7 @@ namespace Ayin{
 			case(Camera::CameraType::Perspective): {
 
 				m_ProjectionMatrix = glm::perspective(
-					glm::radians(m_CameraProp.FOV),
+					m_CameraProp.FOVRadians,
 					m_CameraProp.AspectRatio,
 					m_CameraProp.NearPlaneDistance,
 					m_CameraProp.FarPlaneDistance);
@@ -242,7 +242,7 @@ namespace Ayin{
 			//死区半径
 			if (glm::length(rotation) > 50.0f) {
 
-				m_CameraRotation -= glm::normalize(rotation) * m_CameraRotationSpeed  * float(deltaTime);
+				m_CameraRotation -= glm::normalize(rotation) * m_CameraRotationSpeedRadians  * float(deltaTime);
 
 				SetRotation(m_CameraRotation);
 

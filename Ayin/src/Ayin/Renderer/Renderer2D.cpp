@@ -19,7 +19,7 @@ namespace Ayin {
 	struct Quad {
 
 		glm::vec3 Position;
-		glm::vec3 Rotation;
+		glm::vec3 RotationRadians;
 		glm::vec3 Size;
 		glm::vec4 Color = glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f };
 
@@ -96,7 +96,7 @@ namespace Ayin {
 		s_Data.QuadBatchBuffer = VertexBuffer::Create(Renderer2D_Data::MaxQuads * sizeof(Quad));
 		s_Data.QuadBatchBuffer->SetLayout(BufferLayout{
 			BufferElement {2, ShaderDataType::Float3, "a_Position"},
-			BufferElement {3, ShaderDataType::Float3, "a_Rotation"},
+			BufferElement {3, ShaderDataType::Float3, "a_RotationRadians"},
 			BufferElement {4, ShaderDataType::Float3, "a_Size"},
 			BufferElement {5, ShaderDataType::Float4, "a_Color"},
 			BufferElement {6, ShaderDataType::Float2, "a_TilingFactor"},
@@ -193,7 +193,7 @@ namespace Ayin {
 
 	}
 
-	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& size, const glm::vec4& color) {
+	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec3& rotationRadians, const glm::vec3& size, const glm::vec4& color) {
 	
 		if (s_Data.QuadCount >= s_Data.MaxQuads)
 			Flush();
@@ -202,7 +202,7 @@ namespace Ayin {
 		//! 所以内存中是遗留着旧数据的，如果我们在设置时设置全部数据那就有可能使用到旧的值
 		// 数据设置
 		s_Data.QuadBatchBufferPtr->Position = position;
-		s_Data.QuadBatchBufferPtr->Rotation = rotation;
+		s_Data.QuadBatchBufferPtr->RotationRadians = rotationRadians;
 		s_Data.QuadBatchBufferPtr->Size = size;
 		s_Data.QuadBatchBufferPtr->Color = color;
 		s_Data.QuadBatchBufferPtr->TilingFactor = glm::vec3{1.0f, 1.0f, 1.0f};
@@ -217,7 +217,7 @@ namespace Ayin {
 
 	};
 
-	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& size, const Ref<Texture2D>& texture, const glm::vec2& tilingFactor) {
+	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec3& rotationRadians, const glm::vec3& size, const Ref<Texture2D>& texture, const glm::vec2& tilingFactor) {
 		
 		if (s_Data.QuadCount >= s_Data.MaxQuads)
 			Flush();
@@ -245,7 +245,7 @@ namespace Ayin {
 
 		// 数据设置
 		s_Data.QuadBatchBufferPtr->Position = position;
-		s_Data.QuadBatchBufferPtr->Rotation = rotation;
+		s_Data.QuadBatchBufferPtr->RotationRadians = rotationRadians;
 		s_Data.QuadBatchBufferPtr->Size = size;
 		s_Data.QuadBatchBufferPtr->Color = glm::vec4{1.0f, 1.0f, 1.0f, 1.0f};
 		s_Data.QuadBatchBufferPtr->TilingFactor = tilingFactor;

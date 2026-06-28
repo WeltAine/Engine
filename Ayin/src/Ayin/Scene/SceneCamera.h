@@ -31,7 +31,7 @@ namespace Ayin {
 		inline const CameraProp& GetCameraProp() const { return m_CameraProp;};
 
 		inline void SetCameraSize(int width, int height) { m_CameraProp.AspectRatio = (float)width / (float)height; RecalculateProjectionMatrix(); };
-		inline void SetCameraFOV(float angle) { m_CameraProp.FOV = angle; RecalculateProjectionMatrix();};
+		inline void SetCameraFOVRadians(float angleRadians) { m_CameraProp.FOVRadians = angleRadians; RecalculateProjectionMatrix();};
 
 		inline void SetCameraZoomLevel(float zoomLevel) { m_ZoomLevel = std::clamp(zoomLevel, 0.25f, 1.0f); };
 		inline float GetCameraZoomLevel() const { return m_ZoomLevel; };

@@ -208,6 +208,8 @@ namespace Ayin{
 
 		if (childUUID == 0) return;
 
+		glm::mat4 oldChildWorldMatrix = child.GetWorldTransform();
+
 
 
 		// ---------------------关系清理----------------------
@@ -235,8 +237,7 @@ namespace Ayin{
 			
 			TransformComponent& transform = child.GetComponents<TransformComponent>();
 
-			glm::mat4 childWorldMatrix = child.GetWorldTransform();
-			auto [position, rotation, scale] = Math::DecomposeTransform(childWorldMatrix);
+			auto [position, rotation, scale] = Math::DecomposeTransform(oldChildWorldMatrix);
 			transform.Position = position;
 			transform.Rotation = rotation;
 			transform.Scale = scale;
@@ -517,9 +518,9 @@ namespace Ayin{
 				auto [position, rotation, scale] = Ayin::Math::DecomposeTransform(entity.GetWorldTransform());
 
 				if (sprite.Texture2D.get() == nullptr)
-					Renderer2D::DrawQuad(position, glm::degrees(rotation), scale, sprite.Color);
+					Renderer2D::DrawQuad(position, rotation, scale, sprite.Color);
 				else
-					Renderer2D::DrawQuad(position, glm::degrees(rotation), scale, sprite.Texture2D);
+					Renderer2D::DrawQuad(position, rotation, scale, sprite.Texture2D);
 
 			}
 
@@ -567,9 +568,9 @@ namespace Ayin{
 				auto [position, rotation, scale] = Ayin::Math::DecomposeTransform(entity.GetWorldTransform());
 
 				if (sprite.Texture2D.get() == nullptr)
-					Renderer2D::DrawQuad(position, glm::degrees(rotation), scale, sprite.Color);
+					Renderer2D::DrawQuad(position, rotation, scale, sprite.Color);
 				else
-					Renderer2D::DrawQuad(position, glm::degrees(rotation), scale, sprite.Texture2D);
+					Renderer2D::DrawQuad(position, rotation, scale, sprite.Texture2D);
 
 			}
 

@@ -15,7 +15,7 @@ static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);//没帧初始颜
 
 
 EditorLayer::EditorLayer()
-	:Ayin::Layer("SandBox2DLayer"), m_EditorCamera{ 2.0f, 1280.0f / 720, 60.0f, 0.1f, 100.0f }
+	:Ayin::Layer("SandBox2DLayer"), m_EditorCamera{ 2.0f, 1280.0f / 720, glm::radians(60.0f), 0.1f, 100.0f }
 {
 };
 
@@ -34,15 +34,6 @@ void EditorLayer::OnAttach() {
 
 	NewScene();
 
-	{
-		Ayin::Entity parent = m_ActiveScene->CreateEntity("ParentEntity");
-		Ayin::Entity child = m_ActiveScene->CreateEntity("ChildEntity");
-
-		parent.GetComponents<Ayin::TransformComponent>().Position = { -1.0f, 0.0f, 0.0f };
-		child.GetComponents<Ayin::TransformComponent>().Position = { 1.0f, 0.0f, 0.0f };
-
-		m_ActiveScene->SetParent(child, parent, false);
-	}
 
 	//场景测试
 	{
@@ -50,11 +41,24 @@ void EditorLayer::OnAttach() {
 		entity.AddComponent<Ayin::SpriteRendererComponent>().SetTexture(testTexturePath);
 	}
 
+	{// 父子关系测试
+		Ayin::Entity parent = m_ActiveScene->CreateEntity("ParentEntity");
+		Ayin::Entity child = m_ActiveScene->CreateEntity("ChildEntity");
+
+		parent.AddComponent<Ayin::SpriteRendererComponent>().Color = glm::vec4{0.84f, 0.15f, 0.15f, 0.6f};
+		child.AddComponent<Ayin::SpriteRendererComponent>().Color = glm::vec4{ 0.27f, 0.57f, 0.4f, 0.52f };
+
+		parent.GetComponents<Ayin::TransformComponent>().Position = { -1.0f, 0.0f, 0.0f };
+		child.GetComponents<Ayin::TransformComponent>().Position = { 1.0f, 0.0f, 0.0f };
+
+		m_ActiveScene->SetParent(child, parent, false);
+	}
+
 
 	{
 		Ayin::Entity entity = m_ActiveScene->CreateEntity();
 		auto& transform = entity.GetComponents<Ayin::TransformComponent>();
-		transform = Ayin::TransformComponent{ glm::vec3{ 0.0f, 0.0f, 5.0f }, glm::vec3{ 0.0f, 0.0f, 60.0f }, glm::vec3{ 1.0f, 1.0f, 1.0f } };
+		transform = Ayin::TransformComponent{ glm::vec3{ 0.0f, 0.0f, 5.0f }, glm::vec3{ 0.0f, 0.0f, glm::radians(60.0f) }, glm::vec3{ 1.0f, 1.0f, 1.0f } };
 		auto& sprite = entity.AddComponent<Ayin::SpriteRendererComponent>();
 		sprite.Color = { glm::vec4{ 0.8f, 0.2f, 0.5f, 0.5f } };
 	}
@@ -194,7 +198,7 @@ void EditorLayer::OnImGuiRender() {
 				if (glm::all(glm::isfinite(positiong)) && glm::all(glm::isfinite(rotation)) && glm::all(glm::isfinite(scale))) {
 
 					selectedEntityTransform.Position = positiong;
-					selectedEntityTransform.Rotation = glm::degrees(rotation);
+					selectedEntityTransform.Rotation = rotation;
 					//x selectedEntityTransform.Scale += (scale / selectedEntityTransform.Scale) - glm::vec3{ 1.0f, 1.0f, 1.0f };（有bug，而且易触发）
 					selectedEntityTransform.Scale = scale;
 

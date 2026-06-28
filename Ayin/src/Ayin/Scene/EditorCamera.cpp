@@ -20,13 +20,13 @@ namespace Ayin {
 
 	
 	EditorCamera::EditorCamera(float height, float aspect, float fov, float nearPlane, float farPlane)
-		:BaseHeight(height), BaseFOV(fov), minFOVZoom(BaseFOV / 150.0f)
+		:BaseHeight(height), BaseFOVRadians(fov), minFOVZoomFromRadians(BaseFOVRadians / glm::radians(150.0f))
 	{
 	
 		m_Orientation = glm::quatLookAt(glm::normalize(-m_Position), glm::vec3{ 0.0f, 1.0f, 0.0f });
 
 		m_CameraProp.Height = BaseHeight;
-		m_CameraProp.FOV = BaseFOV;
+		m_CameraProp.FOVRadians = BaseFOVRadians;
 
 		m_CameraProp.AspectRatio = aspect;
 
@@ -92,7 +92,7 @@ namespace Ayin {
 		};
 		case(Camera::CameraType::Perspective): {
 		
-			m_ZoomLevel = BaseFOV / m_CameraProp.FOV;
+			m_ZoomLevel = BaseFOVRadians / m_CameraProp.FOVRadians;
 			break;
 
 		}
@@ -125,8 +125,8 @@ namespace Ayin {
 
 		glm::vec3 localRight = m_Orientation * glm::vec3{ 1.0f, 0.0f, 0.0f };
 
-		glm::quat pitch = glm::angleAxis(glm::radians(-deltaRotation.y * m_RotateSpeed), localRight);		//绕局部X轴旋转
-		glm::quat yaw = glm::angleAxis(glm::radians(-deltaRotation.x * m_RotateSpeed), glm::vec3{ 0.0f, 1.0f, 0.0f });		//绕全局Y轴旋转
+		glm::quat pitch = glm::angleAxis(-deltaRotation.y * m_RotateSpeed, localRight);		//绕局部X轴旋转
+		glm::quat yaw = glm::angleAxis(-deltaRotation.x * m_RotateSpeed, glm::vec3{ 0.0f, 1.0f, 0.0f });		//绕全局Y轴旋转
 
 		m_Orientation = glm::normalize(yaw * pitch * m_Orientation);
 		//所以这并没有避开万向死锁，不过也没关系
@@ -147,9 +147,9 @@ namespace Ayin {
 		}
 		else {
 
-			m_ZoomLevel = std::max(m_ZoomLevel, minFOVZoom);//确保放大不要超过150°
+			m_ZoomLevel = std::max(m_ZoomLevel, minFOVZoomFromRadians);//确保放大不要超过150°
 			
-			m_CameraProp.FOV = std::clamp(BaseFOV / m_ZoomLevel, 1.0f, 150.0f);
+			m_CameraProp.FOVRadians = std::clamp(BaseFOVRadians / m_ZoomLevel, glm::radians(1.0f), glm::radians(150.0f));
 		
 		}
 
@@ -182,7 +182,7 @@ namespace Ayin {
 			};
 			case(Camera::CameraType::Perspective): {
 
-				m_ProjectionMatrix = glm::perspective(glm::radians(m_CameraProp.FOV), m_CameraProp.AspectRatio, m_CameraProp.NearPlaneDistance, m_CameraProp.FarPlaneDistance);
+				m_ProjectionMatrix = glm::perspective(m_CameraProp.FOVRadians, m_CameraProp.AspectRatio, m_CameraProp.NearPlaneDistance, m_CameraProp.FarPlaneDistance);
 				break;
 
 			};		
