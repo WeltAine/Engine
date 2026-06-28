@@ -23,7 +23,9 @@ namespace Ayin {
 
 		auto drawEntities = [&]() {
 			for (Entity& entity : entitys) {
-				DrawEntityNode(entity);
+
+				if(!entity.GetParent())	// 根实体
+					DrawEntityNode(entity);
 			}
 		};
 
@@ -59,11 +61,13 @@ namespace Ayin {
 			// 正常态：场景名直接作 TreeNode label，保留 SpanFullWidth 实现整行高亮
 			bool open = ImGui::TreeNodeEx(m_Scene->GetName().c_str(), sceneFlags);
 
-			if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0)) {
+			// 检查是否对场景进行编辑
+			if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0)) {// 悬浮且双击切换状态
 				m_EditingSceneName = true;
 				strncpy(m_SceneNameBuffer, m_Scene->GetName().c_str(), sizeof(m_SceneNameBuffer) - 1);
 			}
 
+			// 如果场景节点展开
 			if (open) {
 				drawEntities();
 				ImGui::TreePop();
@@ -71,6 +75,7 @@ namespace Ayin {
 
 		}
 
+		// 相比于ImGui::BeginPopup，这个则是通过鼠标活动来打开弹窗
 		if (ImGui::BeginPopupContextWindow(nullptr, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
 		{
 
@@ -97,11 +102,17 @@ namespace Ayin {
 		
 		TagComponent tag = node.GetComponents<TagComponent>();
 
-		bool isOpen = (node == m_SelectedEntity || node == m_HoveredEntity);
-		ImGuiTreeNodeFlags nodeFlags = m_LeafNodeFlags | ((isOpen) ? ImGuiTreeNodeFlags_Selected : 0);
+		bool isHightLight = (node == m_SelectedEntity || node == m_HoveredEntity);
+		
+		std::vector<Entity> childEntities = node.GetChilds();
+		ImGuiTreeNodeFlags nodeFlags = (childEntities.empty() ? m_LeafNodeFlags : m_ParentNodeFlags) | ((isHightLight) ? ImGuiTreeNodeFlags_Selected : 0);
 
-		ImGui::TreeNodeEx(tag.Name.data(), nodeFlags);
+		//! 支持重名 Entity
+		std::string label = fmt::format("{}##{}", tag.Name, node.GetComponents<IDComponent>().ID);
+		bool open = ImGui::TreeNodeEx(label.c_str(), nodeFlags);	//  open 表示节点处于打开/可提交子内容状态；但带 NoTreePushOnOpen 的叶子节点不会 push tree stack
 
+		//! 关于 Item 的相关接口，我们提到前面了，因为这些接口中的 Item 是什么，取决于此前 ImGui 绘制指令中提交的最后一个 Item
+		//! 如果放到递归之后，那么可能出现 此时检测的 Item 并非这个函数栈帧中绘制的那个节点
 		if (ImGui::IsItemHovered()) {
 			m_HoveredEntity = node;
 		}
@@ -110,11 +121,16 @@ namespace Ayin {
 			m_SelectedEntity = node;
 		}
 
+		bool isDelete = false;
+
 		if (ImGui::BeginPopupContextItem()) {
+
 
 			if (ImGui::MenuItem("Delete Entity")) {
 
-				if (node == m_SelectedEntity) {
+				isDelete = true;
+
+				if (node == m_SelectedEntity || m_Scene->IsDescendant(m_SelectedEntity, node)) {// 选中的节点也被删了
 					m_SelectedEntity = {};
 				}
 
@@ -124,6 +140,21 @@ namespace Ayin {
 
 			ImGui::EndPopup();
 
+		}
+
+		if (isDelete) {
+			if (open && !childEntities.empty())
+				ImGui::TreePop();
+
+			return;
+		}
+
+		//! 真展开了一定 open，但是 open 不代表一定展开（叶子节点不压入缩进）
+		if (open && !childEntities.empty()) {
+			for(auto& child : childEntities)
+				DrawEntityNode(child);
+
+			ImGui::TreePop();
 		}
 
 	};

@@ -95,7 +95,7 @@ namespace Ayin {
 			ImVec2(0.5f, 0.5f)                      // 轴心：(0.5,0.5) = 以窗口自身中心对齐目标点
 		);
 
-		//BeginPopup 即使返回 false，内部也走了 Begin() → 立即 End() 的路径。这个 Begin() 里会消费 NextWindowData
+		//BeginPopup 即使返回 false，内部也走了 Begin() → 立即 End() 的路径。这个 Begin() 里会消费 NextWindowData，所以不但行之前的位置设置泄露或者说污染出去
 		if (!ImGui::BeginPopup("AddComponentSearch")) {
 			return;
 		}

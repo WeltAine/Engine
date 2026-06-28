@@ -34,6 +34,16 @@ void EditorLayer::OnAttach() {
 
 	NewScene();
 
+	{
+		Ayin::Entity parent = m_ActiveScene->CreateEntity("ParentEntity");
+		Ayin::Entity child = m_ActiveScene->CreateEntity("ChildEntity");
+
+		parent.GetComponents<Ayin::TransformComponent>().Position = { -1.0f, 0.0f, 0.0f };
+		child.GetComponents<Ayin::TransformComponent>().Position = { 1.0f, 0.0f, 0.0f };
+
+		m_ActiveScene->SetParent(child, parent, false);
+	}
+
 	//场景测试
 	{
 		auto&& entity = m_ActiveScene->CreateEntity("TextureEntity");
@@ -155,11 +165,13 @@ void EditorLayer::OnImGuiRender() {
 		ImGui::SetNextWindowViewport(ImGui::GetMainViewport()->ID);
 		ImGuizmo::BeginFrame();
 
-		if(m_SceneHierarchyPanel.GetSelectedEntity())
+
+		Ayin::Entity selectEntity = m_SceneHierarchyPanel.GetSelectedEntity();
+		if(selectEntity)
 		{
 			// 实体transform
+			glm::mat4 transform = selectEntity.GetWorldTransform();
 			Ayin::TransformComponent& selectedEntityTransform = const_cast<Ayin::Entity&>(m_SceneHierarchyPanel.GetSelectedEntity()).GetComponents<Ayin::TransformComponent>();
-			glm::mat4 transform = selectedEntityTransform;
 
 			//ImGuizmo显示配置
 			ImGuizmo::SetOrthographic((m_EditorCamera.GetCameraType() == Ayin::Camera::CameraType::Orthogonal) ? true : false);
@@ -176,7 +188,8 @@ void EditorLayer::OnImGuiRender() {
 
 			if (ImGuizmo::IsUsing()) {
 				
-				auto&&[positiong, rotation, scale] = Ayin::Math::DecomposeTransform(transform);
+				Ayin::Entity parent = selectEntity.GetParent();
+				auto&&[positiong, rotation, scale] = Ayin::Math::DecomposeTransform(glm::inverse(parent.GetWorldTransform()) * transform);
 
 				if (glm::all(glm::isfinite(positiong)) && glm::all(glm::isfinite(rotation)) && glm::all(glm::isfinite(scale))) {
 
