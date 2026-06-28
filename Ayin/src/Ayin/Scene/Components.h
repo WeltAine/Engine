@@ -95,6 +95,43 @@ namespace Ayin {
 	AYIN_COMPONENTUI(TagComponent, TagComponent::OnGui);
 
 
+
+	// ---------- 父子关系组件-----------
+
+	struct RelationShipComponent {
+
+		uint64_t ParentUUID;				// 父节点UUID
+		std::vector<uint64_t> ChildrenUUID;	// 子节点UUID
+
+
+		RelationShipComponent() 
+			: ParentUUID{0}
+		{};
+
+		RelationShipComponent(uint64_t parentUUID, std::initializer_list<uint64_t> childrenUUID)
+			:ParentUUID{ parentUUID }, ChildrenUUID{ childrenUUID }
+		{}
+
+		RelationShipComponent(const RelationShipComponent& relationshipComponent) = default; 	//? 这个函数是否该存在存疑，因为两个实体不应该有相同的子对象，不过我们现在目前也没有关于实体复制的功能（随让它很实用，不过之后再说吧）
+
+		static ::entt::id_type ComponentStorageID() { return ::entt::type_hash<RelationShipComponent>::value(); };
+
+		struct glaze {
+
+			using T = RelationShipComponent;
+
+			static constexpr auto value = glz::object(
+				"ParentUUID", &T::ParentUUID,
+				"ChildrenUUID", &T::ChildrenUUID
+			);
+
+		};
+
+	};
+	AYIN_COMPONENT(RelationShipComponent);
+
+
+
 	// ----------Transform组件-----------
 	struct TransformComponent {
 		
