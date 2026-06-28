@@ -28,6 +28,17 @@ namespace Ayin {
 		Entity(const Entity& entity) = default;
 		~Entity() = default;
 
+		// ----------------世界或本地姿态矩阵------------------
+		glm::mat4 GetWorldTransform() const;
+		glm::mat4 GetLocalTransform() const;
+		// ----------------------------------------------------
+
+
+		Entity GetParent() const;
+		std::vector<Entity> GetChilds() const;
+
+		bool IsDescendantOf(const Entity& parent) const;
+
 
 		template<typename ComponentType, typename... Args>
 		ComponentType& AddComponent(Args&&... args);
@@ -51,6 +62,10 @@ namespace Ayin {
 		template<typename... ComponentTypes>
 		decltype(auto) GetComponents();
 
+		template<typename... ComponentTypes>
+		decltype(auto) GetComponents() const;
+
+
 
 		operator const entt::entity&() const { return m_EntityHandle; };
 
@@ -72,20 +87,16 @@ namespace Ayin {
 	template<typename ComponentType, typename... Args>
 	ComponentType& Entity::AddComponent(Args&&... args) {
 
-
 		if (!HasComponents<ComponentType>()) {
 
 			//通过模板来自动根据组件的前置组件类型需求，生成模板
 			if constexpr (HasRequirements<ComponentType>) {
-
 				AddDependencies(typename ComponentType::Requires{});
-
 			}
 
 			return m_Scene->m_Registry.emplace<ComponentType>(m_EntityHandle, std::forward<Args>(args)...);
 
 		}
-
 
 		return GetComponents<ComponentType>();
 
@@ -140,7 +151,34 @@ namespace Ayin {
 			// 多个组件：构造一个装满引用的 tuple 并按值返回
 		}
 
+		//! if constexpr：编译期分支，在编译时只有有一个分支留下
+		//! 所以这里不会遇到 auto 限制（各种情况的返回指类型要求一致）
+
 	};
 
+	template<typename... ComponentTypes>
+	decltype(auto) Entity::GetComponents() const {
+
+		//这是 C++ 标准委员会定义的硬性规则。对于 decltype(e)，推导结果如下：
+		//	如果 e 是一个普通的变量名，推导结果就是该变量定义的类型。
+		//	如果 e 是一个表达式，且 e 产生一个左值（lvalue），推导结果就是 T & 。
+		//	如果 e 产生一个右值（prvalue，如临时值），推导结果就是 T。
+
+		AYIN_CORE_ASSERT(HasComponents<ComponentTypes...>(),
+			"Entity does not have all requested components!");
+
+		if constexpr (sizeof...(ComponentTypes) == 1u) {
+			// 最终是一个表达式，且为左值，返回T&
+			return *(m_Scene->m_Registry.try_get<ComponentTypes...>(m_EntityHandle));
+			// 单个组件：直接解引用指针，返回引用 (T&)
+		}
+		else {
+			// 最终是一个表达式，但结果非左值而是产生右值，所以返回T
+			// std::forward_as_tuple会将参数通过完美转发转进行转换并组合成tuple，显然参数是左值（指针），所以产生的tuple以T&为元素
+			return std::forward_as_tuple(*(m_Scene->m_Registry.try_get<ComponentTypes>(m_EntityHandle))...);
+			// 多个组件：构造一个装满引用的 tuple 并按值返回
+		}
+
+	};
 
 }

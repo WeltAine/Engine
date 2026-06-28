@@ -23,9 +23,23 @@ namespace Ayin {
 		Scene() = default;
 		~Scene() = default;
 
-		Entity CreateEntity(const std::string& name = "Entity");
-		void DestroyEntity(const Entity& entity);
+		Entity CreateUUIDEntity();
 
+		Entity CreateEntity(const std::string& name = "Entity");
+		void DestroyEntity(Entity& entity);
+
+		Entity FindEntityByUUID(uint64_t UUID) const;
+
+		// ----------------------------父子关系接口------------------------------------
+		void SetParent(Entity& child, Entity& parent, bool keepWorldTransform);
+		void UnParent(Entity& child, bool keepWorldTransform);
+
+		Entity GetParent(const Entity& child) const;
+		std::vector<Entity> GetChilds(const Entity& parent) const;
+
+		// 是否是后代
+		bool IsDescendant(const Entity& entity, const Entity& parent) const;
+		// ----------------------------------------------------------------------------
 		void OnUpdateRuntime(Timestep deltaTime);
 		void OnUpdateEditor(Timestep deltaTime, EditorCamera& editorCamera);
 
@@ -62,5 +76,17 @@ namespace Ayin {
 
 	};
 
+
+}
+
+namespace Ayin {
+
+	namespace Utils {
+
+		bool IsUUIDUnused(uint64_t globalUniqueID);
+
+		bool IsUUIDAlive(uint64_t globalUniqueID);
+
+	}
 
 }
