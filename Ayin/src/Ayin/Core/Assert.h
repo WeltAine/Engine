@@ -44,15 +44,17 @@
 		AYIN##type##ERROR("Assertion Failed: " msg __VA_OPT__(,)__VA_ARGS__); \
 		AYIN_DEBUGBREAK(); \
 	}
+	// C/C++ 里相邻的字符串字面量会在编译期自动拼接。
 
-	// 提取宏
+	// 提取宏（提取第一个宏）
 #define AYIN_GET_MACRO(macro, ...) macro
 
+	//__VA_OPT__(东西) 的条件是：当前这个可变参数宏里的 __VA_ARGS__ 是否“真的传了内容”
 #define AYIN_ASSERT(condition, ...) \
-	AYIN_GET_MACRO(__VA_OPT__(AYIN_ASSERT_WITH_MSG,) AYIN_ASSERT_NO_MSG, __VA_ARGS__)(_, condition, __VA_ARGS__)
+	AYIN_GET_MACRO(__VA_OPT__(AYIN_ASSERT_WITH_MSG,) AYIN_ASSERT_NO_MSG)(_, condition __VA_OPT__(,)__VA_ARGS__)
 
 #define AYIN_CORE_ASSERT(condition, ...) \
-	AYIN_GET_MACRO(__VA_OPT__(AYIN_ASSERT_WITH_MSG, ) AYIN_ASSERT_NO_MSG, __VA_ARGS__)(_CORE_, condition, __VA_ARGS__)
+	AYIN_GET_MACRO(__VA_OPT__(AYIN_ASSERT_WITH_MSG,) AYIN_ASSERT_NO_MSG)(_CORE_, condition __VA_OPT__(,)__VA_ARGS__)
 
 #else
 
