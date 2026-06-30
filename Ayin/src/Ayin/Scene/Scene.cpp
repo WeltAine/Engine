@@ -600,12 +600,7 @@ namespace Ayin{
 		if (!entity || entity.m_Scene != this)
 			return;
 
-		auto it = std::ranges::find(m_DestroyEntities, entity);
-
-		if (it == m_DestroyEntities.end()) {
-			m_DestroyEntities.insert(entity);
-			return;
-		}
+		m_DestroyEntities.insert((entt::entity)entity);
 
 	};
 
@@ -640,14 +635,17 @@ namespace Ayin{
 
 	void Scene::FlushDestroyedEntities() {
 
-		//! set / unordered_set 的元素本身就是“用于排序或哈希定位的 key”
-		//! key 不能被随便修改，否则哈希位置可能失效，所以遍历 unordered_set<Entity> 时拿到的通常是：const Entity&，而非 Entity&
-		//! 如果返回 Entity& entity ，那意味着你可能改掉影响哈希或相等判断的字段，容器内部结构就会坏掉。
-		std::ranges::for_each(m_DestroyEntities, [this](Entity entity) {
-			this->InternalDestroyEntity(entity);
-			});
+		auto pending = std::move(m_DestroyEntities);
+		m_DestroyEntities.clear();//对大多数 STL 实现，move 后的 unordered_set 通常会变空；但标准只说它还有效，不承诺具体内容。所以 clear 一下，乙方玩意
+		//! 当前要删除的实体放进 pending, m_DestroyEntities 立刻空出来
+		//! 如果 flush 过程中又有人调用 DestroyEntity()，新请求会进新的 m_DestroyEntities
+		//! 新请求不会干扰当前正在遍历的 pending
+		//! 新请求留到下一帧处理
 
-		m_DestroyEntities.clear();
+		for (entt::entity handle : pending) {
+			Entity entity{ handle, this };
+			InternalDestroyEntity(entity);
+		}
 
 	};
 

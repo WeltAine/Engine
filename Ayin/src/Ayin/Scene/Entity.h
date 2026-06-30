@@ -94,7 +94,6 @@ namespace Ayin {
 
 	struct EntityHash {
 
-		//x std::unordered_set<Entity, EntityHash> m_DestroyEntities{};
 		//! set 是排序树，而 unorderer_set 是哈希表，它会用到 hash 与 ==
 
 		size_t operator()(const Entity& entity) const noexcept {

@@ -12,7 +12,6 @@
 namespace Ayin {
 
 	class Entity;
-	struct EntityHash;
 
 	class AYIN_API Scene {
 
@@ -70,7 +69,7 @@ namespace Ayin {
 
 		std::shared_ptr<void> m_LifetimeToken = std::make_shared<int>(0);
 
-		std::unordered_set<Entity, EntityHash> m_DestroyEntities{};
+		std::unordered_set<entt::entity> m_DestroyEntities{};
 		//! set 是排序树，而 unorderer_set 是哈希表，它会用到 hash 与 ==
 
 	};

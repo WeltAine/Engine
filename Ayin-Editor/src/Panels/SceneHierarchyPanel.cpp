@@ -121,14 +121,9 @@ namespace Ayin {
 			m_SelectedEntity = node;
 		}
 
-		bool isDelete = false;
-
 		if (ImGui::BeginPopupContextItem()) {
 
-
 			if (ImGui::MenuItem("Delete Entity")) {
-
-				isDelete = true;
 
 				if (node == m_SelectedEntity || m_Scene->IsDescendant(m_SelectedEntity, node)) {// 选中的节点也被删了
 					m_SelectedEntity = {};
@@ -142,15 +137,8 @@ namespace Ayin {
 
 		}
 
-		if (isDelete) {
-			if (open && !childEntities.empty())
-				ImGui::TreePop();
-
-			return;
-		}
-
 		//! 真展开了一定 open，但是 open 不代表一定展开（叶子节点不压入缩进）
-		if (open && !childEntities.empty()) {
+		if (open && !(nodeFlags & ImGuiTreeNodeFlags_NoTreePushOnOpen)) {
 			for(auto& child : childEntities)
 				DrawEntityNode(child);
 
