@@ -28,7 +28,6 @@ namespace Ayin {
 		Entity CreateEntity(const std::string& name = "Entity");
 		void DestroyEntity(Entity& entity);
 
-		Entity FindEntityByUUID(uint64_t UUID) const;
 
 		// ----------------------------父子关系接口------------------------------------
 		void SetParent(Entity& child, Entity& parent, bool keepWorldTransform);
@@ -38,7 +37,8 @@ namespace Ayin {
 		std::vector<Entity> GetChilds(const Entity& parent) const;
 
 		// 是否是后代
-		bool IsDescendant(const Entity& entity, const Entity& parent) const;
+		static bool IsDescendant(const Entity& entity, const Entity& parent);
+
 		// ----------------------------------------------------------------------------
 		void OnUpdateRuntime(Timestep deltaTime);
 		void OnUpdateEditor(Timestep deltaTime, EditorCamera& editorCamera);
@@ -46,17 +46,22 @@ namespace Ayin {
 		// 根据展示窗口调整相机比例（是所有相机）
 		void OnViewportResize(int width, int height);
 
+		// ----------------------------------------------------------------------------
 		const std::string& GetName() const { return m_SceneName; }
 		void SetName(const std::string& name) { m_SceneName = name; }
 
 		template<typename... ComponentTypes, typename... ExcludeComponentTypes>
 		std::vector<Entity> GetEntitiesByComponents(entt::exclude_t<ExcludeComponentTypes...> = entt::exclude_t<ExcludeComponentTypes...>{});
 
+		Entity FindEntityByUUID(uint64_t UUID) const;
+
 
 	private:
 
 		entt::registry m_Registry;
 		std::string m_SceneName = "Untitled";
+
+		std::shared_ptr<void> m_LifetimeToken = std::make_shared<int>(0);
 
 	};
 

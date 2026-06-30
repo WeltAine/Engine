@@ -9,17 +9,31 @@ namespace Ayin {
 	Entity::Entity(Scene* scene) 
 		:m_Scene{scene}
 	{
-	
-		if (m_Scene != nullptr)
+		if (m_Scene != nullptr) {
 			m_EntityHandle = m_Scene->m_Registry.create();
+			m_SceneLifetime = m_Scene->m_LifetimeToken;
+		}
 
 	};
+
+	Entity::Entity(entt::entity entityHandle, Scene* scene)
+		:m_EntityHandle{ entityHandle }, m_Scene{ scene } 
+	{
+		if (m_Scene == nullptr) {
+			m_EntityHandle = ::entt::null;
+			return;
+		}
+
+		m_SceneLifetime = scene->m_LifetimeToken;
+	};
+
 
 	// ----------------世界或本地姿态矩阵------------------
 	glm::mat4 Entity::GetWorldTransform() const {
 
-		if(m_EntityHandle == ::entt::null)
+		if(m_EntityHandle == ::entt::null || m_SceneLifetime.expired())
 			return glm::mat4{ 1.0f };
+
 
 		if (!HasComponents<TransformComponent>())
 			return glm::mat4{1.0f};
@@ -45,6 +59,9 @@ namespace Ayin {
 
 	glm::mat4 Entity::GetLocalTransform() const {
 	
+		AYIN_CORE_ASSERT(!m_SceneLifetime.expired(), "Scene and entity resources missing");
+
+
 		if (!HasComponents<TransformComponent>())
 			return glm::mat4{ 1.0f };
 
@@ -56,21 +73,25 @@ namespace Ayin {
 
 	Entity Entity::GetParent() const {
 	
-		if (m_Scene && bool(*this)) return m_Scene->GetParent(*this);
-		return Entity{};
+		AYIN_CORE_ASSERT(!m_SceneLifetime.expired(), "Scene and entity resources missing");
+
+		return m_Scene->GetParent(*this);
 
 	};
 
 	std::vector<Entity> Entity::GetChilds() const {
 		
-		if (m_Scene && bool(*this)) return m_Scene->GetChilds(*this);
-		return std::vector<Entity>{};
+		AYIN_CORE_ASSERT(!m_SceneLifetime.expired(), "Scene and entity resources missing");
+
+		return m_Scene->GetChilds(*this);
 	
 	};
 
 
 	bool Entity::IsDescendantOf(const Entity& parent) const {
 	
+		AYIN_CORE_ASSERT(!m_SceneLifetime.expired(), "Scene and entity resources missing");
+
 		return m_Scene->IsDescendant(*this, parent);
 	
 	};
@@ -78,6 +99,9 @@ namespace Ayin {
 	
 
 	bool Entity::HasComponent(entt::id_type id) const {
+
+		AYIN_CORE_ASSERT(!m_SceneLifetime.expired(), "Scene and entity resources missing");
+
 
 		auto* componentPool = m_Scene->m_Registry.storage(id);
 
@@ -89,10 +113,15 @@ namespace Ayin {
 	};
 
 	void Entity::RemoveComponent(entt::id_type id) {
+
+		AYIN_CORE_ASSERT(!m_SceneLifetime.expired(), "Scene and entity resources missing");
+
+
 		auto* componentPool = m_Scene->m_Registry.storage(id);
 		if (componentPool) {
 			componentPool->remove(m_EntityHandle);
 		}
+
 	}
 	
 

@@ -18,13 +18,13 @@ namespace Ayin {
 
 	class AYIN_API Entity {
 
-		friend Scene;
+		friend class Scene;
 
 	public:
 
 		Entity() = default;
 		Entity(Scene* scene);
-		Entity(entt::entity entityHandle, Scene* scene) :m_EntityHandle{ entityHandle }, m_Scene{ scene } {};
+		Entity(entt::entity entityHandle, Scene* scene);
 		Entity(const Entity& entity) = default;
 		~Entity() = default;
 
@@ -67,18 +67,19 @@ namespace Ayin {
 
 
 
-		operator const entt::entity&() const { return m_EntityHandle; };
+		inline operator const entt::entity&() const { return m_EntityHandle; };
 
-		operator uint32_t() const { return (uint32_t)m_EntityHandle; };
-		operator bool() const { return m_EntityHandle != entt::null; }
+		inline operator uint32_t() const { return (uint32_t)m_EntityHandle; };
+		inline operator bool() const { return m_SceneLifetime.expired() ? false : m_Scene->m_Registry.valid(m_EntityHandle); }
 
-		inline bool operator == (const Entity& other) const { return m_EntityHandle == other.m_EntityHandle; };
+		inline bool operator == (const Entity& other) const { return m_Scene == other.m_Scene && m_EntityHandle == other.m_EntityHandle; };
 		inline bool operator != (const Entity& other) const { return !((*this) == other); };
 
 	private:
 		entt::entity m_EntityHandle{ entt::null };
 		
 		Scene* m_Scene = nullptr;
+		std::weak_ptr<void> m_SceneLifetime{};
 		
 	};
 
@@ -87,6 +88,9 @@ namespace Ayin {
 	template<typename ComponentType, typename... Args>
 	ComponentType& Entity::AddComponent(Args&&... args) {
 
+		AYIN_CORE_ASSERT(!m_SceneLifetime.expired(), "Scene and entity resources missing");
+
+		
 		if (!HasComponents<ComponentType>()) {
 
 			//通过模板来自动根据组件的前置组件类型需求，生成模板
@@ -97,7 +101,7 @@ namespace Ayin {
 			return m_Scene->m_Registry.emplace<ComponentType>(m_EntityHandle, std::forward<Args>(args)...);
 
 		}
-
+		
 		return GetComponents<ComponentType>();
 
 	};
@@ -115,8 +119,10 @@ namespace Ayin {
 	template<typename... ComponentTypes>
 	void Entity::RemoveComponents() {
 
-		AYIN_CORE_ASSERT(HasComponents<ComponentTypes...>(), "Entity doesn't have component!");
+		AYIN_CORE_ASSERT(!m_SceneLifetime.expired(), "Scene and entity resources missing");
 
+		
+		AYIN_CORE_ASSERT(HasComponents<ComponentTypes...>(), "Entity doesn't have component!");
 		m_Scene->m_Registry.remove<ComponentTypes...>(m_EntityHandle);
 
 	};
@@ -124,12 +130,17 @@ namespace Ayin {
 	template<typename... ComponentTypes>
 	bool Entity::HasComponents() const{
 
+		AYIN_CORE_ASSERT(!m_SceneLifetime.expired(), "Scene and entity resources missing");
+
 		return m_Scene->m_Registry.all_of<ComponentTypes...>(m_EntityHandle);
 
 	};
 
 	template<typename... ComponentTypes>
 	decltype(auto) Entity::GetComponents() {
+
+		AYIN_CORE_ASSERT(!m_SceneLifetime.expired(), "Scene and entity resources missing");
+
 
 		//这是 C++ 标准委员会定义的硬性规则。对于 decltype(e)，推导结果如下：
 		//	如果 e 是一个普通的变量名，推导结果就是该变量定义的类型。
@@ -158,6 +169,9 @@ namespace Ayin {
 
 	template<typename... ComponentTypes>
 	decltype(auto) Entity::GetComponents() const {
+
+		AYIN_CORE_ASSERT(!m_SceneLifetime.expired(), "Scene and entity resources missing");
+
 
 		//这是 C++ 标准委员会定义的硬性规则。对于 decltype(e)，推导结果如下：
 		//	如果 e 是一个普通的变量名，推导结果就是该变量定义的类型。

@@ -65,6 +65,8 @@ namespace Ayin {
 
 namespace Ayin{
 
+	// ----------------------------------------------------------------------------
+
 	Entity Scene::CreateUUIDEntity() {
 	
 		Entity entity{ this };
@@ -119,31 +121,21 @@ namespace Ayin{
 
 	}
 
-	Entity Scene::FindEntityByUUID(uint64_t UUID) const {
-	
-		auto UUIDView = m_Registry.view<IDComponent>();
-
-		for (auto&&[entity, IDComponent] : UUIDView.each()) {
-			
-			if (IDComponent.ID == UUID)
-				return Entity{ entity, const_cast<Scene*>(this) };
-		
-		}
-
-		return Entity{};
-	
-	};
-
 
 	// ----------------------------父子关系接口------------------------------------
 	void Scene::SetParent(Entity& child, Entity& parent, bool keepWorldTransform) {
 	
+		//Todo 或许该尝试支持跨场景
+		
 		// ---------------------安全守卫----------------------
+
+		if (child.m_Scene != this || parent.m_Scene != this) return;
 
 		uint64_t childUUID = child.GetComponents<IDComponent>().ID;
 		uint64_t parentUUID = parent.GetComponents<IDComponent>().ID;
 
-		if (childUUID == parentUUID || childUUID == 0 || parentUUID == 0) return;
+		// UUID 有效并且不充许跨场景设置
+		if (childUUID == parentUUID || childUUID == 0 || parentUUID == 0 ) return;
 
 		// 用 Add 确保一定存在 RelationShipComponent，并且提前，确保 DFS 不会崩溃
 		RelationShipComponent& childRelationShipComponent = child.AddComponent<RelationShipComponent>();
@@ -206,7 +198,7 @@ namespace Ayin{
 
 		uint64_t childUUID = child.GetComponents<IDComponent>().ID;
 
-		if (childUUID == 0) return;
+		if (childUUID == 0 || child.m_Scene != this) return;
 
 		glm::mat4 oldChildWorldMatrix = child.GetWorldTransform();
 
@@ -259,6 +251,7 @@ namespace Ayin{
 		if (!Utils::IsUUIDAlive(parentUUID))				//有对应关系组件但不是有效父节点
 			return Entity{};
 
+		// 该方法内部做了 entity 所属检测
 		return FindEntityByUUID(parentUUID);
 
 	};
@@ -269,6 +262,8 @@ namespace Ayin{
 			return std::vector<Entity>{};
 
 		RelationShipComponent& relationShipComponent = parent.GetComponents<RelationShipComponent>();
+
+		//! 当实体不属于场景时会返回一系列空实体。
 
 		std::vector<Entity> childs;
 		for (uint64_t UUID : relationShipComponent.ChildrenUUID) {
@@ -282,11 +277,11 @@ namespace Ayin{
 
 	};
 
-	bool Scene::IsDescendant(const Entity& entity, const Entity& parent) const{
+	bool Scene::IsDescendant(const Entity& entity, const Entity& parent){
 	
-		if (!entity || !parent) return false;
+		if (!entity || !parent || entity.m_Scene != parent.m_Scene) return false;
 
-		auto entityUUID = entity.GetComponents<IDComponent>().ID;
+		uint64_t entityUUID = entity.GetComponents<IDComponent>().ID;
 
 		if (!parent.HasComponents<RelationShipComponent>())
 			return false;
@@ -402,7 +397,9 @@ namespace Ayin{
 #pragma endregion
 
 		// DFS
-		auto DFS = [this, entityUUID](this auto& self, const Entity& _parent) -> bool {
+		Scene* scene = parent.m_Scene;
+
+		auto DFS = [scene, entityUUID](this auto& self, const Entity& _parent) -> bool {
 
 			if (!_parent) return false;
 
@@ -412,7 +409,7 @@ namespace Ayin{
 
 				for (auto UUID : relationShipComponent.ChildrenUUID) {
  
-					if (self(this->FindEntityByUUID(UUID))) return true;
+					if (self(scene->FindEntityByUUID(UUID))) return true;
 
 				}
 
@@ -424,9 +421,9 @@ namespace Ayin{
 
 	};
 
+
+
 	// ----------------------------------------------------------------------------
-
-
 
 	void Scene::OnUpdateRuntime(Timestep deltaTime) {
 	
@@ -588,6 +585,24 @@ namespace Ayin{
 		for (auto&& [_, cameraComponent] : view.each()) {
 			cameraComponent.Camera.SetCameraSize(width, height);
 		}
+
+	};
+
+
+	// ----------------------------------------------------------------------------
+
+	Entity Scene::FindEntityByUUID(uint64_t UUID) const {
+
+		auto UUIDView = m_Registry.view<IDComponent>();
+
+		for (auto&& [entity, IDComponent] : UUIDView.each()) {
+
+			if (IDComponent.ID == UUID)
+				return Entity{ entity, const_cast<Scene*>(this) };
+
+		}
+
+		return Entity{};//不存在或者不属于这个Scene
 
 	};
 
