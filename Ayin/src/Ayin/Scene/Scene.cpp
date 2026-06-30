@@ -99,28 +99,9 @@ namespace Ayin{
 
 	void Scene::DestroyEntity(Entity& entity) {
 
-		if (entity.HasComponents<RelationShipComponent>()) {
-
-			RelationShipComponent& relationShipComponent = entity.GetComponents<RelationShipComponent>();
-		
-			UnParent(entity, false);
-
-			//递归处理子节点
-			auto childrenUUID = relationShipComponent.ChildrenUUID;	//! 因为 DestroyEntity 会对组件中的数组进行修改，所以直接对着组件数据迭代会发生边修改边迭代的情况
-			for (auto UUID : childrenUUID) {
-				Entity child = FindEntityByUUID(UUID);
-				DestroyEntity(child);
-			}
-
-		}
-
-		
-		s_GlobalUniqueIDSet.erase(entity.GetComponents<IDComponent>().ID);
-		m_Registry.destroy(entity.m_EntityHandle);
-		entity = {};
+		SubmitEntityDestroy(entity);
 
 	}
-
 
 	// ----------------------------父子关系接口------------------------------------
 	void Scene::SetParent(Entity& child, Entity& parent, bool keepWorldTransform) {
@@ -432,6 +413,9 @@ namespace Ayin{
 		//x 	CameraSystem::OnUpdate(m_Registry);
 		//x }
 
+		// 延迟删除
+		FlushDestroyedEntities();
+
 		// 脚本初始化（挂在实际脚本）、更新
 		{
 			m_Registry.view<NativeScriptComponent>().each([=](entt::entity entity, NativeScriptComponent& nsc) {
@@ -530,6 +514,9 @@ namespace Ayin{
 	void Scene::OnUpdateEditor(Timestep deltaTime, EditorCamera& editorCamera) {
 		
 
+		// 延迟删除
+		FlushDestroyedEntities();
+
 		// 渲染更新
 		{
 
@@ -603,6 +590,64 @@ namespace Ayin{
 		}
 
 		return Entity{};//不存在或者不属于这个Scene
+
+	};
+
+
+	// ----------------------------------------------------------------------------
+	void Scene::SubmitEntityDestroy(const Entity& entity) {
+		
+		if (!entity || entity.m_Scene != this)
+			return;
+
+		auto it = std::ranges::find(m_DestroyEntities, entity);
+
+		if (it == m_DestroyEntities.end()) {
+			m_DestroyEntities.insert(entity);
+			return;
+		}
+
+	};
+
+	void Scene::InternalDestroyEntity(Entity& entity) {
+
+		if (!entity || entity.m_Scene != this) return;// 防止父子同帧入队，以及不属于本场景的有效实体
+
+		if (entity.HasComponents<RelationShipComponent>()) {
+
+			RelationShipComponent& relationShipComponent = entity.GetComponents<RelationShipComponent>();
+
+			UnParent(entity, false);
+
+			//递归处理子节点
+			auto childrenUUID = relationShipComponent.ChildrenUUID;	//! 因为 DestroyEntity 会对组件中的数组进行修改，所以直接对着组件数据迭代会发生边修改边迭代的情况
+			for (auto UUID : childrenUUID) {
+				Entity child = FindEntityByUUID(UUID);
+				InternalDestroyEntity(child);
+			}
+
+		}
+
+
+		s_GlobalUniqueIDSet.erase(entity.GetComponents<IDComponent>().ID);
+		if (m_Registry.valid(entity.m_EntityHandle)) {
+			m_Registry.destroy(entity.m_EntityHandle);
+		};
+		entity = {};
+
+	};
+
+
+	void Scene::FlushDestroyedEntities() {
+
+		//! set / unordered_set 的元素本身就是“用于排序或哈希定位的 key”
+		//! key 不能被随便修改，否则哈希位置可能失效，所以遍历 unordered_set<Entity> 时拿到的通常是：const Entity&，而非 Entity&
+		//! 如果返回 Entity& entity ，那意味着你可能改掉影响哈希或相等判断的字段，容器内部结构就会坏掉。
+		std::ranges::for_each(m_DestroyEntities, [this](Entity entity) {
+			this->InternalDestroyEntity(entity);
+			});
+
+		m_DestroyEntities.clear();
 
 	};
 

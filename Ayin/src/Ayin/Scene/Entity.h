@@ -5,11 +5,16 @@
 
 #include <entt/entt.hpp>
 
+#include <cstddef>
+#include <functional>
 
 //ToDo 使用反射库，而不是这样别扭的形式添加数据（一些以id为参数的函数会存在是因为我们没法将id_type转回类型）
 
 
 namespace Ayin {
+
+	struct EntityHash;
+
 
 	//! 概念：检查组件是否有依赖组件
 	//! 组件中的依赖通过using Requires = entt::type_list<...>来表达
@@ -19,6 +24,7 @@ namespace Ayin {
 	class AYIN_API Entity {
 
 		friend class Scene;
+		friend struct EntityHash;
 
 	public:
 
@@ -74,6 +80,7 @@ namespace Ayin {
 
 		inline bool operator == (const Entity& other) const { return m_Scene == other.m_Scene && m_EntityHandle == other.m_EntityHandle; };
 		inline bool operator != (const Entity& other) const { return !((*this) == other); };
+		inline bool operator < (const Entity& other) const { return uint32_t(*this) < uint32_t(other); }
 
 	private:
 		entt::entity m_EntityHandle{ entt::null };
@@ -81,6 +88,27 @@ namespace Ayin {
 		Scene* m_Scene = nullptr;
 		std::weak_ptr<void> m_SceneLifetime{};
 		
+	};
+
+
+
+	struct EntityHash {
+
+		//x std::unordered_set<Entity, EntityHash> m_DestroyEntities{};
+		//! set 是排序树，而 unorderer_set 是哈希表，它会用到 hash 与 ==
+
+		size_t operator()(const Entity& entity) const noexcept {
+			size_t sceneHash = std::hash<Scene*>{}(entity.m_Scene);
+			size_t handleHash = std::hash<uint32_t>{}((uint32_t)entity);
+			return sceneHash ^ (handleHash + 0x9e3779b9 + (sceneHash << 6) + (sceneHash >> 2));
+		}
+
+		// - Boost hash_combine
+		// - The Art of Computer Programming multiplicative hashing
+		// - Knuth 2654435761 golden ratio hash
+		// - 0x9e3779b9 golden ratio hash
+		// - MurmurHash finalizer，更现代的 bit mixing 思路
+		//	如果想深入，Donald Knuth 的《The Art of Computer Programming, Volume 3: Sorting and Searching》里有乘法散列相关背景。Boost 的 hash_combine 文档 / 源码则是这个公式最直接的出处。
 	};
 
 
