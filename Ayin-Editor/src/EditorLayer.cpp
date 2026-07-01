@@ -52,6 +52,47 @@ void EditorLayer::OnAttach() {
 		child.GetComponents<Ayin::TransformComponent>().Position = { 1.0f, 0.0f, 0.0f };
 
 		m_ActiveScene->SetParent(child, parent, false);
+
+		Ayin::Entity box = m_ActiveScene->CreateEntity("Box");
+		box.GetComponents<Ayin::TransformComponent>().Position = { 0.0f, 0.0f, 4.5f };
+
+
+		Ayin::Entity front = m_ActiveScene->CreateEntity("Front");
+		front.GetComponents<Ayin::TransformComponent>().Position = {0.0f, 0.0f, 5.0f};
+		front.GetComponents<Ayin::TransformComponent>().Rotation = {0.0f, 0.0f, 0.0f};
+		front.AddComponent<Ayin::SpriteRendererComponent>().Color = { 1.0f, 0.0f, 0.0f, 0.5f };
+		m_ActiveScene->SetParent(front, box, true);
+
+		Ayin::Entity back = m_ActiveScene->CreateEntity("Back");
+		back.GetComponents<Ayin::TransformComponent>().Position = {0.0f, 0.0f, 4.0f};
+		back.GetComponents<Ayin::TransformComponent>().Rotation = {0.0f, glm::pi<float>(), 0.0f};
+		back.AddComponent<Ayin::SpriteRendererComponent>().Color = { 0.0f, 1.0f, 1.0f, 0.5f };
+		m_ActiveScene->SetParent(back, box, true);
+
+		Ayin::Entity left = m_ActiveScene->CreateEntity("Left");
+		left.GetComponents<Ayin::TransformComponent>().Position = {-0.5f, 0.0f, 4.5f};
+		left.GetComponents<Ayin::TransformComponent>().Rotation = {0.0f, -0.5f * glm::pi<float>(), 0.0f};
+		left.AddComponent<Ayin::SpriteRendererComponent>().Color = { 0.0f, 1.0f, 0.0f, 0.5f };
+		m_ActiveScene->SetParent(left, box, true);
+
+		Ayin::Entity right = m_ActiveScene->CreateEntity("Right");
+		right.GetComponents<Ayin::TransformComponent>().Position = {0.5f, 0.0f, 4.5f};
+		right.GetComponents<Ayin::TransformComponent>().Rotation = {0.0f, 0.5f * glm::pi<float>(), 0.0f};
+		right.AddComponent<Ayin::SpriteRendererComponent>().Color = { 1.0f, 0.0f, 1.0f, 0.5f };
+		m_ActiveScene->SetParent(right, box, true);
+
+		Ayin::Entity top = m_ActiveScene->CreateEntity("Top");
+		top.GetComponents<Ayin::TransformComponent>().Position = {0.0f, 0.5f, 4.5f};
+		top.GetComponents<Ayin::TransformComponent>().Rotation = {0.5f * glm::pi<float>(), 0.0f, 0.0f};
+		top.AddComponent<Ayin::SpriteRendererComponent>().Color = { 0.0f, 0.0f, 1.0f, 0.5f };
+		m_ActiveScene->SetParent(top, box, true);
+
+		Ayin::Entity bottom = m_ActiveScene->CreateEntity("Bottom");
+		bottom.GetComponents<Ayin::TransformComponent>().Position = {0.0f, -0.5f, 4.5f};
+		bottom.GetComponents<Ayin::TransformComponent>().Rotation = {- 0.5 * glm::pi<float>(), 0.0f, 0.0f};
+		bottom.AddComponent<Ayin::SpriteRendererComponent>().Color = { 1.0f, 1.0f, 0.0f, 0.5f };
+		m_ActiveScene->SetParent(bottom, box, true);
+
 	}
 
 
