@@ -23,6 +23,16 @@ namespace Ayin {
 
 		void DrawEntityNode(Entity& node);	// 绘制可能执行删除，所以参数就不带const了
 
+		void DrawEntityNodePreview(const Entity& node);
+
+		// 节点拖拽到场景根响应
+		void DrawSceneRootDropTarget();
+		
+		// 节点推拽响应
+		void DrawEntityDragDrop(Entity& node);
+
+		bool IsEntityBeingDragged(const Entity& entity) const;
+
 	private:
 
 		Ref<Scene> m_Scene;
