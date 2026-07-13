@@ -9,6 +9,7 @@
 #include <fstream>
 #include <sstream>
 #include <map>
+#include <unordered_set>
 
 
 namespace {
@@ -156,6 +157,16 @@ namespace Ayin {
 		if (err) {
 			AYIN_CORE_ERROR("Failed to parse scene JSON: {}", glz::format_error(err, jsonStr));
 			return;
+		}
+
+		//! 检查场景是否存在 UUID 异常（UUID 重复）
+		std::unordered_set<uint64_t> serializedEntityUUIDs;
+		for (auto& entityEntry : sceneData.Entities) {
+			const bool inserted = serializedEntityUUIDs.insert(entityEntry.UUID).second;//! 检查 UUID 是否已经存在
+			if (!inserted) {
+				AYIN_CORE_ERROR("Duplicate entity UUID in scene file: {} ({})", entityEntry.UUID, filepath);
+				return;
+			}
 		}
 
 		// 反序列化回场景
