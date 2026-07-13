@@ -3,6 +3,7 @@
 bin/
 !Dependency/premake/bin/
 bin-int/
+Tutorial/
 
 #忽略文件
 *.user
