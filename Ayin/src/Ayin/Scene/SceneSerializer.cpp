@@ -4,6 +4,7 @@
 #include "Ayin/Scene/Components.h"
 #include "Ayin/Scene/ComponentRegistry.h"
 #include "Ayin/Scene/ScriptRegistry.h"
+#include "Ayin/Core/UUID.h"
 
 #include <fstream>
 #include <sstream>
@@ -160,13 +161,17 @@ namespace Ayin {
 		// 反序列化回场景
 		m_Scene->SetName(sceneData.SceneName);
 
+		// UUID 转换处理结构
+		std::unordered_map<UUID, UUID> oldUUID_newUUID_map;
+
+		// 逐个生成实体
 		for (auto& entityEntry : sceneData.Entities) {
 
 			Entity entity = m_Scene->CreateEntity("Entity");
 
 			SceneSerializerContext::SetCurrentEntity(entity);
 
-			entity.GetComponents<IDComponent>().ID = entityEntry.UUID;
+			oldUUID_newUUID_map.insert({ entityEntry.UUID, entity.GetComponents<IDComponent>().ID });
 
 			for (auto& [compName, rawJson] : entityEntry.Components) {
 
@@ -181,8 +186,28 @@ namespace Ayin {
 
 		}
 
-		SceneSerializerContext::EraseEntityContext();
+		SceneSerializerContext::EraseEntityContext();	// 放到 for 里也行，不过逻辑上一次就够了，除非出意外了
 
+
+		// 矫正旧的关系组件
+		auto&& relationShipView = m_Scene->m_Registry.view<RelationShipComponent>();
+		for (auto&& [entity, relation] : relationShipView.each()) {
+			
+			if (relation.ParentUUID && oldUUID_newUUID_map.find(relation.ParentUUID) != oldUUID_newUUID_map.end()) {// ParentID 不是0，0是场景； 并且 map 映射中存在
+				relation.ParentUUID = oldUUID_newUUID_map[relation.ParentUUID];
+			}
+
+			std::ranges::for_each(relation.ChildrenUUID, 
+				[&oldUUID_newUUID_map](UUID& childID) { 
+					if(oldUUID_newUUID_map.find(childID) != oldUUID_newUUID_map.end())
+						childID = oldUUID_newUUID_map[childID]; 
+				});
+		
+		}
+
+
+
+		// 脚本处理
 		auto&& nativeScriptComponentView = m_Scene->m_Registry.view<NativeScriptComponent>();
 
 		// 绑定脚本类型

@@ -14,53 +14,7 @@
 
 #include "Ayin/Math/Math.h"
 
-namespace Ayin {
-
-	// 全局ID
-	static std::unordered_set<uint64_t> s_GlobalUniqueIDSet{ 0 };
-
-	namespace Utils {
-
-		bool IsUUIDUnused(uint64_t globalUniqueID) {
-
-			return !s_GlobalUniqueIDSet.contains(globalUniqueID);
-
-		};
-
-		bool IsUUIDAlive(uint64_t globalUniqueID) {
-			
-			return s_GlobalUniqueIDSet.contains(globalUniqueID) && globalUniqueID != 0;
-		
-		}
-
-		uint64_t GenerateUniqueID() {
-
-			// 生成唯一ID
-			static std::mt19937_64 s_RandomEngine([] {
-#ifdef AYIN_DEBUG
-				return std::mt19937_64(42);          // 固定种子，调试时可复现
-#else
-				static std::random_device rd;
-				return std::mt19937_64(rd());
-#endif
-				}());
-			static std::uniform_int_distribution<uint64_t> s_UniformDistribution; // 均匀分布在[0, 2 ^ 64 - 1] 区间。对 UUID 这正好是需要的——64 位全随机，碰撞概率可忽略。
-
-			uint64_t globalUniqueID = 0;
-
-			while (!IsUUIDUnused(globalUniqueID)) {
-				globalUniqueID = s_UniformDistribution(s_RandomEngine);
-			}
-
-			s_GlobalUniqueIDSet.insert(globalUniqueID);
-
-			return globalUniqueID;
-
-		};
-
-	}
-
-}
+#include "Ayin/Core/UUID.h"
 
 
 namespace Ayin{
@@ -71,7 +25,7 @@ namespace Ayin{
 	
 		Entity entity{ this };
 
-		m_Registry.emplace<IDComponent>(entity, Utils::GenerateUniqueID());
+		m_Registry.emplace<IDComponent>(entity, UUIDGenerator::GenerateUniqueID());
 
 		return entity;
 	
@@ -229,7 +183,7 @@ namespace Ayin{
 
 		uint64_t parentUUID = child.GetComponents<RelationShipComponent>().ParentUUID;
 
-		if (!Utils::IsUUIDAlive(parentUUID))				//有对应关系组件但不是有效父节点
+		if (!UUIDGenerator::IsUUIDAlive(parentUUID))				//有对应关系组件但不是有效父节点
 			return Entity{};
 
 		// 该方法内部做了 entity 所属检测
@@ -249,7 +203,7 @@ namespace Ayin{
 		std::vector<Entity> childs;
 		for (uint64_t UUID : relationShipComponent.ChildrenUUID) {
 		
-			if(Utils::IsUUIDAlive(UUID))
+			if(UUIDGenerator::IsUUIDAlive(UUID))
 				childs.emplace_back(FindEntityByUUID(UUID));
 
 		}
@@ -612,9 +566,10 @@ namespace Ayin{
 
 			RelationShipComponent& relationShipComponent = entity.GetComponents<RelationShipComponent>();
 
+			// 关系处理
 			UnParent(entity, false);
 
-			//递归处理子节点
+			// 递归处理子节点
 			auto childrenUUID = relationShipComponent.ChildrenUUID;	//! 因为 DestroyEntity 会对组件中的数组进行修改，所以直接对着组件数据迭代会发生边修改边迭代的情况
 			for (auto UUID : childrenUUID) {
 				Entity child = FindEntityByUUID(UUID);
@@ -624,7 +579,7 @@ namespace Ayin{
 		}
 
 
-		s_GlobalUniqueIDSet.erase(entity.GetComponents<IDComponent>().ID);
+		UUIDGenerator::NullifyUUID(entity.GetComponents<IDComponent>().ID);
 		if (m_Registry.valid(entity.m_EntityHandle)) {
 			m_Registry.destroy(entity.m_EntityHandle);
 		};

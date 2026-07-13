@@ -60,8 +60,8 @@ namespace Ayin {
 		};
 
 	};
-	AYIN_COMPONENT(IDComponent);
-
+	//x AYIN_COMPONENT(IDComponent);
+	//! 该组件不注册，场景创建实体时一定存在的，这是最基础的，反序列化时是直接变为 Entities 中的 UUID 变量
 
 	// ----------名称组件-----------
 	struct TagComponent{
@@ -305,7 +305,6 @@ namespace Ayin {
 
 		using Requires = entt::type_list<TransformComponent>;
 
-		//ToDo 先使用原有的Camera，之后我们需要替换，其中部分参数和Transform重叠
 		SceneCamera Camera;
 
 		CameraComponent() = default;

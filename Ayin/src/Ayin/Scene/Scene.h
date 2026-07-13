@@ -23,8 +23,10 @@ namespace Ayin {
 		Scene() = default;
 		~Scene() = default;
 
+		// 创建一个只有 UUID 的实体
 		Entity CreateUUIDEntity();
 
+		// 创建一个可交互的基础实体
 		Entity CreateEntity(const std::string& name = "Entity");
 		void DestroyEntity(Entity& entity);
 
@@ -90,17 +92,5 @@ namespace Ayin {
 
 	};
 
-
-}
-
-namespace Ayin {
-
-	namespace Utils {
-
-		bool IsUUIDUnused(uint64_t globalUniqueID);
-
-		bool IsUUIDAlive(uint64_t globalUniqueID);
-
-	}
 
 }
