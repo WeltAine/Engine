@@ -43,6 +43,28 @@ namespace Ayin {
 		glm::mat4 m_ProjectionMatrix = glm::identity<glm::mat4>();		// 投影矩阵
 		glm::mat4 m_ProjectionViewMatrix = glm::identity<glm::mat4>();	// VP矩阵
 
+	private:
+
+		// Glaze 反序列化 m_ProjectionMatrix 时的额外处理
+		inline bool ReadProjectionMatrixForGlaze() { m_ProjectionViewMatrix = m_ProjectionMatrix * m_ViewMatrix; return true; };
+		// Glaze 序列化 m_ProjectionMatrix 时的额外处理
+		bool WriteProjectionMatrixForGlaze() { return true; };
+		//! glz::manage 要求两个额外处理函数要返回是否处理成功的信息
+
+
+	public:
+
+		struct glaze {
+			using T = Camera;
+			static constexpr auto value = glz::object(
+				"ViewMatrix", &T::m_ViewMatrix,
+				"ProjectionMatrix", glz::manage<&T::m_ProjectionMatrix, 
+				&T::ReadProjectionMatrixForGlaze, &T::WriteProjectionMatrixForGlaze>
+				//! glz::manage 的意思是：读写某个字段时，额外调用回调函数。
+				//! 这里绑定到 m_ProjectionMatrix，所以 Glaze 读完 "ProjectionMatrix" 后会调用 ReadProjectionMatrixForGlaze()，进行 VP 重算。
+			);
+		};
+
 	};
 
 

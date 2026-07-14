@@ -52,11 +52,24 @@ namespace Ayin {
 
 		float m_ZoomLevel = 1.0f;	//缩放
 
+
+	private:
+
+		// Glaze 序列化 CameraProp 时的额外处理
+		inline bool OnCameraPropRead() {
+			RecalculateProjectionMatrix();
+			return true;
+		}
+		// Glaze 反序列化 CameraProp 时的额外处理
+		inline bool OnCameraPropWrite() { return true; }
+
 	public:
 		struct glaze {
 			using T = SceneCamera;
 			static constexpr auto value = glz::object(
-				"CameraProp", &T::m_CameraProp,
+				"CameraProp", glz::manage<&T::m_CameraProp, &T::OnCameraPropRead, &T::OnCameraPropWrite>,
+				//! glz::manage 的意思是：读写某个字段时，额外调用回调函数。
+				//! 这里绑定到 m_CameraProp，所以 Glaze 读完 "CamreaProp" 后会调用 OnCameraPropRead()，进行 VP 重算。
 				"ZoomLevel", &T::m_ZoomLevel
 			);
 		};
