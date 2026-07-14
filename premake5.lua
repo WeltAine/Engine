@@ -15,7 +15,10 @@ workspace "Ayin" --对应解决方案
     {
         ".editorconfig",
         ".gitattributes",
-        ".gitignore"
+        ".gitignore",
+        "Demo/TetrisGame/TetrisScene.json",
+        "Demo/OrbitGame/OrbitScene.json",
+        "Demo/Tutorial/TutorialScene.json"
     }
 
     multiprocessorcompile "On" --开启多线程编译，提升编译速度
@@ -46,11 +49,16 @@ group "Dependency" --分组，和vs中的过滤器类似
 group "" --结束分组，回到默认分组
 
 include "Ayin" --引入Ayin项目
+
+group "Demo"
+    include "Demo/DemoScripts"
+    include "Demo/Snake"
+    include "Demo/TetrisGame"
+    include "Demo/OrbitGame"
+group ""
+
 include "Ayin-Editor" --引入Ayin-Editor项目
 -- include "SandBox" --引入SandBox项目
-
-
-
 
 
 

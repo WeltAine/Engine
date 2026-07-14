@@ -3,10 +3,10 @@ chcp 65001 >nul
 cd /d "%~dp0"
 
 
-:: 指定仅允许操作的目标文件夹 
-:: 仅在这些文件夹内执行删除操作，依赖库文件夹（如Dependency）不要加入！
-set "TARGET_PROJECT_FOLDERS=Ayin Ayin-Editor SandBox"
-:: 排除的依赖库目录（防止误操作）
+rem Allowed cleanup target folders only.
+rem Delete generated files only in these folders; do not add Dependency.
+set "TARGET_PROJECT_FOLDERS=Ayin Ayin-Editor SandBox Demo\DemoScripts Demo\Snake Demo\TetrisGame Demo\OrbitGame"
+rem Dependency folder name excluded from cleanup.
 set "EXCLUDE_FOLDER=Dependency"
 
 echo ========================================
@@ -16,25 +16,29 @@ echo 排除依赖库目录：%EXCLUDE_FOLDER%
 echo ========================================
 echo.
 
-:: 删除根目录输出目录
+rem Delete root output folder.
 if exist "bin" (
     rd /s /q "bin"
     echo [√] 已删除 bin 文件夹
 )
 
-:: 删除根目录中间文件目录
+rem Delete root intermediate folder.
 if exist "bin-int" (
     rd /s /q "bin-int"
     echo [√] 已删除 bin-int 文件夹
 )
 
-:: 删除根目录解决方案文件
+rem Delete root solution files.
 if exist "*.sln" (
     del /q "*.sln"
     echo [√] 已删除解决方案文件
 )
+if exist "*.slnx" (
+    del /q "*.slnx"
+    echo [√] 已删除解决方案文件
+)
 
-:: 删除各项目的 VS 项目文件
+rem Delete VS project files in each project folder.
 for %%p in (%TARGET_PROJECT_FOLDERS%) do (
     if exist "%%p\*.vcxproj" (
         del /q "%%p\*.vcxproj"

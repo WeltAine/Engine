@@ -1,0 +1,420 @@
+{
+    "SceneName": "Orbit Combat Demo",
+    "Entities": [
+        {
+            "UUID": 4100500100000000001,
+            "Components": {
+                "CameraComponent": {
+                    "Camera": {
+                        "CameraProp": {
+                            "Type": "Orthogonal",
+                            "FOVRadians": 1.0471976,
+                            "Height": 12,
+                            "AspectRatio": 1.7777778,
+                            "NearPlane": 0.1,
+                            "FarPlane": 100
+                        },
+                        "ZoomLevel": 1
+                    }
+                },
+                "IDComponent": {
+                    "ID": 4100500100000000001
+                },
+                "NativeScriptComponent": {
+                    "ScriptName": "OrbitCameraScript",
+                    "ScriptData": null
+                },
+                "TagComponent": {
+                    "Name": "MainCamera"
+                },
+                "TransformComponent": {
+                    "Position": {
+                        "x": 0,
+                        "y": 0,
+                        "z": 10
+                    },
+                    "Rotation": {
+                        "x": 0,
+                        "y": 0,
+                        "z": 0
+                    },
+                    "Scale": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1
+                    }
+                }
+            }
+        },
+        {
+            "UUID": 4100500100000000002,
+            "Components": {
+                "CameraComponent": {
+                    "Camera": {
+                        "CameraProp": {
+                            "Type": "Orthogonal",
+                            "FOVRadians": 1.0471976,
+                            "Height": 12,
+                            "AspectRatio": 1.7777778,
+                            "NearPlane": 0.1,
+                            "FarPlane": 100
+                        },
+                        "ZoomLevel": 1
+                    }
+                },
+                "IDComponent": {
+                    "ID": 4100500100000000002
+                },
+                "NativeScriptComponent": {
+                    "ScriptName": "OrbitGameControllerScript",
+                    "ScriptData": {
+                        "PlayerSpeed": 4.5,
+                        "EnemySpeed": 1.5,
+                        "EnemyMaxHealth": 1,
+                        "EnemyDamagePerSecond": 0.75,
+                        "TargetEnemyCount": 5,
+                        "ArenaHalfSize": 5.6,
+                        "OrbiterRadius": 2.1,
+                        "OrbiterMinRadius": 0.48,
+                        "OrbiterMaxRadius": 3.4,
+                        "OrbiterAngle": 0,
+                        "OrbiterAngularVelocity": 1.4,
+                        "OrbiterRadialVelocity": 0,
+                        "OrbiterSelfRotation": 0,
+                        "OrbiterRadiusDecaySpeed": 0.22,
+                        "OrbiterRadiusExpandSpeed": 0.95,
+                        "PlayerDead": false
+                    }
+                },
+				"TagComponent": {
+					"Name": "OrbitGameController"
+				},
+                "TransformComponent": {
+					"Position": {
+						"x": 0,
+						"y": 0,
+						"z": 10
+					},
+                    "Rotation": {
+                        "x": 0,
+                        "y": 0,
+                        "z": 0
+                    },
+					"Scale": {
+						"x": 1,
+						"y": 1,
+						"z": 1
+					}
+				}
+			}
+		},
+		{
+			"UUID": 4100500100000000010,
+			"Components": {
+				"IDComponent": {
+					"ID": 4100500100000000010
+				},
+				"SpriteRendererComponent": {
+					"Color": {
+						"x": 1,
+						"y": 1,
+						"z": 1,
+						"w": 0.65
+					}
+				},
+				"TagComponent": {
+					"Name": "Player"
+				},
+				"TransformComponent": {
+					"Position": {
+						"x": 0,
+						"y": 0,
+						"z": 0
+					},
+					"Rotation": {
+						"x": 0,
+						"y": 0,
+						"z": 0
+					},
+					"Scale": {
+						"x": 0.72,
+						"y": 0.72,
+						"z": 1
+					}
+				}
+			}
+		},
+		{
+			"UUID": 4100500100000000003,
+            "Components": {
+                "IDComponent": {
+                    "ID": 4100500100000000003
+                },
+                "SpriteRendererComponent": {
+                    "Color": {
+                        "x": 0.03,
+                        "y": 0.035,
+                        "z": 0.055,
+                        "w": 1
+                    }
+                },
+                "TagComponent": {
+                    "Name": "OrbitArenaBackdrop"
+                },
+                "TransformComponent": {
+                    "Position": {
+                        "x": 0,
+                        "y": 0,
+                        "z": -0.1
+                    },
+                    "Rotation": {
+                        "x": 0,
+                        "y": 0,
+                        "z": 0
+                    },
+                    "Scale": {
+                        "x": 11.6,
+                        "y": 11.6,
+                        "z": 1
+                    }
+                }
+            }
+        },
+        {
+            "UUID": 4100500100000000004,
+            "Components": {
+                "IDComponent": {
+                    "ID": 4100500100000000004
+                },
+                "SpriteRendererComponent": {
+                    "Color": {
+                        "x": 0.08,
+                        "y": 0.48,
+                        "z": 1,
+                        "w": 0.35
+                    }
+                },
+                "TagComponent": {
+                    "Name": "OrbitOrbiter"
+                },
+                "TransformComponent": {
+                    "Position": {
+                        "x": 2.1,
+                        "y": 0,
+                        "z": 0.1
+                    },
+                    "Rotation": {
+                        "x": 0,
+                        "y": 0,
+                        "z": 0
+                    },
+                    "Scale": {
+                        "x": 0.46,
+                        "y": 0.46,
+                        "z": 1
+                    }
+                }
+            }
+        },
+        {
+            "UUID": 4100500100000000005,
+            "Components": {
+                "IDComponent": {
+                    "ID": 4100500100000000005
+                },
+                "OrbitEnemyComponent": {
+                    "Health": 1,
+                    "MaxHealth": 1
+                },
+                "SpriteRendererComponent": {
+                    "Color": {
+                        "x": 1,
+                        "y": 0.12,
+                        "z": 0.08,
+                        "w": 0.35
+                    }
+                },
+                "TagComponent": {
+                    "Name": "Enemy0"
+                },
+                "TransformComponent": {
+                    "Position": {
+                        "x": -3.8,
+                        "y": 2.4,
+                        "z": 0
+                    },
+                    "Rotation": {
+                        "x": 0,
+                        "y": 0,
+                        "z": 0
+                    },
+                    "Scale": {
+                        "x": 0.62,
+                        "y": 0.62,
+                        "z": 1
+                    }
+                }
+            }
+        },
+        {
+            "UUID": 4100500100000000006,
+            "Components": {
+                "IDComponent": {
+                    "ID": 4100500100000000006
+                },
+                "OrbitEnemyComponent": {
+                    "Health": 1,
+                    "MaxHealth": 1
+                },
+                "SpriteRendererComponent": {
+                    "Color": {
+                        "x": 1,
+                        "y": 0.12,
+                        "z": 0.08,
+                        "w": 0.35
+                    }
+                },
+                "TagComponent": {
+                    "Name": "Enemy1"
+                },
+                "TransformComponent": {
+                    "Position": {
+                        "x": 3.2,
+                        "y": 2.8,
+                        "z": 0
+                    },
+                    "Rotation": {
+                        "x": 0,
+                        "y": 0,
+                        "z": 0
+                    },
+                    "Scale": {
+                        "x": 0.62,
+                        "y": 0.62,
+                        "z": 1
+                    }
+                }
+            }
+        },
+        {
+            "UUID": 4100500100000000007,
+            "Components": {
+                "IDComponent": {
+                    "ID": 4100500100000000007
+                },
+                "OrbitEnemyComponent": {
+                    "Health": 1,
+                    "MaxHealth": 1
+                },
+                "SpriteRendererComponent": {
+                    "Color": {
+                        "x": 1,
+                        "y": 0.12,
+                        "z": 0.08,
+                        "w": 0.35
+                    }
+                },
+                "TagComponent": {
+                    "Name": "Enemy2"
+                },
+                "TransformComponent": {
+                    "Position": {
+                        "x": -3.1,
+                        "y": -2.9,
+                        "z": 0
+                    },
+                    "Rotation": {
+                        "x": 0,
+                        "y": 0,
+                        "z": 0
+                    },
+                    "Scale": {
+                        "x": 0.62,
+                        "y": 0.62,
+                        "z": 1
+                    }
+                }
+            }
+        },
+        {
+            "UUID": 4100500100000000008,
+            "Components": {
+                "IDComponent": {
+                    "ID": 4100500100000000008
+                },
+                "OrbitEnemyComponent": {
+                    "Health": 1,
+                    "MaxHealth": 1
+                },
+                "SpriteRendererComponent": {
+                    "Color": {
+                        "x": 1,
+                        "y": 0.12,
+                        "z": 0.08,
+                        "w": 0.35
+                    }
+                },
+                "TagComponent": {
+                    "Name": "Enemy3"
+                },
+                "TransformComponent": {
+                    "Position": {
+                        "x": 3.9,
+                        "y": -1.8,
+                        "z": 0
+                    },
+                    "Rotation": {
+                        "x": 0,
+                        "y": 0,
+                        "z": 0
+                    },
+                    "Scale": {
+                        "x": 0.62,
+                        "y": 0.62,
+                        "z": 1
+                    }
+                }
+            }
+        },
+        {
+            "UUID": 4100500100000000009,
+            "Components": {
+                "IDComponent": {
+                    "ID": 4100500100000000009
+                },
+                "OrbitEnemyComponent": {
+                    "Health": 1,
+                    "MaxHealth": 1
+                },
+                "SpriteRendererComponent": {
+                    "Color": {
+                        "x": 1,
+                        "y": 0.12,
+                        "z": 0.08,
+                        "w": 0.35
+                    }
+                },
+                "TagComponent": {
+                    "Name": "Enemy4"
+                },
+                "TransformComponent": {
+                    "Position": {
+                        "x": 0,
+                        "y": 4.6,
+                        "z": 0
+                    },
+                    "Rotation": {
+                        "x": 0,
+                        "y": 0,
+                        "z": 0
+                    },
+                    "Scale": {
+                        "x": 0.62,
+                        "y": 0.62,
+                        "z": 1
+                    }
+                }
+            }
+        }
+    ]
+}

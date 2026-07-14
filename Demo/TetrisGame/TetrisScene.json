@@ -1,0 +1,316 @@
+{
+    "SceneName": "Tetris Demo",
+    "Entities": [
+        {
+            "UUID": 4100400100000000001,
+            "Components": {
+                "CameraComponent": {
+                    "Camera": {
+                        "CameraProp": {
+                            "Type": "Orthogonal",
+                            "FOVRadians": 1.0471976,
+                            "Height": 14,
+                            "AspectRatio": 1.7777778,
+                            "NearPlane": 0.1,
+                            "FarPlane": 100
+                        },
+                        "ZoomLevel": 1
+                    }
+                },
+                "IDComponent": {
+                    "ID": 4100400100000000001
+                },
+                "NativeScriptComponent": {
+                    "ScriptName": "TetrisCameraScript",
+                    "ScriptData": null
+                },
+                "TagComponent": {
+                    "Name": "MainCamera"
+                },
+                "TransformComponent": {
+                    "Position": {
+                        "x": 0,
+                        "y": 0,
+                        "z": 10
+                    },
+                    "Rotation": {
+                        "x": 0,
+                        "y": 0,
+                        "z": 0
+                    },
+                    "Scale": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1
+                    }
+                }
+            }
+        },
+        {
+            "UUID": 4100400100000000002,
+            "Components": {
+                "CameraComponent": {
+                    "Camera": {
+                        "CameraProp": {
+                            "Type": "Orthogonal",
+                            "FOVRadians": 1.0471976,
+                            "Height": 14,
+                            "AspectRatio": 1.7777778,
+                            "NearPlane": 0.1,
+                            "FarPlane": 100
+                        },
+                        "ZoomLevel": 1
+                    }
+                },
+                "IDComponent": {
+                    "ID": 4100400100000000002
+                },
+                "NativeScriptComponent": {
+                    "ScriptName": "TetrisGameControllerScript",
+                    "ScriptData": {
+                        "Score": 0,
+                        "Level": 1,
+                        "LinesCleared": 0,
+                        "DropInterval": 1
+                    }
+                },
+                "TagComponent": {
+                    "Name": "TetrisController"
+                },
+                "TransformComponent": {
+                    "Position": {
+                        "x": 0,
+                        "y": 0,
+                        "z": 10
+                    },
+                    "Rotation": {
+                        "x": 0,
+                        "y": 0,
+                        "z": 0
+                    },
+                    "Scale": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1
+                    }
+                }
+            }
+        },
+        {
+            "UUID": 4100400100000000003,
+            "Components": {
+                "IDComponent": {
+                    "ID": 4100400100000000003
+                },
+                "SpriteRendererComponent": {
+                    "Color": {
+                        "x": 0.055,
+                        "y": 0.065,
+                        "z": 0.085,
+                        "w": 1
+                    }
+                },
+                "TagComponent": {
+                    "Name": "TetrisBoardBackdrop"
+                },
+                "TransformComponent": {
+                    "Position": {
+                        "x": 0,
+                        "y": 0,
+                        "z": 0
+                    },
+                    "Rotation": {
+                        "x": 0,
+                        "y": 0,
+                        "z": 0
+                    },
+                    "Scale": {
+                        "x": 6.2,
+                        "y": 12.2,
+                        "z": 1
+                    }
+                }
+            }
+        },
+        {
+            "UUID": 4100400100000000004,
+            "Components": {
+                "IDComponent": {
+                    "ID": 4100400100000000004
+                },
+                "SpriteRendererComponent": {
+                    "Color": {
+                        "x": 0,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                "TagComponent": {
+                    "Name": "TetrisOpeningPiece_I_0"
+                },
+                "TransformComponent": {
+                    "Position": {
+                        "x": -0.9,
+                        "y": 4.5,
+                        "z": 0.2
+                    },
+                    "Rotation": {
+                        "x": 0,
+                        "y": 0,
+                        "z": 0
+                    },
+                    "Scale": {
+                        "x": 0.552,
+                        "y": 0.552,
+                        "z": 1
+                    }
+                }
+            }
+        },
+        {
+            "UUID": 4100400100000000005,
+            "Components": {
+                "IDComponent": {
+                    "ID": 4100400100000000005
+                },
+                "SpriteRendererComponent": {
+                    "Color": {
+                        "x": 0,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                "TagComponent": {
+                    "Name": "TetrisOpeningPiece_I_1"
+                },
+                "TransformComponent": {
+                    "Position": {
+                        "x": -0.3,
+                        "y": 4.5,
+                        "z": 0.2
+                    },
+                    "Rotation": {
+                        "x": 0,
+                        "y": 0,
+                        "z": 0
+                    },
+                    "Scale": {
+                        "x": 0.552,
+                        "y": 0.552,
+                        "z": 1
+                    }
+                }
+            }
+        },
+        {
+            "UUID": 4100400100000000006,
+            "Components": {
+                "IDComponent": {
+                    "ID": 4100400100000000006
+                },
+                "SpriteRendererComponent": {
+                    "Color": {
+                        "x": 0,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                "TagComponent": {
+                    "Name": "TetrisOpeningPiece_I_2"
+                },
+                "TransformComponent": {
+                    "Position": {
+                        "x": 0.3,
+                        "y": 4.5,
+                        "z": 0.2
+                    },
+                    "Rotation": {
+                        "x": 0,
+                        "y": 0,
+                        "z": 0
+                    },
+                    "Scale": {
+                        "x": 0.552,
+                        "y": 0.552,
+                        "z": 1
+                    }
+                }
+            }
+        },
+        {
+            "UUID": 4100400100000000007,
+            "Components": {
+                "IDComponent": {
+                    "ID": 4100400100000000007
+                },
+                "SpriteRendererComponent": {
+                    "Color": {
+                        "x": 0,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                "TagComponent": {
+                    "Name": "TetrisOpeningPiece_I_3"
+                },
+                "TransformComponent": {
+                    "Position": {
+                        "x": 0.9,
+                        "y": 4.5,
+                        "z": 0.2
+                    },
+                    "Rotation": {
+                        "x": 0,
+                        "y": 0,
+                        "z": 0
+                    },
+                    "Scale": {
+                        "x": 0.552,
+                        "y": 0.552,
+                        "z": 1
+                    }
+                }
+            }
+        },
+        {
+            "UUID": 4100400100000000008,
+            "Components": {
+                "IDComponent": {
+                    "ID": 4100400100000000008
+                },
+                "SpriteRendererComponent": {
+                    "Color": {
+                        "x": 0.06,
+                        "y": 0.07,
+                        "z": 0.09,
+                        "w": 0.92
+                    }
+                },
+                "TagComponent": {
+                    "Name": "TetrisNextPanel"
+                },
+                "TransformComponent": {
+                    "Position": {
+                        "x": 6.2,
+                        "y": 1,
+                        "z": 0
+                    },
+                    "Rotation": {
+                        "x": 0,
+                        "y": 0,
+                        "z": 0
+                    },
+                    "Scale": {
+                        "x": 3,
+                        "y": 3,
+                        "z": 1
+                    }
+                }
+            }
+        }
+    ]
+}

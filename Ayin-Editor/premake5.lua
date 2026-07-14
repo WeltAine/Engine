@@ -21,6 +21,7 @@ project "Ayin-Editor"
         "%{wks.location}/Ayin/Dependency/spdlog/include",
         "%{wks.location}/Ayin/src",
         "%{wks.location}/Ayin/Dependency",
+        "%{wks.location}/Demo/DemoScripts",
         "src",
         "%{IncludeDir.glm}",
         "%{IncludeDir.entt}",
@@ -36,7 +37,13 @@ project "Ayin-Editor"
     -- dependson "Ayin"
     links --连接.lib
     {
-        "Ayin"
+        "Ayin",
+        "DemoScripts"
+    }
+
+    linkoptions
+    {
+        "/WHOLEARCHIVE:DemoScripts.lib"
     }
 
 
