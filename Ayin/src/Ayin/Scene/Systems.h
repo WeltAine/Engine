@@ -13,7 +13,7 @@ namespace Ayin {
 		class CameraSystem {
 
 		public:
-			static void OnUpdate(Ref<Scene> scene);
+			static void OnUpdate(Scene* scene);
 
 		};
 

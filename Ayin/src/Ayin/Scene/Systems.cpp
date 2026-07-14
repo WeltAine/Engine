@@ -11,7 +11,7 @@ namespace Ayin {
 
 	namespace Systems {
 
-		void CameraSystem::OnUpdate(Ref<Scene> scene) {
+		void CameraSystem::OnUpdate(Scene* scene) {
 
 			auto&& group = scene->GetEntitiesByComponents<CameraComponent>();
 

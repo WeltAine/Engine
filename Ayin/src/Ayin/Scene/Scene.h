@@ -43,6 +43,7 @@ namespace Ayin {
 
 		// ----------------------------------------------------------------------------
 		void OnUpdateRuntime(Timestep deltaTime);
+		void OnUpdateSimulation(Timestep deltaTime, EditorCamera& editorCamera);
 		void OnUpdateEditor(Timestep deltaTime, EditorCamera& editorCamera);
 
 		// 根据展示窗口调整相机比例（是所有相机）
