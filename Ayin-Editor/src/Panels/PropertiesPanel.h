@@ -35,13 +35,15 @@ namespace Ayin {
 // 光标 / 布局位置
 //			API										说明
 // 
-// GetCursorPos()										光标位置
+// GetCursorPos()										光标位置（窗口局部坐标）
 // GetCursorPosX() / Y()								光标 X / Y 分量
-// GetCursorScreenPos()								光标位置
-// GetCursorStartPos()									本行起始光标位置
-// SetCursorPos(ImVec2)								设光标位置
-// SetCursorScreenPos(ImVec2)							设光标位置
+// GetCursorScreenPos()								光标位置（屏幕/主视口绝对坐标）
+// GetCursorStartPos()									当前窗口的初始光标位置
+// SetCursorPos(ImVec2)								设光标位置（窗口局部坐标）
+// SetCursorScreenPos(ImVec2)							设光标位置（屏幕/主视口绝对坐标）
 // SetCursorPosX(float)								设光标 X
+// SetCursorPosY(float)								设光标 Y
+// SameLine()										让下一个控件接在当前行右侧绘制，而不是换到下一行
 // 
 // -- -
 // 
@@ -50,13 +52,25 @@ namespace Ayin {
 // 
 // GetContentRegionAvail()								内容区剩余可用空间(宽, 高)
 // GetContentRegionMax()								内容区右下角
-// GetWindowContentRegionMin() / Max()					整个窗口内容区的边界（包含已有内容占用的部分）
-// GetWindowWidth() / Height()							窗口整体宽高
+// GetWindowContentRegionMin() / Max()					整个窗口内容区的边界（窗口局部坐标；Max 可用来算当前行可放置控件的最右侧位置）
+// GetWindowWidth() / Height()							窗口整体宽高（窗口局部布局时常用来计算居中位置）
 // GetWindowPos() / Size()								窗口位置和尺寸
 // GetFrameHeight()									标准控件框架高度。比如这些控件通常都算 frame：ImGui::Button(...)ImGui::RadioButton(...)ImGui::Checkbox(...)ImGui::InputFloat(...)ImGui::SliderFloat(...)它们的高度大致由当前字体和样式内边距决定：FrameHeight = FontSize + FramePadding.y * 2所以它不是提前知道“某个具体按钮最终有多宽”，而是根据当前 ImGui 样式知道“标准控件高度应该是多少”。但宽度一般要自己算，因为按钮文字不同。
 // GetFrameHeightWithSpacing()							框架高 + ItemSpacing.y
 // CalcItemWidth()										计算当前上下文下单个控件的推荐宽度
+// CalcTextSize(const char*)								计算一段文本在当前字体下的显示尺寸（常用来算按钮/标签占用宽度）
 // PushMultiItemsWidths(int count, float total_width)		为接下来的 N 个控件预先分配相等的宽度，并将这些宽度压入宽度栈(必须为每个控件调用一次ImGui::PopItemWidth())
+// -- -
+//
+// 菜单 / 控件
+//			API										说明
+//
+// BeginMainMenuBar() / EndMainMenuBar()					开始/结束主视口顶部菜单栏；只有 Begin 返回 true 时才调用 End
+// BeginMenu(label) / EndMenu()							开始/结束一个下拉菜单；只有 Begin 返回 true 时才调用 End
+// MenuItem(label)									绘制菜单项；被点击时返回 true
+// Button(label)										绘制按钮；被点击时返回 true
+// TextUnformatted(text)								绘制纯文本，不解析格式化占位符，适合固定标签
+// BeginDisabled(bool) / EndDisabled()					禁用一段 UI；禁用时控件变灰且不响应点击，false 时基本等于不禁用
 // -- -
 // 
 // 上一个控件的反查
@@ -124,5 +138,4 @@ namespace Ayin {
 // 
 // 样式
 // PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 })			修改 ImGui 的全局样式变量，并将修改压入样式栈
-
 
