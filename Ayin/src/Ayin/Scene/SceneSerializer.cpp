@@ -70,8 +70,28 @@ namespace Ayin {
 
 	void SceneSerializer::Serializer(const std::string& filepath) {
 
-		if (m_Scene.get() == nullptr)
+		std::string jsonStr = SerializerToString();
+
+		std::ofstream ofs(filepath);
+		if (!ofs.is_open()) {
+			AYIN_CORE_ERROR("Failed to open file for writing: {}", filepath);
 			return;
+		}
+		ofs << jsonStr;
+
+		SceneSerializerContext::EraseEntityContext();
+
+	};
+
+	void SceneSerializer::SerializerRuntime(const std::string& filepath) {
+		//ToDo 目前和编辑时序列化一样，后续可以考虑运行时不序列化一些编辑器专用组件
+		Serializer(filepath);
+	};
+
+	std::string SceneSerializer::SerializerToString() {
+	
+		if (m_Scene.get() == nullptr)
+			return {};
 
 		// 创建场景序列化中间结构
 		SceneJson sceneData;
@@ -82,7 +102,7 @@ namespace Ayin {
 
 			Entity entity = { entityID, m_Scene.get() };
 			if (!entity)
-				return;
+				return {};
 
 			SceneSerializerContext::SetCurrentEntity(entity);
 
@@ -114,25 +134,12 @@ namespace Ayin {
 		if (!result) {
 			AYIN_CORE_ERROR("Failed to serialize scene to JSON: {}", glz::format_error(result.error()));
 
-			return;
+			return {};
 		}
-		std::string jsonStr = std::move(*result);
 
-		std::ofstream ofs(filepath);
-		if (!ofs.is_open()) {
-			AYIN_CORE_ERROR("Failed to open file for writing: {}", filepath);
-			return;
-		}
-		ofs << jsonStr;
-
-		SceneSerializerContext::EraseEntityContext();
-
+		return std::move(*result);
 	};
 
-	void SceneSerializer::SerializerRuntime(const std::string& filepath) {
-		//ToDo 目前和编辑时序列化一样，后续可以考虑运行时不序列化一些编辑器专用组件
-		Serializer(filepath);
-	};
 
 	void SceneSerializer::Deserializer(const std::string& filepath) {
 
@@ -267,6 +274,122 @@ namespace Ayin {
 		//ToDo 目前和编辑时序列化一样，后续可以考虑运行时不序列化一些编辑器专用组件
 		Deserializer(filepath);
 	};
+
+	void SceneSerializer::DeserializerFromString(const std::string& jsonStr) {
+	
+		// 构建反序列化中间层
+		SceneJson sceneData;
+		auto err = glz::read_json(sceneData, jsonStr);
+		if (err) {
+			AYIN_CORE_ERROR("Failed to parse scene JSON: {}", glz::format_error(err, jsonStr));
+			return;
+		}
+
+		//! 检查场景是否存在 UUID 异常（UUID 重复）
+		std::unordered_set<uint64_t> serializedEntityUUIDs;
+		for (auto& entityEntry : sceneData.Entities) {
+			const bool inserted = serializedEntityUUIDs.insert(entityEntry.UUID).second;//! 检查 UUID 是否已经存在
+			if (!inserted) {
+				AYIN_CORE_ERROR("Duplicate entity UUID in scene file: {} ({})", entityEntry.UUID, "Runtime scenario file");
+				return;
+			}
+		}
+
+		// 反序列化回场景
+		m_Scene->SetName(sceneData.SceneName);
+
+		// UUID 转换处理结构
+		std::unordered_map<UUID, UUID> oldUUID_newUUID_map;
+
+		// 逐个生成实体
+		for (auto& entityEntry : sceneData.Entities) {
+
+			Entity entity = m_Scene->CreateEntity("Entity");
+
+			SceneSerializerContext::SetCurrentEntity(entity);
+
+			oldUUID_newUUID_map.insert({ entityEntry.UUID, entity.GetComponents<IDComponent>().ID });
+
+			for (auto& [compName, rawJson] : entityEntry.Components) {
+
+				auto* desc = ComponentRegistry::GetComponentDescriptorByName(compName);// 获取组件行为
+				if (desc) {
+					desc->deserialize(entity, rawJson.str);//反序列化时需要转回字符串
+				}
+				else {
+					AYIN_CORE_WARN("Unknown component type in scene file: {}", compName);
+				}
+
+			}
+
+		}
+
+		SceneSerializerContext::EraseEntityContext();	// 放到 for 里也行，不过逻辑上一次就够了，除非出意外了
+
+
+		// 矫正旧的关系组件
+		auto&& relationShipView = m_Scene->m_Registry.view<RelationShipComponent>();
+		for (auto&& [entity, relation] : relationShipView.each()) {
+
+			if (relation.ParentUUID && oldUUID_newUUID_map.find(relation.ParentUUID) != oldUUID_newUUID_map.end()) {// ParentID 不是0，0是场景； 并且 map 映射中存在
+				relation.ParentUUID = oldUUID_newUUID_map[relation.ParentUUID];
+			}
+
+			std::ranges::for_each(relation.ChildrenUUID,
+				[&oldUUID_newUUID_map](UUID& childID) {
+					if (oldUUID_newUUID_map.find(childID) != oldUUID_newUUID_map.end())
+						childID = oldUUID_newUUID_map[childID];
+				});
+
+		}
+
+
+
+		// 脚本处理
+		auto&& nativeScriptComponentView = m_Scene->m_Registry.view<NativeScriptComponent>();
+
+		// 绑定脚本类型
+		nativeScriptComponentView.each([=](entt::entity, NativeScriptComponent& nsc) {
+			if (!nsc.HasScript()) {
+				return;
+			}
+
+			bool bound = ScriptRegistry::BindScriptByScriptName(nsc, nsc.ScriptName);
+			AYIN_CORE_ASSERT(bound, "Script '{}' is not registered", nsc.ScriptName);
+			});
+
+		// 初始化脚本实例
+		nativeScriptComponentView.each([=](entt::entity entity, NativeScriptComponent& nsc) {
+			if (!nsc.HasScript()) {
+				return;
+			}
+
+			AYIN_CORE_ASSERT(nsc.InstantiateFunction, "Script '{}' is not bound", nsc.ScriptName);
+			nsc.InstantiateFunction();
+			if (nsc.ScriptableInstance != nullptr) {
+				nsc.ScriptableInstance->m_Entity = Entity{ entity, m_Scene.get() };
+			}
+			});
+
+		// 脚本实例反序列
+		nativeScriptComponentView.each([=](entt::entity, NativeScriptComponent& nsc) {
+			if (nsc.ScriptableInstance == nullptr) {
+				return;
+			}
+
+			ScriptRegistry::DeserializeScriptByScriptName(nsc, nsc.ScriptName, nsc.ScriptData.str);
+			});
+
+		// OnCreate生命周期
+		nativeScriptComponentView.each([=](entt::entity, NativeScriptComponent& nsc) {
+			if (nsc.ScriptableInstance != nullptr) {
+				nsc.ScriptableInstance->OnCreate();
+			}
+			});
+
+
+	};
+
 
 
 

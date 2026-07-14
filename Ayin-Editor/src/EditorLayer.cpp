@@ -37,13 +37,13 @@ void EditorLayer::OnAttach() {
 
 	//场景测试
 	{
-		auto&& entity = m_ActiveScene->CreateEntity("TextureEntity");
+		auto&& entity = m_EditorScene->CreateEntity("TextureEntity");
 		entity.AddComponent<Ayin::SpriteRendererComponent>().SetTexture(testTexturePath);
 	}
 
 	{// 父子关系测试
-		Ayin::Entity parent = m_ActiveScene->CreateEntity("ParentEntity");
-		Ayin::Entity child = m_ActiveScene->CreateEntity("ChildEntity");
+		Ayin::Entity parent = m_EditorScene->CreateEntity("ParentEntity");
+		Ayin::Entity child = m_EditorScene->CreateEntity("ChildEntity");
 
 		parent.AddComponent<Ayin::SpriteRendererComponent>().Color = glm::vec4{0.84f, 0.15f, 0.15f, 0.6f};
 		child.AddComponent<Ayin::SpriteRendererComponent>().Color = glm::vec4{ 0.27f, 0.57f, 0.4f, 0.52f };
@@ -51,53 +51,53 @@ void EditorLayer::OnAttach() {
 		parent.GetComponents<Ayin::TransformComponent>().Position = { -1.0f, 0.0f, 0.0f };
 		child.GetComponents<Ayin::TransformComponent>().Position = { 1.0f, 0.0f, 0.0f };
 
-		m_ActiveScene->SetParent(child, parent, false);
+		m_EditorScene->SetParent(child, parent, false);
 
-		Ayin::Entity box = m_ActiveScene->CreateEntity("Box");
+		Ayin::Entity box = m_EditorScene->CreateEntity("Box");
 		box.GetComponents<Ayin::TransformComponent>().Position = { 0.0f, 0.0f, 4.5f };
 
 
-		Ayin::Entity front = m_ActiveScene->CreateEntity("Front");
+		Ayin::Entity front = m_EditorScene->CreateEntity("Front");
 		front.GetComponents<Ayin::TransformComponent>().Position = {0.0f, 0.0f, 5.0f};
 		front.GetComponents<Ayin::TransformComponent>().Rotation = {0.0f, 0.0f, 0.0f};
 		front.AddComponent<Ayin::SpriteRendererComponent>().Color = { 1.0f, 0.0f, 0.0f, 0.5f };
-		m_ActiveScene->SetParent(front, box, true);
+		m_EditorScene->SetParent(front, box, true);
 
-		Ayin::Entity back = m_ActiveScene->CreateEntity("Back");
+		Ayin::Entity back = m_EditorScene->CreateEntity("Back");
 		back.GetComponents<Ayin::TransformComponent>().Position = {0.0f, 0.0f, 4.0f};
 		back.GetComponents<Ayin::TransformComponent>().Rotation = {0.0f, glm::pi<float>(), 0.0f};
 		back.AddComponent<Ayin::SpriteRendererComponent>().Color = { 0.0f, 1.0f, 1.0f, 0.5f };
-		m_ActiveScene->SetParent(back, box, true);
+		m_EditorScene->SetParent(back, box, true);
 
-		Ayin::Entity left = m_ActiveScene->CreateEntity("Left");
+		Ayin::Entity left = m_EditorScene->CreateEntity("Left");
 		left.GetComponents<Ayin::TransformComponent>().Position = {-0.5f, 0.0f, 4.5f};
 		left.GetComponents<Ayin::TransformComponent>().Rotation = {0.0f, -0.5f * glm::pi<float>(), 0.0f};
 		left.AddComponent<Ayin::SpriteRendererComponent>().Color = { 0.0f, 1.0f, 0.0f, 0.5f };
-		m_ActiveScene->SetParent(left, box, true);
+		m_EditorScene->SetParent(left, box, true);
 
-		Ayin::Entity right = m_ActiveScene->CreateEntity("Right");
+		Ayin::Entity right = m_EditorScene->CreateEntity("Right");
 		right.GetComponents<Ayin::TransformComponent>().Position = {0.5f, 0.0f, 4.5f};
 		right.GetComponents<Ayin::TransformComponent>().Rotation = {0.0f, 0.5f * glm::pi<float>(), 0.0f};
 		right.AddComponent<Ayin::SpriteRendererComponent>().Color = { 1.0f, 0.0f, 1.0f, 0.5f };
-		m_ActiveScene->SetParent(right, box, true);
+		m_EditorScene->SetParent(right, box, true);
 
-		Ayin::Entity top = m_ActiveScene->CreateEntity("Top");
+		Ayin::Entity top = m_EditorScene->CreateEntity("Top");
 		top.GetComponents<Ayin::TransformComponent>().Position = {0.0f, 0.5f, 4.5f};
 		top.GetComponents<Ayin::TransformComponent>().Rotation = {0.5f * glm::pi<float>(), 0.0f, 0.0f};
 		top.AddComponent<Ayin::SpriteRendererComponent>().Color = { 0.0f, 0.0f, 1.0f, 0.5f };
-		m_ActiveScene->SetParent(top, box, true);
+		m_EditorScene->SetParent(top, box, true);
 
-		Ayin::Entity bottom = m_ActiveScene->CreateEntity("Bottom");
+		Ayin::Entity bottom = m_EditorScene->CreateEntity("Bottom");
 		bottom.GetComponents<Ayin::TransformComponent>().Position = {0.0f, -0.5f, 4.5f};
 		bottom.GetComponents<Ayin::TransformComponent>().Rotation = {- 0.5 * glm::pi<float>(), 0.0f, 0.0f};
 		bottom.AddComponent<Ayin::SpriteRendererComponent>().Color = { 1.0f, 1.0f, 0.0f, 0.5f };
-		m_ActiveScene->SetParent(bottom, box, true);
+		m_EditorScene->SetParent(bottom, box, true);
 
 	}
 
 
 	{
-		Ayin::Entity entity = m_ActiveScene->CreateEntity();
+		Ayin::Entity entity = m_EditorScene->CreateEntity();
 		auto& transform = entity.GetComponents<Ayin::TransformComponent>();
 		transform = Ayin::TransformComponent{ glm::vec3{ 0.0f, 0.0f, 5.0f }, glm::vec3{ 0.0f, 0.0f, glm::radians(60.0f) }, glm::vec3{ 1.0f, 1.0f, 1.0f } };
 		auto& sprite = entity.AddComponent<Ayin::SpriteRendererComponent>();
@@ -105,7 +105,7 @@ void EditorLayer::OnAttach() {
 	}
 	//
 
-	m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+	m_SceneHierarchyPanel.SetContext(m_EditorScene);
 
 };
 void EditorLayer::OnDetach() { AYIN_PROFILE_FUNCTION(); };
@@ -128,9 +128,10 @@ void EditorLayer::OnUpdate(Ayin::Timestep deltaTime) {
 		m_EditorCamera.SetCameraAspect(float(m_SceneSize.x) / m_SceneSize.y);
 
 		//调整场景中相机的比例
-		m_ActiveScene->OnViewportResize(m_SceneSize.x, m_SceneSize.y);
+		m_EditorScene->OnViewportResize(m_SceneSize.x, m_SceneSize.y);
+		if (m_TempScene) m_TempScene->OnViewportResize(m_SceneSize.x, m_SceneSize.y);
 
-		//跳针GPU的输出映射范围
+		//调整GPU的输出映射范围
 		Ayin::Renderer::OnWindowResize(m_SceneSize.x, m_SceneSize.y);
 		//! Application::OnWindowsResize()中的调整并没有删去
 		//! 我们已知，两帧之间处理事件，且处理的是上一帧的，指令-》ImGui-》事件-》输出画面-》。。。
@@ -151,7 +152,19 @@ void EditorLayer::OnUpdate(Ayin::Timestep deltaTime) {
 
 		Ayin::Renderer2D::ResetStatistics();
 
-		m_ActiveScene->OnUpdateEditor(deltaTime, m_EditorCamera);
+		switch (m_EditorState) {
+			
+		case EditorState::Editor:
+			m_EditorScene->OnUpdateEditor(deltaTime, m_EditorCamera);
+			break;
+		case EditorState::Simulate:
+			m_TempScene->OnUpdateSimulation(deltaTime, m_EditorCamera);
+			break;
+		case EditorState::Runtime:
+			m_TempScene->OnUpdateRuntime(deltaTime);
+			break;
+
+		};
 
 		Ayin::RenderCommand::SetClearColor({ clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w });
 
@@ -211,44 +224,46 @@ void EditorLayer::OnImGuiRender() {
 		ImGuizmo::BeginFrame();
 
 
-		Ayin::Entity selectEntity = m_SceneHierarchyPanel.GetSelectedEntity();
-		if(selectEntity)
-		{
-			// 实体transform
-			glm::mat4 transform = selectEntity.GetWorldTransform();
-			Ayin::TransformComponent& selectedEntityTransform = const_cast<Ayin::Entity&>(m_SceneHierarchyPanel.GetSelectedEntity()).GetComponents<Ayin::TransformComponent>();
+			Ayin::Entity selectEntity = m_SceneHierarchyPanel.GetSelectedEntity();
+			if(selectEntity)
+			{
+				if (m_EditorState != EditorState::Runtime) {
+					// 实体transform
+					glm::mat4 transform = selectEntity.GetWorldTransform();
+					Ayin::TransformComponent& selectedEntityTransform = const_cast<Ayin::Entity&>(m_SceneHierarchyPanel.GetSelectedEntity()).GetComponents<Ayin::TransformComponent>();
 
-			//ImGuizmo显示配置
-			ImGuizmo::SetOrthographic((m_EditorCamera.GetCameraType() == Ayin::Camera::CameraType::Orthogonal) ? true : false);
-			ImGuizmo::SetDrawlist();// 制到当前Viewport窗口，保证在Image之后叠加显示
-			ImGuizmo::SetRect(sceneMin.x, sceneMin.y, sceneSize.x, sceneSize.y);//用于NDC
-			ImGuizmo::SetGizmoSizeClipSpace((m_GizmoOperation & ImGuizmo::ROTATE) ? 0.16f : 0.1f);
+					//ImGuizmo显示配置
+					ImGuizmo::SetOrthographic((m_EditorCamera.GetCameraType() == Ayin::Camera::CameraType::Orthogonal) ? true : false);
+					ImGuizmo::SetDrawlist();// 制到当前Viewport窗口，保证在Image之后叠加显示
+					ImGuizmo::SetRect(sceneMin.x, sceneMin.y, sceneSize.x, sceneSize.y);//用于NDC
+					ImGuizmo::SetGizmoSizeClipSpace((m_GizmoOperation & ImGuizmo::ROTATE) ? 0.16f : 0.1f);
 
-			ImGuizmo::Manipulate(
-				glm::value_ptr(m_EditorCamera.GetViewMatrix()), glm::value_ptr(m_EditorCamera.GetProjectionMatrix()),
-				m_GizmoOperation, m_GizmoMode,
-				glm::value_ptr(transform), nullptr, nullptr, nullptr, nullptr
-			);
+					ImGuizmo::Manipulate(
+						glm::value_ptr(m_EditorCamera.GetViewMatrix()), glm::value_ptr(m_EditorCamera.GetProjectionMatrix()),
+						m_GizmoOperation, m_GizmoMode,
+						glm::value_ptr(transform), nullptr, nullptr, nullptr, nullptr
+					);
 
 
-			if (ImGuizmo::IsUsing()) {
-				
-				Ayin::Entity parent = selectEntity.GetParent();
-				auto&&[positiong, rotation, scale] = Ayin::Math::DecomposeTransform(glm::inverse(parent.GetWorldTransform()) * transform);
+					if (ImGuizmo::IsUsing()) {
+						
+						Ayin::Entity parent = selectEntity.GetParent();
+						auto&&[positiong, rotation, scale] = Ayin::Math::DecomposeTransform(glm::inverse(parent.GetWorldTransform()) * transform);
 
-				if (glm::all(glm::isfinite(positiong)) && glm::all(glm::isfinite(rotation)) && glm::all(glm::isfinite(scale))) {
+						if (glm::all(glm::isfinite(positiong)) && glm::all(glm::isfinite(rotation)) && glm::all(glm::isfinite(scale))) {
 
-					selectedEntityTransform.Position = positiong;
-					selectedEntityTransform.Rotation = rotation;
-					//x selectedEntityTransform.Scale += (scale / selectedEntityTransform.Scale) - glm::vec3{ 1.0f, 1.0f, 1.0f };（有bug，而且易触发）
-					selectedEntityTransform.Scale = scale;
+							selectedEntityTransform.Position = positiong;
+							selectedEntityTransform.Rotation = rotation;
+							//x selectedEntityTransform.Scale += (scale / selectedEntityTransform.Scale) - glm::vec3{ 1.0f, 1.0f, 1.0f };（有bug，而且易触发）
+							selectedEntityTransform.Scale = scale;
 
+						}
+
+					}
+					//! - `ImGuizmo #302`: scale 在物体位于 origin 或相机 perspective 正对物体时会异常，拖动可能导致 transform 全部变 NaN。
 				}
 
 			}
-			//! - `ImGuizmo #302`: scale 在物体位于 origin 或相机 perspective 正对物体时会异常，拖动可能导致 transform 全部变 NaN。
-
-		}
 
 		DrawGizmoToolbarOverlay(sceneMin, sceneSize);
 
@@ -281,24 +296,74 @@ void EditorLayer::OnImGuiRender() {
 	
 		if (ImGui::BeginMainMenuBar()) {
 			
-			if (ImGui::BeginMenu("FILE")) {
-			
-				if (ImGui::MenuItem("SaveScene")) {
-					SaveScene();
-				}
-				if (ImGui::MenuItem("OpenScene")) {
-					OpenScene();
-				}
-				if (ImGui::MenuItem("CreateScene")) {
-					NewScene();
+				if (ImGui::BeginMenu("FILE")) {
+				
+					ImGui::BeginDisabled(m_EditorState != EditorState::Editor);//! 禁用一段 UI
+
+					if (ImGui::MenuItem("SaveScene")) {
+						SaveScene();
+					}
+					if (ImGui::MenuItem("OpenScene")) {
+						OpenScene();
+					}
+					if (ImGui::MenuItem("CreateScene")) {
+						NewScene();
+					}
+					ImGui::EndDisabled();
+	
+					ImGui::EndMenu();
+				
 				}
 
-				ImGui::EndMenu();
-			
-			}
-			
-		
-			ImGui::EndMainMenuBar();
+
+				// 计算按钮布局
+				ImGuiStyle& style = ImGui::GetStyle();
+				float controlsWidth = 0.0f;
+
+				// 计算两个按钮和文字总体宽度
+				if (m_EditorState == EditorState::Editor) {
+					float playButtonWidth = ImGui::CalcTextSize("Play").x + style.FramePadding.x * 2.0f;
+					float simulateButtonWidth = ImGui::CalcTextSize("Simulate").x + style.FramePadding.x * 2.0f;
+					controlsWidth = playButtonWidth + style.ItemSpacing.x + simulateButtonWidth;
+				} else if (m_EditorState == EditorState::Runtime) {
+					float playingTextWidth = ImGui::CalcTextSize("Playing").x;
+					float endButtonWidth = ImGui::CalcTextSize("End").x + style.FramePadding.x * 2.0f;
+					controlsWidth = playingTextWidth + style.ItemSpacing.x + endButtonWidth;
+				} else if (m_EditorState == EditorState::Simulate) {
+					float simulatingTextWidth = ImGui::CalcTextSize("Simulating").x;
+					float endButtonWidth = ImGui::CalcTextSize("End").x + style.FramePadding.x * 2.0f;
+					controlsWidth = simulatingTextWidth + style.ItemSpacing.x + endButtonWidth;
+				}
+
+				float minControlsX = ImGui::GetCursorPosX() + style.ItemSpacing.x;			// 最小绘制位置（避免遮挡其它 Bar 中的内容）
+				float maxControlsX = ImGui::GetWindowContentRegionMax().x - controlsWidth;	// 最大绘制位置（避免绘制的内容脱离 Bar 的范围）
+				float centeredControlsX = (ImGui::GetWindowWidth() - controlsWidth) * 0.5f;	// 居中布局效果所需的起始位置（理想位置）
+				float controlsX = std::max(minControlsX, std::min(centeredControlsX, maxControlsX));
+
+				ImGui::SetCursorPosX(controlsX);
+				if (m_EditorState == EditorState::Editor) {
+					if (ImGui::Button("Play")) {
+						ChangeEditorState(EditorState::Runtime);
+					}
+					ImGui::SameLine();
+					if (ImGui::Button("Simulate")) {
+						ChangeEditorState(EditorState::Simulate);
+					}
+				} else if (m_EditorState == EditorState::Runtime) {
+					ImGui::TextUnformatted("Playing");
+					ImGui::SameLine();
+					if (ImGui::Button("End")) {
+						ChangeEditorState(EditorState::Editor);
+					}
+				} else if (m_EditorState == EditorState::Simulate) {
+					ImGui::TextUnformatted("Simulating");
+					ImGui::SameLine();
+					if (ImGui::Button("End")) {
+						ChangeEditorState(EditorState::Editor);
+					}
+				}
+				
+				ImGui::EndMainMenuBar();
 		}
 
 	}
@@ -437,29 +502,29 @@ void EditorLayer::OpenScene() {
 	std::optional<std::string> filePath = Ayin::FileDialogs::OpenFile({ {"Scenen", "json"}}, nullptr);
 
 	if (filePath) {
-		m_ActiveScene = Ayin::CreateRef<Ayin::Scene>();
+		m_EditorScene = Ayin::CreateRef<Ayin::Scene>();
 
 
-		Ayin::SceneSerializer sceneSerializer{ m_ActiveScene };
+		Ayin::SceneSerializer sceneSerializer{ m_EditorScene };
 		sceneSerializer.Deserializer(*filePath);
 
-		m_ActiveScene->OnViewportResize(m_SceneSize.x, m_SceneSize.y);
+		m_EditorScene->OnViewportResize(m_SceneSize.x, m_SceneSize.y);
 
-		m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+		m_SceneHierarchyPanel.SetContext(m_EditorScene);
 	}
 
 };
 
 void EditorLayer::NewScene() {
 
-	m_ActiveScene = Ayin::CreateRef<Ayin::Scene>();
-	m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+	m_EditorScene = Ayin::CreateRef<Ayin::Scene>();
+	m_SceneHierarchyPanel.SetContext(m_EditorScene);
 
-	Ayin::Entity mainCamera = m_ActiveScene->CreateEntity("MainCamera");
+	Ayin::Entity mainCamera = m_EditorScene->CreateEntity("MainCamera");
 	mainCamera.GetComponents<Ayin::TransformComponent>().Position.z = 10.0f;
 	mainCamera.AddComponent<Ayin::CameraComponent>(Ayin::CameraProp{ .Type{Ayin::Camera::CameraType::Perspective} });
 
-	m_ActiveScene->OnViewportResize(m_SceneSize.x, m_SceneSize.y);
+	m_EditorScene->OnViewportResize(m_SceneSize.x, m_SceneSize.y);
 
 };
 
@@ -468,8 +533,48 @@ void EditorLayer::SaveScene() {
 	std::optional<std::string> filePath = Ayin::FileDialogs::SaveFile({ {"Scenen", "json"} }, "Scene");
 	
 	if (filePath) {
-		Ayin::SceneSerializer sceneSerializer{ m_ActiveScene };
+		Ayin::SceneSerializer sceneSerializer{ m_EditorScene };
 		sceneSerializer.Serializer(*filePath);
 	} 
+
+};
+
+
+void EditorLayer::ChangeEditorState(EditorState state) {
+
+	if (m_EditorState == state)
+		return;
+
+	// UUID 无法被复制（因为那是不合法的）
+	auto copyScene = [this]() {
+
+		Ayin::SceneSerializer sceneSerializer{ m_EditorScene };
+		std::string jsonSrc = sceneSerializer.SerializerToString();
+		
+		m_TempScene = Ayin::CreateRef<Ayin::Scene>();
+		sceneSerializer.SetScene(m_TempScene);
+		sceneSerializer.DeserializerFromString(std::move(jsonSrc));
+
+		};
+
+
+	switch (state) {
+
+	case EditorState::Editor:
+		m_SceneHierarchyPanel.SetContext(m_EditorScene);
+		m_TempScene = nullptr;
+		break;
+	case EditorState::Simulate:
+		copyScene();
+		m_SceneHierarchyPanel.SetContext(m_TempScene);
+		break;
+	case EditorState::Runtime:
+		copyScene();
+		m_SceneHierarchyPanel.SetContext(m_TempScene);
+		break;
+
+	};
+
+	m_EditorState = state;
 
 };

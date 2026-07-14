@@ -30,9 +30,11 @@ namespace Ayin {
 
 		void Serializer(const std::string& filepath);
 		void SerializerRuntime(const std::string& filepath);
+		std::string SerializerToString();
 
 		void Deserializer(const std::string& filepath);
 		void DeserializerRuntime(const std::string& filepath);
+		void DeserializerFromString(const std::string& jsonStr);
 
 	private:
 

@@ -7,6 +7,13 @@
 
 #include <ImGuizmo.h>
 
+enum class EditorState
+{
+	Editor = 0,
+	Runtime = 1,
+	Simulate = 2
+};
+
 class EditorLayer : public Ayin::Layer {
 
 public:
@@ -26,16 +33,18 @@ public:
 
 private:
 
-	//快捷键
+	// 快捷键
 	bool OnKeyPressed(Ayin::KeyPressedEvent& event);
 
-	//操作手柄
+	// 操作手柄
 	void DrawGizmoToolbarOverlay(ImVec2 sceneMin, ImVec2 sceneSize);
 
-	//场景导入导出
+	// 场景导入导出
 	void OpenScene();
 	void NewScene();
 	void SaveScene();
+
+	void ChangeEditorState(EditorState state);
 
 private:
 
@@ -55,8 +64,10 @@ private:
 	ImVec2 m_GizmoToolbarOffset = { 8.0f, 8.0f };//GizmoToolBar在Viewport中的相对偏移
 	bool m_GizmoToolbarCollapsed = false;//是否收纳
 
-	//ECS测试
-	Ayin::Ref<Ayin::Scene> m_ActiveScene;						
+	//						编辑用场景				运行模拟时场景
+	Ayin::Ref<Ayin::Scene> m_EditorScene = nullptr, m_TempScene = nullptr;
+	EditorState m_EditorState = EditorState::Editor;
+	
 
 	//面板测试
 	Ayin::SceneHierarchyPanel m_SceneHierarchyPanel;
