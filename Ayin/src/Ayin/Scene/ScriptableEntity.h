@@ -24,8 +24,8 @@ namespace Ayin{
 		ScriptableEntity() = default;
 		virtual ~ScriptableEntity() = default;
 
-		virtual std::optional<std::string> GetScriptName() const { return std::nullopt; };
-		virtual std::optional<entt::id_type> GetScriptID() const { return std::nullopt; };
+		virtual inline std::optional<std::string> GetScriptName() const { return std::nullopt; };
+		virtual inline std::optional<entt::id_type> GetScriptID() const { return std::nullopt; };
 
 		virtual void OnCreate() {};
 		virtual void OnUpdate(Timestep deltaTime) {};
