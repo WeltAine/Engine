@@ -244,8 +244,7 @@ namespace Ayin {
 					return;
 				}
 
-				AYIN_CORE_ASSERT(nsc.InstantiateFunction, "Script '{}' is not bound", nsc.ScriptName);
-				nsc.InstantiateFunction();
+				nsc.Instantiate();
 				if (nsc.ScriptableInstance != nullptr) {
 					nsc.ScriptableInstance->m_Entity = Entity{ entity, m_Scene.get() };
 				}
@@ -364,8 +363,7 @@ namespace Ayin {
 				return;
 			}
 
-			AYIN_CORE_ASSERT(nsc.InstantiateFunction, "Script '{}' is not bound", nsc.ScriptName);
-			nsc.InstantiateFunction();
+			nsc.Instantiate();
 			if (nsc.ScriptableInstance != nullptr) {
 				nsc.ScriptableInstance->m_Entity = Entity{ entity, m_Scene.get() };
 			}

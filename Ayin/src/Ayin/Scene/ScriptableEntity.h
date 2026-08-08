@@ -24,6 +24,8 @@ namespace Ayin{
 		ScriptableEntity() = default;
 		virtual ~ScriptableEntity() = default;
 
+		inline void SetEntity(const Entity& entity) { m_Entity = entity; };
+
 		virtual inline std::optional<std::string> GetScriptName() const { return std::nullopt; };
 		virtual inline std::optional<entt::id_type> GetScriptID() const { return std::nullopt; };
 

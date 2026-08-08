@@ -368,6 +368,7 @@ namespace Ayin {
 	// ----------脚本组件-----------
 	struct NativeScriptComponent {
 
+	public:
 		static constexpr const char* NoneScriptName = "none";
 		static constexpr const char* NullScriptData = "null";
 
@@ -383,12 +384,14 @@ namespace Ayin {
 		//x 简单来说有一些行为涉及到更加广泛的内容，原先的方案，会因其局限性，对反序列化时机产生限制 ，上下文感知带来麻烦，令上下文耦合严重
 		//! 所以采用这个方案，先将序列化数据存储起来，延迟反序列化（分步反序列化），使得反序列化时机可以控制，一来避免环境缺失问题，二来方便后续引入更复杂的序列化效果 ，最后交由sceneSerialize来完成，那个位置的上下文充足，甚至可以不再依靠上下文类
 
-		std::function<void()> InstantiateFunction;		//初始化回调
-		std::function<void()> DestroyInstanceFunction;	//移除回调
+	private:
+		std::function<void(NativeScriptComponent& nsc)> InstantiateFunction;		//初始化回调
+		std::function<void(ScriptableEntity* scriptInstance)> DestroyInstanceFunction;	//移除回调
 		
+	public:
 		template<typename ScriptType>
 			requires std::derived_from<ScriptType, ScriptableEntity> && std::default_initializable<ScriptType>
-		void Bind() {
+		inline void Bind() {
 
 			static ObjectPool<ScriptType> pool;
 
@@ -399,34 +402,74 @@ namespace Ayin {
 			// 回收旧脚本
 			if (ScriptableInstance != nullptr) {
 				ScriptableInstance->OnDestroy();
-				DestroyInstanceFunction();
+				ReleaseInstance();
 			}
 
 			// 注册新回调
-			InstantiateFunction = [&]() {
-					ScriptableInstance = pool.Allocate(); new(ScriptableInstance) ScriptType(); ScriptName = ScriptableInstance->GetScriptName().value_or(NoneScriptName);
+			InstantiateFunction = [](NativeScriptComponent& nsc) {
+					nsc.ScriptableInstance = pool.Allocate(); 
+					new(nsc.ScriptableInstance) ScriptType(); 
+					nsc.ScriptName = nsc.ScriptableInstance->GetScriptName().value_or(NoneScriptName);
 				};
-			DestroyInstanceFunction = [&]() { pool.Deallocate(static_cast<ScriptType*>(ScriptableInstance)), ScriptableInstance = nullptr; };
+			DestroyInstanceFunction = [](ScriptableEntity* scriptInstance) { pool.Deallocate(static_cast<ScriptType*>(scriptInstance)); };
+
+		}
+
+		inline ScriptableEntity* Instantiate() {
+
+			AYIN_CORE_ASSERT(this->InstantiateFunction, "Script '{}' is not bound", this->ScriptName);
+			
+			if (!ScriptableInstance && InstantiateFunction) {
+				this->InstantiateFunction(*this);
+			}
+
+			return this->ScriptableInstance;
+		
+		}
+
+		inline void ReleaseInstance() {
+			
+			AYIN_CORE_ASSERT(this->DestroyInstanceFunction, "Script '{}' is not bound", this->ScriptName);
+
+			ScriptableEntity* instance = std::exchange(ScriptableInstance, nullptr);
+			//! std::exchange ：取出变量的旧值，同时用新值替换它。
+
+			if (instance && DestroyInstanceFunction)
+				DestroyInstanceFunction(instance);
 
 		}
 
 		// 是否绑定了脚本
-		bool HasScript() const {
+		inline bool HasScript() const {
 			return !ScriptName.empty() && ScriptName != NoneScriptName;
 		}
 
 
 		NativeScriptComponent() = default;
-		~NativeScriptComponent() {
+		NativeScriptComponent(NativeScriptComponent&& other) noexcept
+			: ScriptableInstance{
+				  std::exchange(other.ScriptableInstance, nullptr)
+			},
+			ScriptName{ std::move(other.ScriptName) },
+			ScriptData{ std::move(other.ScriptData) },
+			InstantiateFunction{ std::move(other.InstantiateFunction) },
+			DestroyInstanceFunction{ std::move(other.DestroyInstanceFunction) }
+		{}
+
+		NativeScriptComponent(const NativeScriptComponent&) = delete;
+		NativeScriptComponent& operator=(const NativeScriptComponent&) = delete;
+		NativeScriptComponent& operator=(NativeScriptComponent&&) = delete;
+
+		inline ~NativeScriptComponent() {
 
 			if (ScriptableInstance != nullptr) {
 				ScriptableInstance->OnDestroy();
-				DestroyInstanceFunction();
+				ReleaseInstance();
 			}
 			
 		}
 
-		static void OnGui(Entity& entity) {
+		inline static void OnGui(Entity& entity) {
 			auto& nsc = entity.GetComponents<Ayin::NativeScriptComponent>();
 			ImGui::Text("Script: %s", nsc.HasScript() ? nsc.ScriptName.c_str() : "None");
 
@@ -440,7 +483,7 @@ namespace Ayin {
 
 		};
 
-		static ::entt::id_type ComponentStorageID() { return ::entt::type_hash<NativeScriptComponent>::value(); };
+		inline static ::entt::id_type ComponentStorageID() { return ::entt::type_hash<NativeScriptComponent>::value(); };
 
 
 
