@@ -9,6 +9,7 @@
 
 #include "Ayin/Scene/Components.h"
 #include "Ayin/Scene/Systems.h"
+#include "Ayin/Scene/SystemSchedule.h"
 
 #include "Ayin/Renderer/Renderer2D.h"
 
@@ -362,37 +363,24 @@ namespace Ayin{
 
 	void Scene::OnUpdateRuntime(Timestep deltaTime) {
 	
+		// system 上下文
+		SystemContext systemContext = SystemContext{ .Scene{*this}, .DeltaTime{deltaTime} };
+
 
 		// 延迟删除
 		FlushDestroyedEntities();
 
-		// 脚本初始化（挂在实际脚本）、更新
-		{
-			m_Registry.view<NativeScriptComponent>().each([=](entt::entity entity, NativeScriptComponent& nsc) {
-
-				if (!nsc.HasScript()) {//没有绑定脚本类型
-					return;
-				}
-
-				if (!nsc.ScriptableInstance) {//没有脚本实例
-					AYIN_CORE_ASSERT(nsc.InstantiateFunction, "Script '{}' is not bound", nsc.ScriptName);
-					nsc.InstantiateFunction();
-					if (nsc.ScriptableInstance == nullptr) {
-						return;
-					}
-					nsc.ScriptableInstance->m_Entity = Entity{ entity, this };
-					nsc.ScriptableInstance->OnCreate();
-				}
-
-				nsc.ScriptableInstance->OnUpdate(deltaTime);
-
-				});
-		}
 
 
 		// 系统更新
 		{
-			Systems::CameraSystem::OnUpdate(this);
+			// 脚本系统
+			Systems::ScriptSystem scriptSystem{};
+			scriptSystem.OnUpdate(systemContext);
+
+			//相机系统
+			Systems::CameraSystem cameraSystem{};
+			cameraSystem.OnUpdate(systemContext);
 		}
 
 		//? 关于没有与这些操作数匹配的 "!=" 运算符
@@ -478,16 +466,14 @@ namespace Ayin{
 				}
 
 				if (!nsc.ScriptableInstance) {//没有脚本实例
-					AYIN_CORE_ASSERT(nsc.InstantiateFunction, "Script '{}' is not bound", nsc.ScriptName);
-					nsc.InstantiateFunction();
+					nsc.Instantiate();
 					if (nsc.ScriptableInstance == nullptr) {
 						return;
 					}
-					nsc.ScriptableInstance->m_Entity = Entity{ entity, this };
-					nsc.ScriptableInstance->OnCreate();
+					nsc.ActiveScript(Entity{ entity, this });
 				}
 
-				nsc.ScriptableInstance->OnUpdate(deltaTime);
+				nsc.Update(deltaTime);
 
 				});
 		}
@@ -709,6 +695,12 @@ namespace Ayin{
 			Entity entity{ handle, this };
 			InternalDestroyEntity(entity);
 		}
+
+	};
+
+	Scene::~Scene() {
+	
+		Systems::ScriptSystem::StopAllScript(*this);
 
 	};
 

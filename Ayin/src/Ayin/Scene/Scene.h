@@ -13,6 +13,41 @@ namespace Ayin {
 
 	class Entity;
 
+	// ----------------------------------------------------------------------------------------------------------------
+
+	// 场景模式
+	enum class SceneMode : uint8_t {
+
+		None = 0,
+		Editor = BIT(0),
+		Simulation = BIT(1),
+		Runtime = BIT(2),
+
+		AllSceneMode = BIT(3) - 1
+
+	};
+
+	using SceneModeMask = uint8_t;
+
+	//! C++20 的 abbreviated function template，中文一般叫“缩写函数模板”或“简写函数模板”
+	//! 本质上等价于一个带约束的模板函数：
+	//! template <typename... Modes>
+	//!  	requires (std::same_as<Modes, SceneMode> && ...)
+	//!constexpr SceneModeMask ToMask(Modes... modes)
+	//!{
+	//!		return (static_cast<SceneModeMask>(modes) | ...);
+	//!}
+	constexpr SceneModeMask ToMask(std::same_as<SceneMode> auto... modes) {
+	
+		return (SceneModeMask{ 0 } | ... | static_cast<SceneModeMask>(modes));
+		//!带初始值的二元折叠表达式，不采用一元折叠是为了防止空参数调用 ToMask() 时，| 折叠表达式没有初始值，进而导致编译失败
+	
+	}
+
+	inline bool Contains(SceneModeMask mask, SceneMode mode) { return mask & static_cast<SceneModeMask>(mode); }
+
+	// ----------------------------------------------------------------------------------------------------------------
+
 	class AYIN_API Scene {
 
 		friend class Entity;
@@ -21,7 +56,7 @@ namespace Ayin {
 	public:
 
 		Scene() = default;
-		~Scene() = default;
+		~Scene();
 
 		// 创建一个只有 UUID 的实体
 		Entity CreateUUIDEntity();
