@@ -245,9 +245,6 @@ namespace Ayin {
 				}
 
 				nsc.Instantiate();
-				if (nsc.ScriptableInstance != nullptr) {
-					nsc.ScriptableInstance->m_Entity = Entity{ entity, m_Scene.get() };
-				}
 			});
 
 		// 脚本实例反序列
@@ -260,9 +257,9 @@ namespace Ayin {
 			});
 
 		// OnCreate生命周期
-		nativeScriptComponentView.each([=](entt::entity, NativeScriptComponent& nsc) {
+		nativeScriptComponentView.each([=](entt::entity entity, NativeScriptComponent& nsc) {
 				if (nsc.ScriptableInstance != nullptr) {
-					nsc.ScriptableInstance->OnCreate();
+					nsc.ActiveScript(Entity{ entity, m_Scene.get() });
 				}
 			});
 
@@ -358,15 +355,12 @@ namespace Ayin {
 			});
 
 		// 初始化脚本实例
-		nativeScriptComponentView.each([=](entt::entity entity, NativeScriptComponent& nsc) {
+		nativeScriptComponentView.each([=](entt::entity, NativeScriptComponent& nsc) {
 			if (!nsc.HasScript()) {
 				return;
 			}
 
 			nsc.Instantiate();
-			if (nsc.ScriptableInstance != nullptr) {
-				nsc.ScriptableInstance->m_Entity = Entity{ entity, m_Scene.get() };
-			}
 			});
 
 		// 脚本实例反序列
@@ -379,9 +373,9 @@ namespace Ayin {
 			});
 
 		// OnCreate生命周期
-		nativeScriptComponentView.each([=](entt::entity, NativeScriptComponent& nsc) {
+		nativeScriptComponentView.each([=](entt::entity entity, NativeScriptComponent& nsc) {
 			if (nsc.ScriptableInstance != nullptr) {
-				nsc.ScriptableInstance->OnCreate();
+				nsc.ActiveScript(Entity{ entity, m_Scene.get() });
 			}
 			});
 

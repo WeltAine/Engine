@@ -6,6 +6,8 @@
 
 #include "Ayin/Core/Timestep.h"
 
+#include "Ayin/Scene/Systems.h"
+
 #include <optional>
 #include <string>
 #include <entt/entt.hpp>
@@ -18,6 +20,7 @@ namespace Ayin{
 		friend class Scene;
 		friend class SceneSerializer;
 		friend struct NativeScriptComponent;
+		friend class Systems::ScriptSystem;
 
 	public:
 
@@ -29,15 +32,17 @@ namespace Ayin{
 		virtual inline std::optional<std::string> GetScriptName() const { return std::nullopt; };
 		virtual inline std::optional<entt::id_type> GetScriptID() const { return std::nullopt; };
 
-		virtual void OnCreate() {};
-		virtual void OnUpdate(Timestep deltaTime) {};
-		virtual void OnDestroy() {};
 
 		//脚本绘制
 		virtual void OnGui() {};
 
 		template<typename... ComponentTypes>
 		decltype(auto) GetComponents();
+
+	protected:
+		virtual void OnCreate() {};
+		virtual void OnUpdate(Timestep deltaTime) {};
+		virtual void OnDestroy() {};
 
 	private:
 

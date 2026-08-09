@@ -56,6 +56,7 @@ namespace Ayin {
 
 
 	//-------------------  辅助方法 ---------------------
+	// 序列化 自定义脚本
 	template<typename ScriptType>
 		requires std::derived_from<ScriptType, ScriptableEntity>&& std::default_initializable<ScriptType>
 	std::string SerializeScript(const NativeScriptComponent& nsc) {
@@ -81,6 +82,7 @@ namespace Ayin {
 
 	}
 
+	// 反序列化自定义脚本
 	 template<typename ScriptType>
 		 requires std::derived_from<ScriptType, ScriptableEntity>&& std::default_initializable<ScriptType>
 	 bool DeserializeScript(NativeScriptComponent& nsc, const std::string& json) {

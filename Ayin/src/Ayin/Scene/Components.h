@@ -366,7 +366,21 @@ namespace Ayin {
 	
 
 	// ----------脚本组件-----------
+	//! 其维护一个不变量，即 Script 的生命周期过程，保证其顺序的合理性，对多调用点的幂等性
+	//! 第二个不变量就是 Bind 的类型和实际的 Script 具体类型时刻保持一致
 	struct NativeScriptComponent {
+
+		//! 通过状态标记维护 Script 的生命周期流程
+		enum class ScriptLifecycleState : uint8_t {
+
+			Unbound,		// 未配置类型或已执行ReleasseInstance
+			Bound,			// 已配置类型
+			Instantiated,	// 已有实例，但未进入任何生命周期
+			Active,			// 已执行 OnCreate
+			Stopping
+
+		};
+
 
 	public:
 		static constexpr const char* NoneScriptName = "none";
@@ -385,25 +399,27 @@ namespace Ayin {
 		//! 所以采用这个方案，先将序列化数据存储起来，延迟反序列化（分步反序列化），使得反序列化时机可以控制，一来避免环境缺失问题，二来方便后续引入更复杂的序列化效果 ，最后交由sceneSerialize来完成，那个位置的上下文充足，甚至可以不再依靠上下文类
 
 	private:
+		ScriptLifecycleState m_State = ScriptLifecycleState::Unbound;	// 保持私有，方式被意外篡改而影响生命周期
+
+	private:
 		std::function<void(NativeScriptComponent& nsc)> InstantiateFunction;		//初始化回调
 		std::function<void(ScriptableEntity* scriptInstance)> DestroyInstanceFunction;	//移除回调
 		
 	public:
+		//! 这是 Script 毁灭的开始，尽管它不叫什么 Destory 但是这会改变 Nsc 的记录，导致 Script 以不合理的方式析构 或者 Script 被提前析构（我直接采取了拒绝的方式）
+		//! 所以不要在自己的 OnCreate、OnUpdate 和 OnDestory 中对自己的 Nsc 调用 Bind 或者 StopScript 这可能造成超出意料的影响。
 		template<typename ScriptType>
 			requires std::derived_from<ScriptType, ScriptableEntity> && std::default_initializable<ScriptType>
 		inline void Bind() {
 
 			static ObjectPool<ScriptType> pool;
 
+			if (m_State != ScriptLifecycleState::Unbound && m_State != ScriptLifecycleState::Bound)
+				return;
+
 			// 更新赋名
 			auto scriptName = ScriptType{}.GetScriptName();
 			ScriptName = (scriptName && !scriptName->empty()) ? *scriptName : NoneScriptName;
-
-			// 回收旧脚本
-			if (ScriptableInstance != nullptr) {
-				ScriptableInstance->OnDestroy();
-				ReleaseInstance();
-			}
 
 			// 注册新回调
 			InstantiateFunction = [](NativeScriptComponent& nsc) {
@@ -411,33 +427,71 @@ namespace Ayin {
 					new(nsc.ScriptableInstance) ScriptType(); 
 					nsc.ScriptName = nsc.ScriptableInstance->GetScriptName().value_or(NoneScriptName);
 				};
+			
 			DestroyInstanceFunction = [](ScriptableEntity* scriptInstance) { pool.Deallocate(static_cast<ScriptType*>(scriptInstance)); };
+
+			m_State = ScriptLifecycleState::Bound;
 
 		}
 
 		inline ScriptableEntity* Instantiate() {
 
-			AYIN_CORE_ASSERT(this->InstantiateFunction, "Script '{}' is not bound", this->ScriptName);
-			
+			if ( m_State != ScriptLifecycleState::Bound ) {
+				AYIN_CORE_ASSERT(false, "Script is not bound");
+				return nullptr;
+			}
+
 			if (!ScriptableInstance && InstantiateFunction) {
 				this->InstantiateFunction(*this);
 			}
+
+			if(ScriptableInstance)
+				m_State = ScriptLifecycleState::Instantiated;
 
 			return this->ScriptableInstance;
 		
 		}
 
-		inline void ReleaseInstance() {
-			
-			AYIN_CORE_ASSERT(this->DestroyInstanceFunction, "Script '{}' is not bound", this->ScriptName);
+		inline void ActiveScript(const Entity& entity = Entity{}) {
+		
+			if (m_State != ScriptLifecycleState::Instantiated) {
+				AYIN_CORE_ASSERT(false, "Script LifeLoop Error: ScriptableInstance is null");
+				return;
+			}
 
-			ScriptableEntity* instance = std::exchange(ScriptableInstance, nullptr);
-			//! std::exchange ：取出变量的旧值，同时用新值替换它。
+			ScriptableInstance->SetEntity(entity);
+			ScriptableInstance->OnCreate();
 
-			if (instance && DestroyInstanceFunction)
-				DestroyInstanceFunction(instance);
+			m_State = ScriptLifecycleState::Active;
 
-		}
+		};
+
+		inline void Update(Timestep deltaTime) { 
+
+			if (m_State != ScriptLifecycleState::Active) {
+				AYIN_CORE_ASSERT(false, "Script LifeLoop Error");
+				return;
+			}
+
+			ScriptableInstance->OnUpdate(deltaTime); 
+		
+		};
+
+		inline void StopScript() {
+
+			if (m_State != ScriptLifecycleState::Active && m_State != ScriptLifecycleState::Instantiated) {
+				return;
+			}
+
+			if (m_State == ScriptLifecycleState::Active) {
+				m_State = ScriptLifecycleState::Stopping;
+				ScriptableInstance->OnDestroy();
+			}
+
+			ReleaseInstance();
+
+		};
+
 
 		// 是否绑定了脚本
 		inline bool HasScript() const {
@@ -450,6 +504,7 @@ namespace Ayin {
 			: ScriptableInstance{
 				  std::exchange(other.ScriptableInstance, nullptr)
 			},
+			m_State{other.m_State},
 			ScriptName{ std::move(other.ScriptName) },
 			ScriptData{ std::move(other.ScriptData) },
 			InstantiateFunction{ std::move(other.InstantiateFunction) },
@@ -463,8 +518,7 @@ namespace Ayin {
 		inline ~NativeScriptComponent() {
 
 			if (ScriptableInstance != nullptr) {
-				ScriptableInstance->OnDestroy();
-				ReleaseInstance();
+				StopScript();
 			}
 			
 		}
@@ -486,6 +540,27 @@ namespace Ayin {
 		inline static ::entt::id_type ComponentStorageID() { return ::entt::type_hash<NativeScriptComponent>::value(); };
 
 
+	private:
+		inline void ReleaseInstance() {
+			
+			if (m_State != ScriptLifecycleState::Stopping && m_State != ScriptLifecycleState::Instantiated) {
+				AYIN_CORE_ASSERT(false, "Script LifeLoop Error");
+				return;
+			}
+
+
+			AYIN_CORE_ASSERT(this->DestroyInstanceFunction, "Script '{}' is not bound", this->ScriptName);
+
+			ScriptableEntity* instance = std::exchange(ScriptableInstance, nullptr);
+			//! std::exchange ：取出变量的旧值，同时用新值替换它。
+
+			if (instance && DestroyInstanceFunction)
+				DestroyInstanceFunction(instance);
+
+			m_State = ScriptLifecycleState::Bound;
+		}
+
+	public:
 
 		glz::raw_json write_ScriptData();
 		void read_ScriptData(glz::raw_json json);
