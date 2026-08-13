@@ -3,6 +3,7 @@
 #include "Ayin/Core/Core.h"
 #include "Ayin/Core/Timestep.h"
 #include "Ayin/Scene/EditorCamera.h"
+#include "Ayin/Core/BitmaskEnum.h"
 
 #include <entt/entt.hpp>
 #include <string>
@@ -27,39 +28,10 @@ namespace Ayin {
 
 	};
 
+	//! 模板变量特化
+	template<>
+	inline constexpr bool enable_bitmask_operators<SceneMode> = true;
 
-	constexpr SceneMode operator| (SceneMode leftMode, SceneMode rightMode) {
-		using UnderlyingType = std::underlying_type_t<SceneMode>;	// 得到某个枚举实际使用的整数存储类型
-		return static_cast<SceneMode>(static_cast<UnderlyingType>(leftMode) | static_cast<UnderlyingType>(rightMode));
-	};
-
-	constexpr SceneMode operator& (SceneMode leftMode, SceneMode rightMode) {
-		using UnderlyingType = std::underlying_type_t<SceneMode>;	// 得到某个枚举实际使用的整数存储类型
-		return static_cast<SceneMode>(static_cast<UnderlyingType>(leftMode) & static_cast<UnderlyingType>(rightMode));
-	};
-
-	constexpr SceneMode operator^ (SceneMode leftMode, SceneMode rightMode) {
-		using UnderlyingType = std::underlying_type_t<SceneMode>;	// 得到某个枚举实际使用的整数存储类型
-		return static_cast<SceneMode>(static_cast<UnderlyingType>(leftMode) ^ static_cast<UnderlyingType>(rightMode));
-	};
-
-	constexpr SceneMode operator~ (SceneMode mode) {
-		using UnderlyingType = std::underlying_type_t<SceneMode>;	// 得到某个枚举实际使用的整数存储类型
-		return static_cast<SceneMode>(~static_cast<UnderlyingType>(mode));
-	};
-
-	constexpr SceneMode& operator|= (SceneMode& leftMode, SceneMode rightMode) {
-		using UnderlyingType = std::underlying_type_t<SceneMode>;	// 得到某个枚举实际使用的整数存储类型
-		leftMode = leftMode | rightMode;
-		return leftMode;
-	};
-
-	constexpr SceneMode& operator&= (SceneMode& leftMode, SceneMode rightMode) {
-		using UnderlyingType = std::underlying_type_t<SceneMode>;	// 得到某个枚举实际使用的整数存储类型
-		leftMode = leftMode & rightMode;
-		return leftMode;
-		//! static_cast 当转换为非引用类型时会产生拷贝操作，也就是返回一个新值
-	};
 
 
 

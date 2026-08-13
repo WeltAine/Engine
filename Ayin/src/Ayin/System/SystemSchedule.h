@@ -2,6 +2,8 @@
 
 #include "Ayin/Core/Core.h"
 
+#include "Ayin/Core/BitmaskEnum.h"
+
 #include "Ayin/Scene/Scene.h"
 
 #include "Ayin/System/Systems.h"
@@ -32,40 +34,9 @@ namespace Ayin {
 
 	};
 
+	template<>
+	inline constexpr bool enable_bitmask_operators<SystemPhase> = true;
 
-
-	constexpr SystemPhase operator| (SystemPhase leftPhase, SystemPhase rightPhase) {
-		using UnderlyingType = std::underlying_type_t<SystemPhase>;	// 得到某个枚举实际使用的整数存储类型
-		return static_cast<SystemPhase>(static_cast<UnderlyingType>(leftPhase) | static_cast<UnderlyingType>(rightPhase));
-	};
-
-	constexpr SystemPhase operator& (SystemPhase leftPhase, SystemPhase rightPhase) {
-		using UnderlyingType = std::underlying_type_t<SystemPhase>;	// 得到某个枚举实际使用的整数存储类型
-		return static_cast<SystemPhase>(static_cast<UnderlyingType>(leftPhase) & static_cast<UnderlyingType>(rightPhase));
-	};
-
-	constexpr SystemPhase operator^ (SystemPhase leftPhase, SystemPhase rightPhase) {
-		using UnderlyingType = std::underlying_type_t<SystemPhase>;	// 得到某个枚举实际使用的整数存储类型
-		return static_cast<SystemPhase>(static_cast<UnderlyingType>(leftPhase) ^ static_cast<UnderlyingType>(rightPhase));
-	};
-
-	constexpr SystemPhase operator~ (SystemPhase mode) {
-		using UnderlyingType = std::underlying_type_t<SystemPhase>;	// 得到某个枚举实际使用的整数存储类型
-		return static_cast<SystemPhase>(~static_cast<UnderlyingType>(mode));
-	};
-
-	constexpr SystemPhase& operator|= (SystemPhase& leftPhase, SystemPhase rightPhase) {
-		using UnderlyingType = std::underlying_type_t<SystemPhase>;	// 得到某个枚举实际使用的整数存储类型
-		leftPhase = leftPhase | rightPhase;
-		return leftPhase;
-	};
-
-	constexpr SystemPhase& operator&= (SystemPhase& leftPhase, SystemPhase rightPhase) {
-		using UnderlyingType = std::underlying_type_t<SystemPhase>;	// 得到某个枚举实际使用的整数存储类型
-		leftPhase = leftPhase & rightPhase;
-		return leftPhase;
-		//! static_cast 当转换为非引用类型时会产生拷贝操作，也就是返回一个新值
-	};
 
 	struct SystemContext {
 
