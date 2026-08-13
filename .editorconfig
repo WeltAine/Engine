@@ -14,15 +14,22 @@ root = true
 #找到 .editorconfig → 读取规则 → 应用到当前编辑器
 #（缩进用 Tab、换行用 LF、文件末尾加空行...）   
 
+#适用于所有文件的规则
+[*]
+#每一行结尾统一用 Unix 换行符 (LF)，不用 Windows 的 CRLF
+end_of_line = lf
+#文件编码统一用 UTF-8，避免不同编码导致的乱码问题
+charset = utf-8
+#每个文件末尾自动加一个空行
+insert_final_newline = true
+#缩进用 Tab 而非空格
+indent_style = tab
+#Tab 的宽度为 4 个空格
+indent_size = 4
+#不自动删除行尾的空格，避免误删有意添加的空格
+trim_trailing_whitespace = false
 
-[*]                                 #适用于所有文件的规则
-end_of_line = lf                    #每一行结尾统一用 Unix 换行符 (LF)，不用 Windows 的 CRLF
-charset = utf-8                     #文件编码统一用 UTF-8，避免不同编码导致的乱码问题
-insert_final_newline = true         #每个文件末尾自动加一个空行
-indent_style = tab                  #缩进用 Tab 而非空格
-indent_size = 4                     #Tab 的宽度为 4 个空格
-trim_trailing_whitespace = false    #不自动删除行尾的空格，避免误删有意添加的空格
-insert_final_newline = true         #每个文件末尾自动加一个空行，保持文件格式一致
 
-[*.{bat,cmd}]                       #Windows 批处理脚本需要 CRLF，避免 cmd.exe 解析异常
+#Windows 批处理脚本需要 CRLF，避免 cmd.exe 解析异常
+[*.{bat,cmd}]
 end_of_line = crlf
