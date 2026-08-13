@@ -14,7 +14,7 @@ namespace Ayin {
 
 namespace Ayin{
 
-	class ISystem{
+	AYIN_API class ISystem{
 
 	public:
 
@@ -50,7 +50,7 @@ namespace Ayin{
 		requires std::derived_from<System, ISystem>
 	[[nodiscard]] SystemType GetSystemType() noexcept{
 		
-		return entt::type_hash<System>().value();
+		return entt::type_hash<System>::value();
 		
 	};
 
@@ -59,7 +59,7 @@ namespace Ayin{
 		requires std::derived_from<System, ISystem>
 	[[nodiscard]] SystemID GetSystemID() noexcept {
 
-		return entt::type_hash<System>().value();
+		return entt::type_hash<System>::value();
 
 	};
 

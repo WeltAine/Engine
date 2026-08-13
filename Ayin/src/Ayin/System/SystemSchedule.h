@@ -23,7 +23,7 @@
 
 namespace Ayin {
 
-	enum class SystemPhase : uint8_t {
+	enum class AYIN_API SystemPhase : uint8_t {
 
 		None = 0,
 
@@ -202,12 +202,91 @@ namespace Ayin {
 
 	public:
 
-		void Run(const SystemContext& context);
+        void Run(const SystemContext& context);
+
+        template<typename System>
+            requires std::derived_from<System, ISystem>&& std::default_initializable<System>
+        inline SystemSchedule& AddSystem(const std::vector<SystemPhase>& phases, const std::vector<SceneMode>& modes, int order) {
+            auto it = FindSystem<System>();
+            if (it != m_Systems.end())
+                return *this;
+
+            SystemPhase phaseMask = SystemPhase::None;
+            for (const SystemPhase phase : phases)
+                phaseMask |= phase;
+
+            SceneMode modeMask = SceneMode::None;
+            for (const SceneMode mode : modes)
+                modeMask |= mode;
+
+            m_Systems.emplace_back(SystemEntry{
+                .Information{.Id{GetSystemID<System>()}, .Name{typeid(System).name()}},
+                .Specification{.PhaseMask{phaseMask}, .ModeMask{modeMask}, .Order{order}},
+                .Instance{CreateScope<System>()},
+            });
+            m_Systems.back().Instance->OnAttach();
+            m_NextOrder = std::max(m_NextOrder, order + 1);
+
+            PhaseSystemEntry phaseEntry = static_cast<PhaseSystemEntry>(m_Systems.back());
+            for (const SystemPhase phase : phases) {
+                switch (phase) {
+                case SystemPhase::PreUpdate: m_PreUpdate_Phase.AddSystem(phaseEntry); break;
+                case SystemPhase::Update: m_Update_Phase.AddSystem(phaseEntry); break;
+                case SystemPhase::PostUpdate: m_PostUpdate_Phase.AddSystem(phaseEntry); break;
+                case SystemPhase::Presentation: m_Presentation_Phase.AddSystem(phaseEntry); break;
+                default: break;
+                }
+            }
+
+            return *this;
+        }
 
 
 		template<typename System>
 			requires std::derived_from<System, ISystem>&& std::default_initializable<System>
-		inline SystemSchedule& AddSystem(const std::initializer_list<SystemPhase>& phases, const std::initializer_list<SceneMode>& modes) {	//! “缩写函数模板”或“简写函数模板”
+		inline SystemSchedule& AddSystem(const std::initializer_list<SystemPhase>& phases, const std::initializer_list<SceneMode>& modes, int order) {	//! “缩写函数模板”或“简写函数模板”
+
+			auto it = FindSystem<System>();
+
+			if (it != m_Systems.end())
+				return *this;
+
+			//! 系统插入
+			SystemPhase phaseMask = SystemPhase::None;
+			for (const SystemPhase phase : phases) {
+				phaseMask |= phase;
+			}
+
+			SceneMode modeMask = SceneMode::None;
+			for (const SceneMode mode : modes) {
+				modeMask |= mode;
+			}
+
+			int systemsCount = m_Systems.size();	// 自动 Order 计数
+
+			m_Systems.emplace_back(
+				SystemEntry{
+					.Information{.Id{GetSystemID<System>()}, .Name{typeid(System).name()}},
+					.Specification{.PhaseMask{phaseMask}, .ModeMask{modeMask}, .Order{order}},
+					.Instance{CreateScope<System>()},
+				});
+			m_Systems.back().Instance->OnAttach();
+
+			if (systemsCount != m_Systems.size())
+				m_NextOrder = std::max(m_NextOrder, order + 1);
+
+			//! 阶段编辑
+			InsertSystemToPhase((PhaseSystemEntry)(m_Systems.back()), phases);
+
+
+			return *this;
+
+		}
+
+
+		template<typename System>
+			requires std::derived_from<System, ISystem>&& std::default_initializable<System>
+		inline SystemSchedule& AddSystem(const std::initializer_list<SystemPhase>& phases, const std::initializer_list<SceneMode>& modes) {
 
 			auto it = FindSystem<System>();
 
