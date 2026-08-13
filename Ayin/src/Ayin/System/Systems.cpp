@@ -1,7 +1,7 @@
 #include <AyinPch.h>
 
 
-#include "Ayin/Scene/Systems.h"
+#include "Ayin/System/Systems.h"
 
 #include "Ayin/Scene/Components.h"
 
@@ -9,12 +9,12 @@
 
 #include "Ayin/Math/Math.h"
 
-#include "Ayin/Scene/SystemSchedule.h"
+#include "Ayin/System/SystemSchedule.h"
 
 #include <entt/entt.hpp>
 
 
-namespace Ayin::Systems {
+namespace Ayin{
 
 	void CameraSystem::OnUpdate(const SystemContext& systemContext) {
 

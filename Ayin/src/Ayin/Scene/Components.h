@@ -443,10 +443,10 @@ namespace Ayin {
 
 			if (!ScriptableInstance && InstantiateFunction) {
 				this->InstantiateFunction(*this);
-			}
 
-			if(ScriptableInstance)
-				m_State = ScriptLifecycleState::Instantiated;
+				if(ScriptableInstance)
+					m_State = ScriptLifecycleState::Instantiated;
+			}
 
 			return this->ScriptableInstance;
 		
@@ -497,6 +497,8 @@ namespace Ayin {
 		inline bool HasScript() const {
 			return !ScriptName.empty() && ScriptName != NoneScriptName;
 		}
+
+		inline ScriptLifecycleState GetScriptLifecycleState() const { return m_State; };
 
 
 		NativeScriptComponent() = default;

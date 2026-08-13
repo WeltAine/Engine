@@ -8,8 +8,8 @@
 #include "Ayin/Scene/Entity.h"
 
 #include "Ayin/Scene/Components.h"
-#include "Ayin/Scene/Systems.h"
-#include "Ayin/Scene/SystemSchedule.h"
+#include "Ayin/System/Systems.h"
+#include "Ayin/System/SystemSchedule.h"
 
 #include "Ayin/Renderer/Renderer2D.h"
 
@@ -363,25 +363,45 @@ namespace Ayin{
 
 	void Scene::OnUpdateRuntime(Timestep deltaTime) {
 	
-		// system 上下文
-		SystemContext systemContext = SystemContext{ .Scene{*this}, .DeltaTime{deltaTime} };
-
-
 		// 延迟删除
 		FlushDestroyedEntities();
 
-
-
-		// 系统更新
+		// 脚本初始化（挂在实际脚本）、更新
 		{
-			// 脚本系统
-			Systems::ScriptSystem scriptSystem{};
-			scriptSystem.OnUpdate(systemContext);
+			m_Registry.view<NativeScriptComponent>().each([=](entt::entity entity, NativeScriptComponent& nsc) {
 
-			//相机系统
-			Systems::CameraSystem cameraSystem{};
-			cameraSystem.OnUpdate(systemContext);
+				if (!nsc.HasScript()) {//没有绑定脚本类型
+					return;
+				}
+
+				switch (nsc.GetScriptLifecycleState()) {
+
+				case(NativeScriptComponent::ScriptLifecycleState::Bound):
+					nsc.Instantiate();
+
+				case(NativeScriptComponent::ScriptLifecycleState::Instantiated):
+					nsc.ActiveScript(Entity{ entity, this }); break;
+
+				case(NativeScriptComponent::ScriptLifecycleState::Active):
+					nsc.Update(deltaTime);
+
+				};
+				});
 		}
+
+		// 相机矩阵更新
+		{
+
+			auto&& cameraView = m_Registry.view<CameraComponent, TransformComponent>();
+
+			for (auto&& [entity, camera, transform] : cameraView.each()) {
+
+				camera.Camera.SetViewMatrix(transform.Position, transform.Rotation);
+
+			}
+		
+		}
+
 
 		//? 关于没有与这些操作数匹配的 "!=" 运算符
 		//! 这个错误应该来源于for语法糖展开后发现多组件view的begin()和end()类型并不相同，循环终止判断出现语法错误
@@ -465,23 +485,32 @@ namespace Ayin{
 					return;
 				}
 
-				if (!nsc.ScriptableInstance) {//没有脚本实例
+				switch (nsc.GetScriptLifecycleState()) {
+
+				case(NativeScriptComponent::ScriptLifecycleState::Bound):
 					nsc.Instantiate();
-					if (nsc.ScriptableInstance == nullptr) {
-						return;
-					}
-					nsc.ActiveScript(Entity{ entity, this });
-				}
 
-				nsc.Update(deltaTime);
+				case(NativeScriptComponent::ScriptLifecycleState::Instantiated):
+					nsc.ActiveScript(Entity{ entity, this }); break;
 
+				case(NativeScriptComponent::ScriptLifecycleState::Active):
+					nsc.Update(deltaTime);
+
+				};
 				});
 		}
 
-
-		// 系统更新
+		// 相机矩阵更新
 		{
-			Systems::CameraSystem::OnUpdate(this);
+
+			auto&& cameraView = m_Registry.view<CameraComponent, TransformComponent>();
+
+			for (auto&& [entity, camera, transform] : cameraView.each()) {
+
+				camera.Camera.SetViewMatrix(transform.Position, transform.Rotation);
+
+			}
+
 		}
 
 
@@ -559,9 +588,17 @@ namespace Ayin{
 		// 延迟删除
 		FlushDestroyedEntities();
 
-		// 系统更新
+		// 相机矩阵更新
 		{
-			Systems::CameraSystem::OnUpdate(this);
+
+			auto&& cameraView = m_Registry.view<CameraComponent, TransformComponent>();
+
+			for (auto&& [entity, camera, transform] : cameraView.each()) {
+
+				camera.Camera.SetViewMatrix(transform.Position, transform.Rotation);
+
+			}
+
 		}
 
 
@@ -700,7 +737,7 @@ namespace Ayin{
 
 	Scene::~Scene() {
 	
-		Systems::ScriptSystem::StopAllScript(*this);
+		ScriptSystem::StopAllScript(*this);
 
 	};
 

@@ -12,7 +12,7 @@ namespace Ayin {
 
 };
 
-namespace Ayin::Systems {
+namespace Ayin{
 
 	class ISystem{
 
@@ -23,23 +23,45 @@ namespace Ayin::Systems {
 		virtual inline void OnAttach() {};
 		virtual inline void OnDetach() {};
 
+		virtual inline void OnPreUpdate(const SystemContext& systemContext) {};
 		virtual inline void OnUpdate(const SystemContext& systemContext) {};
+		virtual inline void OnPostUpdate(const SystemContext& systemContext) {};
+		virtual inline void OnPresentationUpdate(const SystemContext& systemContext) {};
 
 	};
 
+	// ------------------------------------------------------------------------------------------------
 
-	//! 用一个地址来作为 具体 System 类型的标识
-	using SystemType = const void*;
+	//x //! 用一个地址来作为 具体 System 类型的标识
+	//x using SystemType = const void*;
+
+	//x template<typename System>
+	//x	 requires std::derived_from<System, ISystem>&& std::default_initializable<System>
+	//x [[nodiscard]] SystemType GetSystemType() noexcept {
+	//x	 static const std::byte SystemTypeToke{};
+	//x	 return &SystemTypeToke;
+	//x }
+
+
+	using SystemType = entt::id_type;
+	using SystemID = SystemType;
 
 	template<typename System>
-		requires std::derived_from<System, ISystem>&& std::default_initializable<System>
-	[[nodiscard]] SystemType GetSystemType() noexcept {
+		requires std::derived_from<System, ISystem>
+	[[nodiscard]] SystemType GetSystemType() noexcept{
+		
+		return entt::type_hash<System>().value();
+		
+	};
 
-		static const std::byte SystemTypeToke{};
-		return &SystemTypeToke;
 
-	}
+	template<typename System>
+		requires std::derived_from<System, ISystem>
+	[[nodiscard]] SystemID GetSystemID() noexcept {
 
+		return entt::type_hash<System>().value();
+
+	};
 
 
 	//Todo: 单例和其它东西一起继承不行啊，让 ISystem 继承单例

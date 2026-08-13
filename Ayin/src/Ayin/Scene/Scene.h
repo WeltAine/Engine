@@ -27,7 +27,41 @@ namespace Ayin {
 
 	};
 
-	using SceneModeMask = uint8_t;
+
+	constexpr SceneMode operator| (SceneMode leftMode, SceneMode rightMode) {
+		using UnderlyingType = std::underlying_type_t<SceneMode>;	// 得到某个枚举实际使用的整数存储类型
+		return static_cast<SceneMode>(static_cast<UnderlyingType>(leftMode) | static_cast<UnderlyingType>(rightMode));
+	};
+
+	constexpr SceneMode operator& (SceneMode leftMode, SceneMode rightMode) {
+		using UnderlyingType = std::underlying_type_t<SceneMode>;	// 得到某个枚举实际使用的整数存储类型
+		return static_cast<SceneMode>(static_cast<UnderlyingType>(leftMode) & static_cast<UnderlyingType>(rightMode));
+	};
+
+	constexpr SceneMode operator^ (SceneMode leftMode, SceneMode rightMode) {
+		using UnderlyingType = std::underlying_type_t<SceneMode>;	// 得到某个枚举实际使用的整数存储类型
+		return static_cast<SceneMode>(static_cast<UnderlyingType>(leftMode) ^ static_cast<UnderlyingType>(rightMode));
+	};
+
+	constexpr SceneMode operator~ (SceneMode mode) {
+		using UnderlyingType = std::underlying_type_t<SceneMode>;	// 得到某个枚举实际使用的整数存储类型
+		return static_cast<SceneMode>(~static_cast<UnderlyingType>(mode));
+	};
+
+	constexpr SceneMode& operator|= (SceneMode& leftMode, SceneMode rightMode) {
+		using UnderlyingType = std::underlying_type_t<SceneMode>;	// 得到某个枚举实际使用的整数存储类型
+		leftMode = leftMode | rightMode;
+		return leftMode;
+	};
+
+	constexpr SceneMode& operator&= (SceneMode& leftMode, SceneMode rightMode) {
+		using UnderlyingType = std::underlying_type_t<SceneMode>;	// 得到某个枚举实际使用的整数存储类型
+		leftMode = leftMode & rightMode;
+		return leftMode;
+		//! static_cast 当转换为非引用类型时会产生拷贝操作，也就是返回一个新值
+	};
+
+
 
 	//! C++20 的 abbreviated function template，中文一般叫“缩写函数模板”或“简写函数模板”
 	//! 本质上等价于一个带约束的模板函数：
@@ -37,14 +71,14 @@ namespace Ayin {
 	//!{
 	//!		return (static_cast<SceneModeMask>(modes) | ...);
 	//!}
-	constexpr SceneModeMask ToMask(std::same_as<SceneMode> auto... modes) {
+	constexpr SceneMode ToMask(std::same_as<SceneMode> auto... modes) {
 	
-		return (SceneModeMask{ 0 } | ... | static_cast<SceneModeMask>(modes));
+		return (SceneMode{ 0 } | ... | static_cast<SceneMode>(modes));
 		//!带初始值的二元折叠表达式，不采用一元折叠是为了防止空参数调用 ToMask() 时，| 折叠表达式没有初始值，进而导致编译失败
 	
 	}
 
-	inline bool Contains(SceneModeMask mask, SceneMode mode) { return mask & static_cast<SceneModeMask>(mode); }
+	inline bool Contains(SceneMode mask, SceneMode mode) {return (bool)(int)(uint8_t)(mask & mode); }
 
 	// ----------------------------------------------------------------------------------------------------------------
 
@@ -118,7 +152,6 @@ namespace Ayin {
 		auto&& view = m_Registry.view<ComponentTypes...>(entt::exclude_t<ExcludeComponentTypes...>{});
 
 		std::vector<Entity> entities;
-		entities.reserve(view.size());
 
 		view.each([&entities, this](entt::entity entity, auto&& ...) {
 				entities.emplace_back(entity, this);

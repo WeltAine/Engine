@@ -6,7 +6,7 @@
 
 #include "Ayin/Core/Timestep.h"
 
-#include "Ayin/Scene/Systems.h"
+#include "Ayin/System/Systems.h"
 
 #include <optional>
 #include <string>
@@ -20,7 +20,7 @@ namespace Ayin{
 		friend class Scene;
 		friend class SceneSerializer;
 		friend struct NativeScriptComponent;
-		friend class Systems::ScriptSystem;
+		friend class ScriptSystem;
 
 	public:
 

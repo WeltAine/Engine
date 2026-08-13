@@ -2,7 +2,7 @@ project "SandBox"
     location "." --项目文件和premake脚本放在同一目录，与源码同级，这样VS"显示所有文件"时可以展开完整的文件夹树方便添加新文件
     kind "ConsoleApp"
     language "C++"
-    cppdialect "C++20" 
+    cppdialect "C++23"
     staticruntime "On" --???
     
     targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}") --输出路径
@@ -21,6 +21,7 @@ project "SandBox"
         "%{wks.location}/Ayin/Dependency/spdlog/include",
         "%{wks.location}/Ayin/src",
         "%{wks.location}/Ayin/Dependency",
+        "%{IncludeDir.ImGui}",
         "%{IncludeDir.glm}",
         "%{IncludeDir.entt}",
         "%{IncludeDir.Glaze}"
@@ -47,7 +48,8 @@ project "SandBox"
 
         defines --宏
         {
-            "AYIN_PLATFORM_WINDOWS"
+            "AYIN_PLATFORM_WINDOWS",
+            "GLM_ENABLE_EXPERIMENTAL"
         }
 
 
