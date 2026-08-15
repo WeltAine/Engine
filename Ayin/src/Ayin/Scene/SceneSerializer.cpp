@@ -228,7 +228,7 @@ namespace Ayin {
 		// 脚本处理
 		auto&& nativeScriptComponentView = m_Scene->m_Registry.view<NativeScriptComponent>();
 
-		// 绑定脚本类型
+		// 只绑定脚本类型；实例化、ScriptData 回填和 OnCreate 统一由 ScriptSystem 延迟处理。
 		nativeScriptComponentView.each([=](entt::entity, NativeScriptComponent& nsc) {
 				if (!nsc.HasScript()) {
 					return;
@@ -237,32 +237,6 @@ namespace Ayin {
 				bool bound = ScriptRegistry::BindScriptByScriptName(nsc, nsc.ScriptName);
 				AYIN_CORE_ASSERT(bound, "Script '{}' is not registered", nsc.ScriptName);
 			});
-
-		// 初始化脚本实例
-		nativeScriptComponentView.each([=](entt::entity entity, NativeScriptComponent& nsc) {
-				if (!nsc.HasScript()) {
-					return;
-				}
-
-				nsc.Instantiate();
-			});
-
-		// 脚本实例反序列
-		nativeScriptComponentView.each([=](entt::entity, NativeScriptComponent& nsc) {
-				if (nsc.ScriptableInstance == nullptr) {
-					return;
-				}
-
-				ScriptRegistry::DeserializeScriptByScriptName(nsc, nsc.ScriptName, nsc.ScriptData.str);
-			});
-
-		// OnCreate生命周期
-		nativeScriptComponentView.each([=](entt::entity entity, NativeScriptComponent& nsc) {
-				if (nsc.ScriptableInstance != nullptr) {
-					nsc.ActiveScript(Entity{ entity, m_Scene.get() });
-				}
-			});
-
 
 	};
 
@@ -344,7 +318,7 @@ namespace Ayin {
 		// 脚本处理
 		auto&& nativeScriptComponentView = m_Scene->m_Registry.view<NativeScriptComponent>();
 
-		// 绑定脚本类型
+		// 只绑定脚本类型；实例化、ScriptData 回填和 OnCreate 统一由 ScriptSystem 延迟处理。
 		nativeScriptComponentView.each([=](entt::entity, NativeScriptComponent& nsc) {
 			if (!nsc.HasScript()) {
 				return;
@@ -353,32 +327,6 @@ namespace Ayin {
 			bool bound = ScriptRegistry::BindScriptByScriptName(nsc, nsc.ScriptName);
 			AYIN_CORE_ASSERT(bound, "Script '{}' is not registered", nsc.ScriptName);
 			});
-
-		// 初始化脚本实例
-		nativeScriptComponentView.each([=](entt::entity, NativeScriptComponent& nsc) {
-			if (!nsc.HasScript()) {
-				return;
-			}
-
-			nsc.Instantiate();
-			});
-
-		// 脚本实例反序列
-		nativeScriptComponentView.each([=](entt::entity, NativeScriptComponent& nsc) {
-			if (nsc.ScriptableInstance == nullptr) {
-				return;
-			}
-
-			ScriptRegistry::DeserializeScriptByScriptName(nsc, nsc.ScriptName, nsc.ScriptData.str);
-			});
-
-		// OnCreate生命周期
-		nativeScriptComponentView.each([=](entt::entity entity, NativeScriptComponent& nsc) {
-			if (nsc.ScriptableInstance != nullptr) {
-				nsc.ActiveScript(Entity{ entity, m_Scene.get() });
-			}
-			});
-
 
 	};
 

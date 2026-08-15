@@ -15,6 +15,9 @@ namespace Ayin {
 
 	struct EntityHash;
 
+	struct DestroyComponent;
+	struct RelationShipComponent;
+
 
 	//! 概念：检查组件是否有依赖组件
 	//! 组件中的依赖通过using Requires = entt::type_list<...>来表达
@@ -150,7 +153,11 @@ namespace Ayin {
 
 		
 		AYIN_CORE_ASSERT(HasComponents<ComponentTypes...>(), "Entity doesn't have component!");
-		m_Scene->m_Registry.remove<ComponentTypes...>(m_EntityHandle);
+		if (HasComponents<ComponentTypes...>()) {
+			auto& pending = AddComponent<Ayin::DestroyComponent>().DestoryComponents;
+			(pending.insert(ComponentTypes::ComponentStorageID()), ...);
+			pending.erase(Ayin::RelationShipComponent::ComponentStorageID());	//! 关系组件不允许通过移除组件的方式被删除，否则会破坏场景结构。它只能在 删除实体时才能删除
+		}
 
 	};
 

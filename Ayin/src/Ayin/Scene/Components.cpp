@@ -17,6 +17,9 @@ namespace Ayin {
 		if (ScriptableInstance != nullptr) {
 			return glz::raw_json{ ScriptRegistry::SerializeScriptByScriptName(*this, ScriptName) };
 		}
+		else if ( !ScriptData.str.empty() && ScriptData.str != NullScriptData ) {
+			return ScriptData;
+		}
 
 		return glz::raw_json{ NullScriptData };
 	}

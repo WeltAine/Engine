@@ -14,6 +14,8 @@ namespace Ayin {
 
 	class Entity;
 
+	struct DestroyComponent;
+
 	// ----------------------------------------------------------------------------------------------------------------
 
 	// 场景模式
@@ -59,6 +61,8 @@ namespace Ayin {
 		friend class Entity;
 		friend class SceneSerializer;
 
+		friend class DestroySystem;
+
 	public:
 
 		Scene() = default;
@@ -70,6 +74,10 @@ namespace Ayin {
 		// 创建一个可交互的基础实体
 		Entity CreateEntity(const std::string& name = "Entity");
 		void DestroyEntity(Entity& entity);
+		void DestroyComponent(Entity& entity, ::entt::id_type componentId);
+
+		template<typename ComponentType>
+		void DestroyComponent(Entity& entity);
 
 
 		// ----------------------------父子关系接口------------------------------------
@@ -114,9 +122,12 @@ namespace Ayin {
 
 
 	private:
-		void SubmitEntityDestroy(const Entity& entity);
-		void InternalDestroyEntity(Entity& entity);
-		void FlushDestroyedEntities();
+		//Todo: 准备移除
+		void SubmitEntityDestroy(const Entity& entity) {};
+		//Todo: 准备移除
+		void InternalDestroyEntity(Entity& entity) {};
+		//Todo: 准备移除
+		void FlushDestroyedEntities() {};
 
 
 	private:
@@ -125,9 +136,6 @@ namespace Ayin {
 		std::string m_SceneName = "Untitled";
 
 		std::shared_ptr<void> m_LifetimeToken = std::make_shared<int>(0);
-
-		std::unordered_set<entt::entity> m_DestroyEntities{};
-		//! set 是排序树，而 unorderer_set 是哈希表，它会用到 hash 与 ==
 
 	};
 
@@ -187,6 +195,13 @@ namespace Ayin {
 
 	};
 
+
+	template<typename ComponentType>
+	void Scene::DestroyComponent(Entity& entity) {
+
+		DestroyComponent(entity, ComponentType::ComponentStorageID());
+
+	};
 
 
 }

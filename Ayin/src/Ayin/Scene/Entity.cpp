@@ -116,11 +116,7 @@ namespace Ayin {
 
 		AYIN_CORE_ASSERT(!m_SceneLifetime.expired(), "Scene and entity resources missing");
 
-
-		auto* componentPool = m_Scene->m_Registry.storage(id);
-		if (componentPool) {
-			componentPool->remove(m_EntityHandle);
-		}
+		AddComponent<DestroyComponent>().DestoryComponents.insert(id);
 
 	}
 	

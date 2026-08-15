@@ -41,6 +41,17 @@ struct glz::meta<glm::vec4> {
 
 namespace Ayin {
 
+	// ----------Destroy组件-----------
+	struct AYIN_API DestroyComponent {
+
+		bool IsDestroyEntity = false;							// 是否移除整个实体
+		std::set<::entt::id_type> DestoryComponents;			// 在不移除整个实体的情况下要移除的组件
+
+		static ::entt::id_type ComponentStorageID() { return ::entt::type_hash<DestroyComponent>::value(); };
+
+	};
+
+
 	// ----------ID组件-----------
 	struct IDComponent {
 
@@ -64,7 +75,7 @@ namespace Ayin {
 	//! 该组件不注册，场景创建实体时一定存在的，这是最基础的，反序列化时是直接变为 Entities 中的 UUID 变量
 
 	// ----------名称组件-----------
-	struct TagComponent{
+	struct AYIN_API TagComponent{
 	
 		std::string Name{"Entity"};
 
@@ -98,7 +109,7 @@ namespace Ayin {
 
 	// ---------- 父子关系组件-----------
 
-	struct RelationShipComponent {
+	struct AYIN_API RelationShipComponent {
 
 		uint64_t ParentUUID;				// 父节点UUID
 		std::vector<uint64_t> ChildrenUUID;	// 子节点UUID
@@ -133,7 +144,7 @@ namespace Ayin {
 
 
 	// ----------Transform组件-----------
-	struct TransformComponent {
+	struct AYIN_API TransformComponent {
 		
 		glm::vec3 Position	{ 0.0f, 0.0f, 0.0f };
 		glm::vec3 Rotation	{ 0.0f, 0.0f, 0.0f }; // radians
@@ -200,7 +211,7 @@ namespace Ayin {
 
 
 	// ----------图片组件-----------
-	struct SpriteRendererComponent {
+	struct AYIN_API SpriteRendererComponent {
 	
 		//ToDo 调整一下
 		static constexpr const char* NoneTexturePath = "None";
@@ -301,7 +312,7 @@ namespace Ayin {
 
 
 	// ----------相机组件-----------
-	struct CameraComponent {
+	struct AYIN_API CameraComponent {
 
 		using Requires = entt::type_list<TransformComponent>;
 
@@ -309,7 +320,7 @@ namespace Ayin {
 
 		CameraComponent() = default;
 		CameraComponent(const CameraProp& cameraProp)
-			:Camera{ cameraProp } 
+			:Camera{ cameraProp }
 		{}
 		~CameraComponent() = default;
 
@@ -363,12 +374,17 @@ namespace Ayin {
 	};
 	AYIN_COMPONENT(CameraComponent);
 	AYIN_COMPONENTUI(CameraComponent, CameraComponent::OnGui);
-	
+
 
 	// ----------脚本组件-----------
 	//! 其维护一个不变量，即 Script 的生命周期过程，保证其顺序的合理性，对多调用点的幂等性
 	//! 第二个不变量就是 Bind 的类型和实际的 Script 具体类型时刻保持一致
-	struct NativeScriptComponent {
+	struct AYIN_API NativeScriptComponent {
+
+		friend class ScriptSystem;
+
+		//Todo 准备移除（等 world 被应用）
+		friend class Scene;
 
 		//! 通过状态标记维护 Script 的生命周期流程
 		enum class ScriptLifecycleState : uint8_t {
@@ -376,8 +392,7 @@ namespace Ayin {
 			Unbound,		// 未配置类型或已执行ReleasseInstance
 			Bound,			// 已配置类型
 			Instantiated,	// 已有实例，但未进入任何生命周期
-			Active,			// 已执行 OnCreate
-			Stopping
+			Active			// 已执行 OnCreate
 
 		};
 
@@ -399,44 +414,79 @@ namespace Ayin {
 		//! 所以采用这个方案，先将序列化数据存储起来，延迟反序列化（分步反序列化），使得反序列化时机可以控制，一来避免环境缺失问题，二来方便后续引入更复杂的序列化效果 ，最后交由sceneSerialize来完成，那个位置的上下文充足，甚至可以不再依靠上下文类
 
 	private:
-		ScriptLifecycleState m_State = ScriptLifecycleState::Unbound;	// 保持私有，方式被意外篡改而影响生命周期
+		ScriptLifecycleState m_State = ScriptLifecycleState::Unbound;	// 保持私有，防止被意外篡改而影响生命周期
 
 	private:
-		std::function<void(NativeScriptComponent& nsc)> InstantiateFunction;		//初始化回调
+		std::function<void(NativeScriptComponent& nsc)> InstantiateFunction;			//初始化回调
 		std::function<void(ScriptableEntity* scriptInstance)> DestroyInstanceFunction;	//移除回调
-		
+
+		struct PendingScriptBind {
+			std::string ScriptName;
+			std::function<void(NativeScriptComponent& nsc)> InstantiateFunction;
+			std::function<void(ScriptableEntity* scriptInstance)> DestroyInstanceFunction;
+
+			bool HasBind() const { return InstantiateFunction && DestroyInstanceFunction; }
+
+			void Clear() {
+				ScriptName.clear();
+				ScriptName = NoneScriptName;
+				InstantiateFunction = nullptr;
+				DestroyInstanceFunction = nullptr;
+			}
+		};
+
+		PendingScriptBind m_PendingBind;
+		bool m_ReleaseHeadNextFrame = false;
+
+		// 对于使用者来说可以直接调用的合法接口就是 Bind 和 UnBind
+		// 我们先前尝试使用极其复杂的 状态枚举 和 一个单一变量 来控制周期 在使用者可以主动接入和调动周期的情况下，想要精确控制周期就是极其困难的
+		// 这种困难性来自于 我们只依赖一个主管你太变量来控制，这样在使用 Bind 和 UnBind 时 我们就不得不去考虑它的前置状态，以及后置状态，以此来精确表达 是否要 调用 OnDestrop 以及之后是否再次绑定
+		// 光是想要精确控制后两个状态我们就需要 4 个新的状态，之后还要为 Bind 和 UnBind 使用时考虑前置状态，每种状态会走到四种的哪一个
+		// 而且想要让 nsc 再一帧内可以 多次使用 Bind 和 UnBind 且做出符合预期的规划，这样想要考虑的东西又多了一些
+		//! 
+		//! Bind 和 UnBind 的含义都是对当前帧的 sciprt 在下一帧的状态控制，前者是 下一帧 script 被切换 ，后者是 下一帧 script 被移除。不难意识到前者其实包含后者
+		//! 综合两者的含义我们可以得到 多次 Bind 只会执行最后一次的，多次 UnBind 和一次没什么区别，Bind 的优先级比 UnBind 高
+		//! 这里我们不再采用 符合第一直觉的单状态控制变量 来表达使用者的意图，并且造出符合预期的控制机制
+		//! 而是添加了一个控制变量 m_ReleaseHeadNextFrame 用于表达下一帧开头是否执行 UnBind 或 Bind 过程（这里是或哦不适合，暗示 单这个变量还是无法区分具体是哪一个过程）。
+		//! 为什么不是两个变量？我们不是有两个过程
+		//! 因为 Bind 和 UnBind 在流程上是有重合的，Bind 相当于在 UnBind 的基础上在执行别的东西，而为了支持 Bind 的延迟绑定效果，我们需要一个 pending 记录（m_PendingBind），保证下一帧可以是使用，且不影响当前帧的 script 的生命周期
+		//! 这个 pending 就可以视为第二个判定变量，用于判定是否 Bind 过
+		//! 
+		//! 更精妙的在于，当前 script 配置 和 pending 的配置 在使用上构成了类似队列的结构
+		//! 每次 m_ReleaseHeadNextFrame = true 后我们会使用当前配置进行释放（这是 重Bind 和 UnBind 都有的过程），然后把 pending 配置提上来作为当前配置，然后 pending 配置清空。
+		//! 只要没有 Bind 就会自然的只 UnBind ，即使有 Bind 和 UnBind 混用，也能完美适应规则
+
 	public:
-		//! 这是 Script 毁灭的开始，尽管它不叫什么 Destory 但是这会改变 Nsc 的记录，导致 Script 以不合理的方式析构 或者 Script 被提前析构（我直接采取了拒绝的方式）
-		//! 所以不要在自己的 OnCreate、OnUpdate 和 OnDestory 中对自己的 Nsc 调用 Bind 或者 StopScript 这可能造成超出意料的影响。
+		//! Bind 只写入待处理槽，当前脚本仍然作为 head 保持到 ScriptSystem 的下一次 OnPreUpdate。
+		//! 多次 Bind 时只有最后一次生效；UnBind 不会清掉待处理槽，只会标记当前 head 延迟释放。
 		template<typename ScriptType>
-			requires std::derived_from<ScriptType, ScriptableEntity> && std::default_initializable<ScriptType>
+			requires std::derived_from<ScriptType, ScriptableEntity>&& std::default_initializable<ScriptType>
 		inline void Bind() {
 
 			static ObjectPool<ScriptType> pool;
 
-			if (m_State != ScriptLifecycleState::Unbound && m_State != ScriptLifecycleState::Bound)
-				return;
+			std::optional<std::string> scriptName = ScriptType{}.GetScriptName();
+			m_PendingBind.ScriptName = (scriptName && !scriptName->empty()) ? *scriptName : NoneScriptName;
 
-			// 更新赋名
-			auto scriptName = ScriptType{}.GetScriptName();
-			ScriptName = (scriptName && !scriptName->empty()) ? *scriptName : NoneScriptName;
-
-			// 注册新回调
-			InstantiateFunction = [](NativeScriptComponent& nsc) {
-					nsc.ScriptableInstance = pool.Allocate(); 
-					new(nsc.ScriptableInstance) ScriptType(); 
-					nsc.ScriptName = nsc.ScriptableInstance->GetScriptName().value_or(NoneScriptName);
+			m_PendingBind.InstantiateFunction = [](NativeScriptComponent& nsc) {
+				nsc.ScriptableInstance = pool.Allocate();
+				new(nsc.ScriptableInstance) ScriptType();
+				nsc.ScriptName = nsc.ScriptableInstance->GetScriptName().value_or(NoneScriptName);
 				};
-			
-			DestroyInstanceFunction = [](ScriptableEntity* scriptInstance) { pool.Deallocate(static_cast<ScriptType*>(scriptInstance)); };
 
-			m_State = ScriptLifecycleState::Bound;
+			m_PendingBind.DestroyInstanceFunction = [](ScriptableEntity* scriptInstance) { pool.Deallocate(static_cast<ScriptType*>(scriptInstance)); };
+
+			if (HasHeadScript())
+				m_ReleaseHeadNextFrame = true;
 
 		}
 
+	private:
+
+		//Todo: 准备移除（等 world 被应用）
 		inline ScriptableEntity* Instantiate() {
 
-			if ( m_State != ScriptLifecycleState::Bound ) {
+			if (m_State != ScriptLifecycleState::Bound) {
 				AYIN_CORE_ASSERT(false, "Script is not bound");
 				return nullptr;
 			}
@@ -444,16 +494,17 @@ namespace Ayin {
 			if (!ScriptableInstance && InstantiateFunction) {
 				this->InstantiateFunction(*this);
 
-				if(ScriptableInstance)
+				if (ScriptableInstance)
 					m_State = ScriptLifecycleState::Instantiated;
 			}
 
 			return this->ScriptableInstance;
-		
+
 		}
 
+		//Todo: 准备移除（等 world 被应用）
 		inline void ActiveScript(const Entity& entity = Entity{}) {
-		
+
 			if (m_State != ScriptLifecycleState::Instantiated) {
 				AYIN_CORE_ASSERT(false, "Script LifeLoop Error: ScriptableInstance is null");
 				return;
@@ -466,32 +517,45 @@ namespace Ayin {
 
 		};
 
-		inline void Update(Timestep deltaTime) { 
+		//Todo: 准备移除（等 world 被应用）
+		inline void Update(Timestep deltaTime) {
 
 			if (m_State != ScriptLifecycleState::Active) {
 				AYIN_CORE_ASSERT(false, "Script LifeLoop Error");
 				return;
 			}
 
-			ScriptableInstance->OnUpdate(deltaTime); 
-		
+			ScriptableInstance->OnUpdate(deltaTime);
+
 		};
 
 		inline void StopScript() {
 
-			if (m_State != ScriptLifecycleState::Active && m_State != ScriptLifecycleState::Instantiated) {
-				return;
-			}
-
-			if (m_State == ScriptLifecycleState::Active) {
-				m_State = ScriptLifecycleState::Stopping;
+			// UnBind 延迟释放当前 head；Scene 析构时仍然可以直接走这里同步释放。
+			if (m_State == ScriptLifecycleState::Active && ScriptableInstance) {
 				ScriptableInstance->OnDestroy();
 			}
 
 			ReleaseInstance();
 
+			// 关闭回调
+			InstantiateFunction = nullptr;
+			DestroyInstanceFunction = nullptr;
+			ScriptName = NativeScriptComponent::NoneScriptName;
+			ScriptData = NativeScriptComponent::NullScriptData;
+
+			m_State = ScriptLifecycleState::Unbound;
+			m_ReleaseHeadNextFrame = false;
 		};
 
+	public:
+
+		inline void UnBind() {
+
+			if (HasHeadScript())
+				m_ReleaseHeadNextFrame = true;
+
+		};
 
 		// 是否绑定了脚本
 		inline bool HasScript() const {
@@ -506,11 +570,13 @@ namespace Ayin {
 			: ScriptableInstance{
 				  std::exchange(other.ScriptableInstance, nullptr)
 			},
-			m_State{other.m_State},
+			m_State{ other.m_State },
 			ScriptName{ std::move(other.ScriptName) },
 			ScriptData{ std::move(other.ScriptData) },
 			InstantiateFunction{ std::move(other.InstantiateFunction) },
-			DestroyInstanceFunction{ std::move(other.DestroyInstanceFunction) }
+			DestroyInstanceFunction{ std::move(other.DestroyInstanceFunction) },
+			m_PendingBind{ std::move(other.m_PendingBind) },
+			m_ReleaseHeadNextFrame{ other.m_ReleaseHeadNextFrame }
 		{}
 
 		NativeScriptComponent(const NativeScriptComponent&) = delete;
@@ -522,7 +588,7 @@ namespace Ayin {
 			if (ScriptableInstance != nullptr) {
 				StopScript();
 			}
-			
+
 		}
 
 		inline static void OnGui(Entity& entity) {
@@ -543,21 +609,51 @@ namespace Ayin {
 
 
 	private:
-		inline void ReleaseInstance() {
-			
-			if (m_State != ScriptLifecycleState::Stopping && m_State != ScriptLifecycleState::Instantiated) {
-				AYIN_CORE_ASSERT(false, "Script LifeLoop Error");
+		inline bool HasHeadScript() const {
+			return m_State != ScriptLifecycleState::Unbound || ScriptableInstance || InstantiateFunction || DestroyInstanceFunction;
+		}
+
+		inline bool HasPendingBind() const {
+			return m_PendingBind.HasBind();
+		}
+
+		// 将 pending 配置 设置为要使用的配置（放置与 head 位置）
+		inline void CommitPendingBind() {
+
+			if (!HasPendingBind())
 				return;
-			}
 
+			ScriptName = std::move(m_PendingBind.ScriptName);
+			InstantiateFunction = std::move(m_PendingBind.InstantiateFunction);
+			DestroyInstanceFunction = std::move(m_PendingBind.DestroyInstanceFunction);
+			m_PendingBind.Clear();
 
-			AYIN_CORE_ASSERT(this->DestroyInstanceFunction, "Script '{}' is not bound", this->ScriptName);
+			m_State = ScriptLifecycleState::Bound;
+		}
+
+		// 基于 配置双格 中当前要使用的配置（head 配置） 进行初始化（构建和激活）
+		inline void InstantiateHead() {
+
+			if (m_State != ScriptLifecycleState::Bound || ScriptableInstance || !InstantiateFunction)
+				return;
+
+			InstantiateFunction(*this);
+
+			if (ScriptableInstance)
+				m_State = ScriptLifecycleState::Instantiated;
+		}
+
+		inline void ReleaseInstance() {
 
 			ScriptableEntity* instance = std::exchange(ScriptableInstance, nullptr);
 			//! std::exchange ：取出变量的旧值，同时用新值替换它。
 
-			if (instance && DestroyInstanceFunction)
+			if (instance && DestroyInstanceFunction) {
 				DestroyInstanceFunction(instance);
+			}
+			else if (instance) {
+				AYIN_CORE_WARN("Script '{}' is missing destroy callback", this->ScriptName);
+			}
 
 			m_State = ScriptLifecycleState::Bound;
 		}

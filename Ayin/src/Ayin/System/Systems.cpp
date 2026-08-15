@@ -11,6 +11,10 @@
 
 #include "Ayin/System/SystemSchedule.h"
 
+#include "Ayin/Core/UUID.h"
+
+#include "Ayin/Scene/ScriptRegistry.h"
+
 #include <entt/entt.hpp>
 
 
@@ -35,60 +39,81 @@ namespace Ayin{
 	// -----------------------------------------------------------------------------------------------------
 
 
+	void ScriptSystem::OnPreUpdate(const SystemContext& systemContext) {
+
+		//! 处理上一帧的删除和 bind
+
+		auto func = [](entt::entity, NativeScriptComponent& nsc) -> void {
+
+				//! 那些可能调用到即将销毁的 script 的阶段不要在该阶段运行。
+				//! 顺序固定为：先释放当前 head，再提交最后一次 Bind 请求，最后实例化新 head。
+				if (nsc.m_ReleaseHeadNextFrame) {
+					nsc.StopScript();
+				}
+
+				if (nsc.HasPendingBind())
+					nsc.CommitPendingBind();
+
+				nsc.InstantiateHead();		// 内有 前置 Bound 状态要求
+
+			};
+
+
+		systemContext.Scene.Each<NativeScriptComponent>(func);
+
+
+
+	};
+
 	void ScriptSystem::OnUpdate(const SystemContext& systemContext) {
 
-		// 脚本初始化（挂在实际脚本）、更新
-		{
+		auto func = [&scene = systemContext.Scene, deltaTime = systemContext.DeltaTime](entt::entity entity, NativeScriptComponent& nsc) -> void {
 
-			std::vector<::Ayin::Entity>&& entities = systemContext.Scene.GetEntitiesByComponents<NativeScriptComponent>();
+			switch (nsc.GetScriptLifecycleState()) {
 
-			std::for_each(entities.begin(), entities.end(),
-				[=](::entt::entity entity) {
+				case(NativeScriptComponent::ScriptLifecycleState::Unbound):
+					break;
 
-					Entity aimEntity = Entity{ entity, &systemContext.Scene };
-					NativeScriptComponent& nsc = aimEntity.GetComponents<NativeScriptComponent>();
+				case(NativeScriptComponent::ScriptLifecycleState::Instantiated):
 
-					if (!nsc.HasScript()) {//没有绑定脚本类型
-						return;
+					if (nsc.ScriptableInstance) {
+						nsc.ScriptableInstance->SetEntity(Entity{ entity, &scene });
+
+						// 反序列化
+						const bool noException = ScriptRegistry::DeserializeScriptByScriptName(nsc, nsc.ScriptName, nsc.ScriptData.str);
+						if(!noException && nsc.ScriptData.str != NativeScriptComponent::NullScriptData && !nsc.ScriptData.str.empty())
+							AYIN_CORE_WARN(" {0} script deserialize failure", nsc.ScriptName);
+						nsc.ScriptData = NativeScriptComponent::NullScriptData;
+
+						// Create 流程
+						nsc.ScriptableInstance->OnCreate();
+
+						//! Bind/UnBind 在 OnCreate 中只会登记下一帧的待处理变化，当前 head 仍完成 OnCreate 并进入 Active。
+						nsc.m_State = NativeScriptComponent::ScriptLifecycleState::Active;
+					}
+					else {
+						AYIN_CORE_ERROR("Script Instance is nullptr, Lifecycle exception");
+						AYIN_CORE_ASSERT(false);
+
+						break;
 					}
 
-					if (!nsc.ScriptableInstance) {//没有脚本实例
-						nsc.Instantiate();
-						if (nsc.ScriptableInstance == nullptr) {
-							return;
-						}
-						nsc.ActiveScript(aimEntity);
-					}
+					[[fallthrough]];	//显式贯穿（表明这里是故意的，初始化，OnCreate OnUpdate 在同一帧一起执行）
 
-					nsc.Update(systemContext.DeltaTime);
+				case(NativeScriptComponent::ScriptLifecycleState::Active):
 
-				});
+					if(nsc.ScriptableInstance)
+						nsc.ScriptableInstance->OnUpdate(deltaTime);
 
-			//! 感觉没有以前的写法好，现在的写法看起来相比起来，感觉一点也不 ECS
+					break;
 
-			//m_Registry.view<NativeScriptComponent>().each([=](entt::entity entity, NativeScriptComponent& nsc) {
+				default: break;
 
-			//	if (!nsc.HasScript()) {//没有绑定脚本类型
-			//		return;
-			//	}
+			}
 
-			//	if (!nsc.ScriptableInstance) {//没有脚本实例
-			//		AYIN_CORE_ASSERT(nsc.InstantiateFunction, "Script '{}' is not bound", nsc.ScriptName);
-			//		nsc.InstantiateFunction();
-			//		if (nsc.ScriptableInstance == nullptr) {
-			//			return;
-			//		}
-			//		nsc.ScriptableInstance->m_Entity = Entity{ entity, this };
-			//		nsc.ScriptableInstance->OnCreate();
-			//	}
+			};
 
-			//	nsc.ScriptableInstance->OnUpdate(deltaTime);
-
-			//	});
-
-
-		};
-
+		systemContext.Scene.Each<NativeScriptComponent>(func);
 
 	}
 
@@ -173,5 +198,47 @@ namespace Ayin{
 
 	}
 
-};
 
+
+
+	// -----------------------------------------------------------------------------------------------------
+
+	void DestroySystem::OnPreUpdate(const SystemContext& systemContext) {
+
+		auto func =
+			[&scene = systemContext.Scene](entt::entity entity, DestroyComponent& destroyComponent) -> void {
+
+			if (destroyComponent.IsDestroyEntity) {
+				UUIDGenerator::NullifyUUID(scene.m_Registry.get<IDComponent>(entity).ID);
+				if (scene.m_Registry.valid(entity)) {
+					scene.m_Registry.destroy(entity);
+					//! EnTT 文档明确允许在 view 迭代时删除“当前实体”或其当前组件
+				};
+
+				return;
+			}
+
+			for (::entt::id_type componentId : destroyComponent.DestoryComponents) {
+
+				if (componentId != IDComponent::ComponentStorageID()
+					&& componentId != TransformComponent::ComponentStorageID()
+					&& componentId != TagComponent::ComponentStorageID()) {
+
+					auto storage = scene.m_Registry.storage(componentId);
+					if (storage) storage->remove(entity);
+
+				}
+			}
+
+			scene.m_Registry.storage(DestroyComponent::ComponentStorageID())->remove(entity);
+
+
+			};
+
+
+		systemContext.Scene.Each<DestroyComponent>(func);
+
+	};
+
+
+};

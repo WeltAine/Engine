@@ -54,9 +54,46 @@ namespace Ayin{
 
 	void Scene::DestroyEntity(Entity& entity) {
 
-		SubmitEntityDestroy(entity);
+		if (!entity || entity.m_Scene != this)
+			return;
 
+		// 关系处理
+		UnParent(entity, false);
+
+		auto DFS = [&scene = *this](this auto& self, Entity& entity) -> void {
+
+			if (!entity.HasComponents<RelationShipComponent>())
+				return;	// 递归底线
+
+			RelationShipComponent& relationShipComponent = entity.GetComponents<RelationShipComponent>();
+
+			// 删除本节点
+			entity.AddComponent<Ayin::DestroyComponent>().IsDestroyEntity = true;
+
+			// 递归处理子节点
+			auto childrenUUID = relationShipComponent.ChildrenUUID;	//! 因为 DestroyEntity 会对组件中的数组进行修改，所以直接对着组件数据迭代会发生边修改边迭代的情况
+			for (auto UUID : childrenUUID) {
+				Entity child = scene.FindEntityByUUID(UUID);
+
+				if(child && child.m_Scene == &scene)	// 防止脏数据
+					self(child);
+			}
+
+			};
+
+		DFS(entity);
 	}
+
+	void Scene::DestroyComponent(Entity& entity, ::entt::id_type componentId) {
+
+		if (!entity || entity.m_Scene != this)
+			return;
+
+		entity.AddComponent<Ayin::DestroyComponent>().DestoryComponents.insert(componentId);
+
+
+	};
+
 
 	// ----------------------------父子关系接口------------------------------------
 	void Scene::SetParent(Entity& child, Entity& parent, bool keepWorldTransform) {
@@ -680,60 +717,6 @@ namespace Ayin{
 
 
 	// ----------------------------------------------------------------------------
-	void Scene::SubmitEntityDestroy(const Entity& entity) {
-		
-		if (!entity || entity.m_Scene != this)
-			return;
-
-		m_DestroyEntities.insert((entt::entity)entity);
-
-	};
-
-	void Scene::InternalDestroyEntity(Entity& entity) {
-
-		if (!entity || entity.m_Scene != this) return;// 防止父子同帧入队，以及不属于本场景的有效实体
-
-		if (entity.HasComponents<RelationShipComponent>()) {
-
-			RelationShipComponent& relationShipComponent = entity.GetComponents<RelationShipComponent>();
-
-			// 关系处理
-			UnParent(entity, false);
-
-			// 递归处理子节点
-			auto childrenUUID = relationShipComponent.ChildrenUUID;	//! 因为 DestroyEntity 会对组件中的数组进行修改，所以直接对着组件数据迭代会发生边修改边迭代的情况
-			for (auto UUID : childrenUUID) {
-				Entity child = FindEntityByUUID(UUID);
-				InternalDestroyEntity(child);
-			}
-
-		}
-
-
-		UUIDGenerator::NullifyUUID(entity.GetComponents<IDComponent>().ID);
-		if (m_Registry.valid(entity.m_EntityHandle)) {
-			m_Registry.destroy(entity.m_EntityHandle);
-		};
-		entity = {};
-
-	};
-
-
-	void Scene::FlushDestroyedEntities() {
-
-		auto pending = std::move(m_DestroyEntities);
-		m_DestroyEntities.clear();//对大多数 STL 实现，move 后的 unordered_set 通常会变空；但标准只说它还有效，不承诺具体内容。所以 clear 一下，乙方玩意
-		//! 当前要删除的实体放进 pending, m_DestroyEntities 立刻空出来
-		//! 如果 flush 过程中又有人调用 DestroyEntity()，新请求会进新的 m_DestroyEntities
-		//! 新请求不会干扰当前正在遍历的 pending
-		//! 新请求留到下一帧处理
-
-		for (entt::entity handle : pending) {
-			Entity entity{ handle, this };
-			InternalDestroyEntity(entity);
-		}
-
-	};
 
 	Scene::~Scene() {
 	

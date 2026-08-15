@@ -8,6 +8,7 @@
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/fmt/bundled/format.h>
 #include <spdlog/async.h> // Required for async features
+#include <spdlog/fmt/std.h>
 
 
 namespace Ayin {

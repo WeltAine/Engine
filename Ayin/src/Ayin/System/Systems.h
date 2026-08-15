@@ -70,7 +70,7 @@ namespace Ayin{
 	class CameraSystem : public ISystem{
 
 	public:
-		void OnUpdate(const SystemContext& systemContext) override;
+		virtual void OnUpdate(const SystemContext& systemContext) override;
 
 	};
 
@@ -78,7 +78,10 @@ namespace Ayin{
 	class ScriptSystem : public ISystem{
 
 	public:
-		void OnUpdate(const SystemContext& systemContext) override;
+
+		virtual void OnPreUpdate(const SystemContext& systemContext) override;
+
+		virtual void OnUpdate(const SystemContext& systemContext) override;
 
 		static void StopAllScript(Scene& scene);
 
@@ -89,13 +92,17 @@ namespace Ayin{
 	class RenderSystem : public ISystem{
 
 	public:
-		void OnUpdate(const SystemContext& systemContext) override;
+		virtual void OnUpdate(const SystemContext& systemContext) override;
 
 	};
 
 	// ------------------------------------------------------------------------------------------------------
 
 	class DestroySystem : public ISystem {
+
+	public:
+		virtual void OnPreUpdate(const SystemContext& systemContext) override;
+
 
 	};
 };
