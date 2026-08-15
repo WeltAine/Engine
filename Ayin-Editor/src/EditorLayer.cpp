@@ -181,19 +181,20 @@ void EditorLayer::OnImGuiRender() {
 	Ayin::Renderer2D::Statistics statistics = Ayin::Renderer2D::GetStatistics();
 
 
-	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration
-		| ImGuiWindowFlags_NoMove
-		| ImGuiWindowFlags_NoBackground
-		| ImGuiWindowFlags_MenuBar
-		| ImGuiWindowFlags_NoDocking
-		| ImGuiWindowFlags_NoBringToFrontOnFocus
-		| ImGuiWindowFlags_NoNavFocus;
+	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration	// 去掉标题栏、缩放边框、滚动条、折叠按钮等装饰
+		| ImGuiWindowFlags_NoMove									// 禁止窗口被拖动
+		| ImGuiWindowFlags_NoBackground								// 不绘制窗口背景
+		| ImGuiWindowFlags_MenuBar									// 为窗口启用菜单栏区域
+		| ImGuiWindowFlags_NoDocking								// 当前窗口本身不能被停靠到其他 DockSpace
+		| ImGuiWindowFlags_NoBringToFrontOnFocus					// 获得焦点时不自动置于最前面
+		| ImGuiWindowFlags_NoNavFocus;								// 不让键盘导航系统自动聚焦这个窗口
 
 	ImGuiViewport* viewport = ImGui::GetMainViewport();
 	bool dockSpaceOpen = true;
 	ImGuiID dockspaceID = ImGui::GetID("##ui.dock_space");
 
 	ImGui::DockSpaceOverViewport(dockspaceID, viewport, ImGuiDockNodeFlags_PassthruCentralNode);
+	// 生成一个覆盖某个视口的 DockSpace ，第一个参数是 DockSpace 元素的 id（和一般的 begin 一样，都是调用者自己提供 id ，不过 begin 可以直接提供字符串），第二个参数是 DockSpace 应当在的位置
 
 	{
 		ImGui::Begin("Viewport");
