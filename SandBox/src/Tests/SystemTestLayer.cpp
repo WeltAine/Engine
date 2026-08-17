@@ -1,22 +1,17 @@
 #include <AyinPch.h>
 
-#include "TestLayer.h"
+#include "SystemTestLayer.h"
+#include "TestEnvironment.h"
 
 #include <Ayin/Core/Application.h>
 
 #include <cmath>
-#include <cstdlib>
 #include <imgui.h>
 
 namespace {
-	constexpr const char* kAutoExitEnv = "AYIN_SANDBOX_SMOKE_AUTO_EXIT";
 	// SystemSchedule 固定按这四个阶段执行；测试轨迹也使用相同顺序。
 	constexpr std::array<const char*, 4> kPhases{ "PreUpdate", "Update", "PostUpdate", "Presentation" };
 
-	// 环境变量不存在、为空或值为 0 时关闭自动退出，其他非空值都视为开启。
-	bool IsAutoExitEnabled(const char* value) {
-		return value != nullptr && value[0] != '\0' && value[0] != '0';
-	}
 
 	bool IsPhase(const Ayin::SystemPhase phase, const char* expected) {
 		// SystemContext 会携带当前阶段，这里把枚举转换成测试容易比较的字符串。
@@ -34,51 +29,60 @@ namespace {
 		}
 		return false;
 	}
+
+	const char* ModeName(const Ayin::SceneMode mode) {
+		switch (mode) {
+		case Ayin::SceneMode::Editor: return "Editor";
+		case Ayin::SceneMode::Simulation: return "Simulation";
+		case Ayin::SceneMode::Runtime: return "Runtime";
+		default: return "None";
+		}
+	}
 }
 
-TestLayer::TestState* TestLayer::ProbeSystem::s_State = nullptr;
+SystemTestLayer::TestState* SystemTestLayer::ProbeSystem::s_State = nullptr;
 
-TestLayer::TestLayer()
-	: Ayin::Layer("TestLayer") {
-	// getenv 只读取当前进程环境，不会修改系统环境变量。
-	m_AutoExitEnabled = IsAutoExitEnabled(std::getenv(kAutoExitEnv));
+SystemTestLayer::SystemTestLayer()
+	: Ayin::Layer("SystemTestLayer") {
+	// 只读取当前进程环境；自动化运行时由通用环境变量控制退出。
+	m_AutoExitEnabled = SandBoxTests::IsTruthyEnvironmentVariable(SandBoxTests::AutoExitVariable);
 }
 
-TestLayer::~TestLayer() = default;
+SystemTestLayer::~SystemTestLayer() = default;
 
-void TestLayer::OnAttach() {
+void SystemTestLayer::OnAttach() {
 	// 先绑定观测状态，再创建 World，确保 Pipeline 中的 System 在 OnAttach
-	// 时就能把生命周期数据写入当前 TestLayer。
+	// 时就能把生命周期数据写入当前 SystemTestLayer。
 	ProbeSystem::Bind(&m_State);
 	BuildWorld();
 	RunOneShotChecks();
 }
 
-void TestLayer::OnDetach() {
+void SystemTestLayer::OnDetach() {
 	// World 当前只负责销毁 Schedule，测试用例中的显式移除已经验证了 OnDetach。
 	m_World.reset();
 	ProbeSystem::Unbind();
 }
 
-void TestLayer::OnUpdate(const Ayin::Timestep deltaTime) {
+void SystemTestLayer::OnUpdate(const Ayin::Timestep deltaTime) {
 	// 一次性检查通常已经在 OnAttach 完成；这里保留补偿调用，避免初始化顺序变化时漏测。
 	if (!m_RanChecks) {
 		RunOneShotChecks();
 	}
 
-	if (m_RanChecks && !m_State.LiveFramePassed) {
+	if (m_RanChecks && m_State.Failure.empty() && !m_State.LiveFramePassed) {
 		// 通过真实应用帧调用 World，而不是直接调用 Schedule，验证最终使用路径。
 		RunLiveFrame(deltaTime);
 	}
 
-	if (m_AutoExitEnabled && m_State.LiveFramePassed && !m_AutoExitRequested) {
+	if (m_AutoExitEnabled && m_State.Completed && !m_AutoExitRequested) {
 		// 自动退出只用于命令行烟雾测试；普通运行时不设置环境变量即可保持窗口打开。
 		m_AutoExitRequested = true;
 		Ayin::Application::Get().Close();
 	}
 }
 
-void TestLayer::BuildWorld() {
+void SystemTestLayer::BuildWorld() {
 	Ayin::SystemPipeline::Builder builder;
 	// EarlySystem 和 LateSystem 使用默认顺序，验证注册顺序会影响同一阶段内的执行顺序。
 	// 两者都允许 Editor/Simulation，RuntimeSystem 只允许 Runtime，用来验证模式掩码。
@@ -98,114 +102,135 @@ void TestLayer::BuildWorld() {
 	m_Scene = Ayin::CreateRef<Ayin::Scene>();
 	// World 会从 Pipeline 创建自己的 SystemSchedule，之后测试只通过 World 驱动它。
 	m_World = std::make_unique<Ayin::World>(m_Scene, m_Pipeline);
+
+	const std::vector<std::string> expectedAttachOrder{
+		"Early:Attach", "Late:Attach", "Runtime:Attach"
+	};
+	m_State.AttachOrderPassed = m_State.LifecycleTrace == expectedAttachOrder;
+	if (!m_State.AttachOrderPassed) {
+		SetFailure("pipeline systems did not attach in registration order");
+	}
 }
 
-void TestLayer::RunOneShotChecks() {
+void SystemTestLayer::RunOneShotChecks() {
 	if (m_RanChecks || !m_State.PipelineBuilt || m_World == nullptr) {
 		return;
 	}
 
 	const bool pipelinePassed = CheckPipelineAndWorld();
 	const bool schedulePassed = CheckScheduleLifecycle();
-	// 两组测试都结束且没有失败信息后，下一帧才进入真实帧测试。
-	if (pipelinePassed && schedulePassed && m_State.Failure.empty()) {
-		m_RanChecks = true;
+	const bool cleanupPassed = CheckDestructorCleanupAndMove();
+	m_RanChecks = true;
+
+	// 一次性检查失败时也标记完成，使自动化运行能够退出并报告 FAIL，而不是一直挂起窗口。
+	if (!pipelinePassed || !schedulePassed || !cleanupPassed || !m_State.Failure.empty()) {
+		m_State.Completed = true;
 	}
 }
 
-bool TestLayer::CheckPipelineAndWorld() {
+bool SystemTestLayer::CheckPipelineAndWorld() {
 	bool passed = true;
-	// 使用固定 DeltaTime，便于确认 SystemContext 没有丢失或篡改时间数据。
 	const Ayin::Timestep expectedDelta{ 0.25f };
 	m_State.Trace.clear();
+	m_State.LifecycleTrace.clear();
 	m_State.ContextValid = true;
 	m_State.ExpectedScene = m_Scene.get();
 	m_State.ExpectedDelta = expectedDelta.GetSeconds();
 
-	// 未 Begin 时 Update 必须被拒绝。
-	if (m_World->Update(expectedDelta)) {
-		SetFailure("World::Update accepted an inactive world");
-		passed = false;
-	}
-	// None 不是可执行模式，Begin 应返回 false 且不改变 World 状态。
-	if (m_World->Begin(Ayin::SceneMode::None)) {
-		SetFailure("World::Begin accepted SceneMode::None");
-		passed = false;
-	}
-	// Editor 模式执行后，Early/Late 应在每个阶段各运行一次。
-	if (!m_World->Begin(Ayin::SceneMode::Editor) || !m_World->Update(expectedDelta)) {
-		SetFailure("World editor lifecycle did not begin and update");
+	// 非活动 World 不允许 Update/End，None 也不能作为会话模式。
+	if (m_World->Update(expectedDelta) || m_World->EndWorldExecutionSession() ||
+		m_World->BeginWorldExecutionSession(Ayin::SceneMode::None)) {
+		SetFailure("World accepted an operation in an invalid state");
 		passed = false;
 	}
 
-	// 轨迹是按“阶段 -> 阶段内的系统顺序”排列，而不是按 System 分组。
-	const auto editorTrace = ExpectedEditorTrace();
-	if (m_State.Trace != editorTrace) {
-		SetFailure("pipeline automatic order or editor phases mismatch");
+	// Begin 按 Order 正序，End 按本次真正 Begin 的 System 逆序；活动会话不能重复 Begin。
+	const bool editorBegan = m_World->BeginWorldExecutionSession(Ayin::SceneMode::Editor);
+	const bool duplicateBeginRejected = !m_World->BeginWorldExecutionSession(Ayin::SceneMode::Runtime);
+	const bool editorUpdated = editorBegan && m_World->Update(expectedDelta);
+	const bool editorEnded = editorUpdated && m_World->EndWorldExecutionSession();
+	const std::vector<std::string> expectedEditorLifecycle{
+		"Early:Begin:Editor", "Late:Begin:Editor",
+		"Late:End:Editor", "Early:End:Editor"
+	};
+	m_State.BeginEndOrderPassed = duplicateBeginRejected &&
+		m_State.LifecycleTrace == expectedEditorLifecycle;
+	if (!editorBegan || !editorUpdated || !editorEnded || !m_State.BeginEndOrderPassed) {
+		SetFailure("World Begin/End lifecycle order mismatch");
 		passed = false;
 	}
+
+	const auto editorTrace = ExpectedEditorTrace();
 	m_State.AutomaticOrderPassed = m_State.Trace == editorTrace;
 	m_State.ContextForwardingPassed = m_State.ContextValid;
-	if (!m_State.ContextValid) {
-		SetFailure("SystemContext was not forwarded correctly");
+	if (!m_State.AutomaticOrderPassed || !m_State.ContextForwardingPassed) {
+		SetFailure("pipeline phase order or SystemContext forwarding mismatch");
+		passed = false;
+	}
+	if (m_World->Update(expectedDelta)) {
+		SetFailure("World::Update accepted an ended session");
 		passed = false;
 	}
 
-	// End 后再次 Update 必须被拒绝，证明当前模式已回到 None。
-	if (!m_World->End() || m_World->Update(expectedDelta)) {
-		SetFailure("World end or post-end update behavior mismatch");
-		passed = false;
-	}
-
-	// Runtime 下 Early/Late 不应运行，只有 RuntimeSystem 应留下轨迹。
+	// Runtime 下只有 RuntimeSystem 可运行。
 	m_State.Trace.clear();
-	if (!m_World->Begin(Ayin::SceneMode::Runtime) || !m_World->Update(expectedDelta)) {
-		SetFailure("World runtime lifecycle did not begin and update");
+	m_State.LifecycleTrace.clear();
+	if (!m_World->BeginWorldExecutionSession(Ayin::SceneMode::Runtime) ||
+		!m_World->Update(expectedDelta) || !m_World->EndWorldExecutionSession()) {
+		SetFailure("World runtime lifecycle failed");
 		passed = false;
 	}
-
 	const auto runtimeTrace = ExpectedRuntimeTrace();
-	if (m_State.Trace != runtimeTrace) {
-		SetFailure("runtime mode filtering mismatch");
-		passed = false;
-	}
-	m_State.ModeFilteringPassed = m_State.Trace == runtimeTrace;
-
-	// 第一次 End 成功，第二次 End 应报告非法状态。
-	if (!m_World->End() || m_World->End()) {
-		SetFailure("World end state transition mismatch");
+	const std::vector<std::string> expectedRuntimeLifecycle{
+		"Runtime:Begin:Runtime", "Runtime:End:Runtime"
+	};
+	m_State.ModeFilteringPassed = m_State.Trace == runtimeTrace &&
+		m_State.LifecycleTrace == expectedRuntimeLifecycle;
+	if (!m_State.ModeFilteringPassed || m_World->EndWorldExecutionSession()) {
+		SetFailure("runtime mode filtering or End state mismatch");
 		passed = false;
 	}
 
-	// Simulation 与 Editor 共用 Early/Late，验证第二种可执行模式没有被遗漏。
+	// TransitionMode 必须先逆序结束旧模式，再正序开始新模式。
+	m_State.LifecycleTrace.clear();
+	const bool transitionPassed =
+		m_World->BeginWorldExecutionSession(Ayin::SceneMode::Editor) &&
+		m_World->TransitionMode(Ayin::SceneMode::Runtime) &&
+		m_World->EndWorldExecutionSession();
+	const std::vector<std::string> expectedTransition{
+		"Early:Begin:Editor", "Late:Begin:Editor",
+		"Late:End:Editor", "Early:End:Editor",
+		"Runtime:Begin:Runtime", "Runtime:End:Runtime"
+	};
+	m_State.TransitionPassed = transitionPassed && m_State.LifecycleTrace == expectedTransition;
+	if (!m_State.TransitionPassed) {
+		SetFailure("World::TransitionMode lifecycle mismatch");
+		passed = false;
+	}
+
+	// Simulation 与 Editor 共用 Early/Late。
 	m_State.Trace.clear();
-	if (!m_World->Begin(Ayin::SceneMode::Simulation) || !m_World->Update(expectedDelta)) {
-		SetFailure("World simulation lifecycle did not begin and update");
-		passed = false;
-	}
-	if (m_State.Trace != editorTrace) {
+	if (!m_World->BeginWorldExecutionSession(Ayin::SceneMode::Simulation) ||
+		!m_World->Update(expectedDelta) || m_State.Trace != editorTrace ||
+		!m_World->EndWorldExecutionSession()) {
 		SetFailure("simulation mode filtering mismatch");
 		passed = false;
 	}
-	if (!m_World->End()) {
-		SetFailure("World simulation end failed");
-		passed = false;
-	}
 
-	// 空场景仍可 Begin，但 Update 必须拒绝解引用空场景。
+	// 空 Scene 不能建立会话，后续 Update/End 也必须保持拒绝。
 	Ayin::SystemPipeline::Builder emptyBuilder;
 	Ayin::World emptyWorld(nullptr, emptyBuilder.Build());
-	if (!emptyWorld.Begin(Ayin::SceneMode::Runtime) || emptyWorld.Update(expectedDelta) || !emptyWorld.End()) {
-		SetFailure("World did not reject a null scene");
+	if (emptyWorld.BeginWorldExecutionSession(Ayin::SceneMode::Runtime) ||
+		emptyWorld.Update(expectedDelta) || emptyWorld.EndWorldExecutionSession()) {
+		SetFailure("World accepted a null scene");
 		passed = false;
 	}
 
 	m_State.WorldLifecyclePassed = passed;
-
 	return passed;
 }
 
-bool TestLayer::CheckScheduleLifecycle() {
+bool SystemTestLayer::CheckScheduleLifecycle() {
 	Ayin::SystemSchedule schedule;
 	// 这一组测试绕过 World，直接验证 Schedule 自己的注册和生命周期接口。
 	const Ayin::Timestep expectedDelta{ 0.5f };
@@ -262,16 +287,85 @@ bool TestLayer::CheckScheduleLifecycle() {
 	return duplicatePassed && runPassed && removePassed && explicitPassed;
 }
 
-void TestLayer::RunLiveFrame(const Ayin::Timestep deltaTime) {
+bool SystemTestLayer::CheckDestructorCleanupAndMove() {
+	bool passed = true;
+	const Ayin::SystemContext editorContext{
+		.Scene = *m_Scene,
+		.Mode = Ayin::SceneMode::Editor,
+	};
+
+	// Schedule 析构必须按注册的相反顺序 Detach。
+	m_State.LifecycleTrace.clear();
+	{
+		Ayin::SystemSchedule schedule;
+		schedule.AddSystem<EarlySystem>({}, { Ayin::SceneMode::Editor });
+		schedule.AddSystem<LateSystem>({}, { Ayin::SceneMode::Editor });
+		schedule.AddSystem<RuntimeSystem>({}, { Ayin::SceneMode::Editor });
+	}
+	const std::vector<std::string> expectedScheduleDestruction{
+		"Early:Attach", "Late:Attach", "Runtime:Attach",
+		"Runtime:Detach", "Late:Detach", "Early:Detach"
+	};
+	const bool scheduleDestructorPassed = m_State.LifecycleTrace == expectedScheduleDestruction;
+
+	// 默认移动构造必须转移所有权；被移动对象析构时不能重复 Detach。
+	m_State.LifecycleTrace.clear();
+	{
+		Ayin::SystemSchedule source;
+		source.AddSystem<EarlySystem>({}, { Ayin::SceneMode::Editor });
+		source.AddSystem<LateSystem>({}, { Ayin::SceneMode::Editor });
+		Ayin::SystemSchedule destination{ std::move(source) };
+		destination.Begin(editorContext);
+		destination.End(editorContext);
+	}
+	const std::vector<std::string> expectedMoveLifecycle{
+		"Early:Attach", "Late:Attach",
+		"Early:Begin:Editor", "Late:Begin:Editor",
+		"Late:End:Editor", "Early:End:Editor",
+		"Late:Detach", "Early:Detach"
+	};
+	m_State.MoveConstructionPassed = m_State.LifecycleTrace == expectedMoveLifecycle;
+
+	// World 在活动会话中析构时，先兜底 End，再由 Schedule 逆序 Detach。
+	m_State.LifecycleTrace.clear();
+	{
+		Ayin::World world{ m_Scene, m_Pipeline };
+		if (!world.BeginWorldExecutionSession(Ayin::SceneMode::Editor)) {
+			SetFailure("temporary World could not begin");
+			passed = false;
+		}
+	}
+	const std::vector<std::string> expectedWorldDestruction{
+		"Early:Attach", "Late:Attach", "Runtime:Attach",
+		"Early:Begin:Editor", "Late:Begin:Editor",
+		"Late:End:Editor", "Early:End:Editor",
+		"Runtime:Detach", "Late:Detach", "Early:Detach"
+	};
+	const bool worldDestructorPassed = m_State.LifecycleTrace == expectedWorldDestruction;
+	m_State.DestructorCleanupPassed = scheduleDestructorPassed && worldDestructorPassed;
+
+	if (!m_State.DestructorCleanupPassed) {
+		SetFailure("Schedule or World destructor cleanup order mismatch");
+		passed = false;
+	}
+	if (!m_State.MoveConstructionPassed) {
+		SetFailure("SystemSchedule move construction duplicated or lost lifecycle callbacks");
+		passed = false;
+	}
+
+	return passed;
+}
+
+void SystemTestLayer::RunLiveFrame(const Ayin::Timestep deltaTime) {
 	// 这是对主循环路径的最终验证：使用真实帧时间调用 World 一次完整生命周期。
 	m_State.Trace.clear();
 	m_State.ContextValid = true;
 	m_State.ExpectedScene = m_Scene.get();
 	m_State.ExpectedDelta = deltaTime.GetSeconds();
 
-	const bool began = m_World->Begin(Ayin::SceneMode::Editor);
+	const bool began = m_World->BeginWorldExecutionSession(Ayin::SceneMode::Editor);
 	const bool updated = began && m_World->Update(deltaTime);
-	const bool ended = updated && m_World->End();
+	const bool ended = updated && m_World->EndWorldExecutionSession();
 	const bool tracePassed = m_State.Trace == ExpectedEditorTrace();
 
 	if (!began || !updated || !ended || !tracePassed || !m_State.ContextValid) {
@@ -289,7 +383,7 @@ void TestLayer::RunLiveFrame(const Ayin::Timestep deltaTime) {
 	}
 }
 
-void TestLayer::SetFailure(const char* failure) {
+void SystemTestLayer::SetFailure(const char* failure) {
 	// 保留第一条失败原因，后续失败仍会让测试保持失败，但不会覆盖最有用的诊断信息。
 	if (m_State.Failure.empty()) {
 		m_State.Failure = failure;
@@ -301,11 +395,11 @@ void TestLayer::SetFailure(const char* failure) {
 	}
 }
 
-void TestLayer::RenderCheck(const char* label, const bool passed) const {
+void SystemTestLayer::RenderCheck(const char* label, const bool passed) const {
 	ImGui::Text("%s: %s", label, passed ? "pass" : "fail");
 }
 
-std::vector<std::string> TestLayer::ExpectedEditorTrace() const {
+std::vector<std::string> SystemTestLayer::ExpectedEditorTrace() const {
 	std::vector<std::string> expected;
 	// 调度器先完成一个阶段内的所有 System，再进入下一个阶段。
 	for (const char* phase : kPhases) {
@@ -317,15 +411,15 @@ std::vector<std::string> TestLayer::ExpectedEditorTrace() const {
 	return expected;
 }
 
-std::vector<std::string> TestLayer::ExpectedRuntimeTrace() const {
+std::vector<std::string> SystemTestLayer::ExpectedRuntimeTrace() const {
 	return { "Runtime:PreUpdate", "Runtime:Update", "Runtime:PostUpdate", "Runtime:Presentation" };
 }
 
-const char* TestLayer::ResultText() const {
+const char* SystemTestLayer::ResultText() const {
 	return m_State.Pass ? "PASS" : (m_State.Failure.empty() ? "PENDING" : "FAIL");
 }
 
-void TestLayer::OnImGuiRender() {
+void SystemTestLayer::OnImGuiRender() {
 	// ImGui 面板用于手动观察；自动化验证则依赖日志中的 PASS/FAIL 标记。
 	ImGui::Begin("World and System Tests");
 	ImGui::Text("Result: %s", ResultText());
@@ -339,6 +433,11 @@ void TestLayer::OnImGuiRender() {
 	RenderCheck("World lifecycle", m_State.WorldLifecyclePassed);
 	RenderCheck("Duplicate add", m_State.DuplicateAddPassed);
 	RenderCheck("Remove and detach", m_State.RemovePassed);
+	RenderCheck("Attach registration order", m_State.AttachOrderPassed);
+	RenderCheck("Begin/End reverse order", m_State.BeginEndOrderPassed);
+	RenderCheck("Mode transition", m_State.TransitionPassed);
+	RenderCheck("Destructor fallback cleanup", m_State.DestructorCleanupPassed);
+	RenderCheck("Schedule move construction", m_State.MoveConstructionPassed);
 	RenderCheck("Live World frame", m_State.LiveFramePassed);
 	if (!m_State.Failure.empty()) {
 		ImGui::Separator();
@@ -352,29 +451,49 @@ void TestLayer::OnImGuiRender() {
 	ImGui::End();
 }
 
-void TestLayer::ProbeSystem::Bind(TestState* state) {
+void SystemTestLayer::ProbeSystem::Bind(TestState* state) {
 	s_State = state;
 }
 
-void TestLayer::ProbeSystem::Unbind() {
+void SystemTestLayer::ProbeSystem::Unbind() {
 	s_State = nullptr;
 }
 
-void TestLayer::ProbeSystem::OnAttach() {
-	// Schedule 创建 System 后立即调用 OnAttach，因此这里能验证实例确实被创建。
+void SystemTestLayer::ProbeSystem::OnAttach() {
 	if (s_State != nullptr) {
 		++s_State->AttachCount[Name()];
+		s_State->LifecycleTrace.emplace_back(std::string{ Name() } + ":Attach");
 	}
 }
 
-void TestLayer::ProbeSystem::OnDetach() {
-	// 显式 RemoveSystem 时调用 OnDetach；World 销毁路径目前不作为本测试的生命周期断言。
+void SystemTestLayer::ProbeSystem::OnDetach() {
 	if (s_State != nullptr) {
 		++s_State->DetachCount[Name()];
+		s_State->LifecycleTrace.emplace_back(std::string{ Name() } + ":Detach");
 	}
 }
 
-void TestLayer::ProbeSystem::RecordPhase(const Ayin::SystemContext& context, const char* phase) {
+void SystemTestLayer::ProbeSystem::OnBegin(const Ayin::SystemContext& context) {
+	if (s_State != nullptr) {
+		if (&context.Scene != s_State->ExpectedScene || context.Phase != Ayin::SystemPhase::None) {
+			s_State->ContextValid = false;
+		}
+		s_State->LifecycleTrace.emplace_back(
+			std::string{ Name() } + ":Begin:" + ModeName(context.Mode));
+	}
+}
+
+void SystemTestLayer::ProbeSystem::OnEnd(const Ayin::SystemContext& context) {
+	if (s_State != nullptr) {
+		if (&context.Scene != s_State->ExpectedScene || context.Phase != Ayin::SystemPhase::None) {
+			s_State->ContextValid = false;
+		}
+		s_State->LifecycleTrace.emplace_back(
+			std::string{ Name() } + ":End:" + ModeName(context.Mode));
+	}
+}
+
+void SystemTestLayer::ProbeSystem::RecordPhase(const Ayin::SystemContext& context, const char* phase) {
 	if (s_State == nullptr) {
 		return;
 	}

@@ -19,3 +19,5 @@ Ayin/src/Ayin/Core/ObjectPool.cs
 #学习glaze用
 glaze_guide.h
 .omo
+# OpenCode 生成的架构资料（暂不纳入版本控制）
+/docs/architecture/

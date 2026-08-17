@@ -13,14 +13,47 @@
 #include <unordered_map>
 #include <vector>
 
-//! 这是 SandBox 中的系统调度测试入口。
-//! 测试顺序大致是：构建 Pipeline -> 创建 World -> 检查生命周期和调度 -> 检查真实应用帧。
-// SandBox 是一次性的测试宿主，因此这里把 SystemSchedule、SystemPipeline
-// 和 World 的行为测试集中放在一个 Layer 中，避免为暂时的测试单独建立目标。
-class TestLayer final : public Ayin::Layer {
+//! 独立的 System/World 回归测试 Layer。
+//!
+//! 测试流程总览（每一个箭头都对应本类中的一个实际调用阶段）：
+//!
+//!  0. SandBoxApp 读取 AYIN_SANDBOX_TEST_LAYER；只有值为 "system" 时才创建本 Layer。
+//!     AYIN_SANDBOX_TEST_AUTO_EXIT 为真时，测试结束后会自动关闭 SandBox，供脚本/CI 使用。
+//!
+//!  1. OnAttach()
+//!       -> ProbeSystem::Bind(m_State)
+//!          将所有测试 System 的静态观测入口绑定到本 Layer 的 TestState。
+//!       -> BuildWorld()
+//!          注册 Early / Late / Runtime 三个探针 System，构建 Pipeline、Scene 与 World，
+//!          并立刻验证 OnAttach 是否按注册顺序发生。
+//!       -> RunOneShotChecks()
+//!          不依赖真实应用帧，直接执行下面三组确定性规则检查：
+//!          a) CheckPipelineAndWorld()：World 的非法状态、模式过滤、Begin/End 正逆序、
+//!             TransitionMode、SystemContext 转发、空 Scene 拒绝。
+//!          b) CheckScheduleLifecycle()：裸 SystemSchedule 的重复注册、显式 Order、
+//!             Update 阶段执行、RemoveSystem 与单次 OnDetach。
+//!          c) CheckDestructorCleanupAndMove()：Schedule / World 析构兜底清理，以及
+//!             SystemSchedule 移动构造后不会遗漏或重复生命周期回调。
+//!
+//!  2. OnUpdate(deltaTime)
+//!       -> 若一次性检查全部通过，RunLiveFrame(deltaTime) 使用 Application 提供的真实帧时间
+//!          执行 BeginWorldExecutionSession(Editor) -> Update -> EndWorldExecutionSession，
+//!          验证最终主循环路径，而不仅是直接调用 Schedule 的单元式路径。
+//!
+//!  3. 结果处理
+//!       -> 任一断言失败：SetFailure() 保留第一条原因并记录 SYSTEM_WORLD_TEST: FAIL。
+//!       -> 全部通过：记录 SYSTEM_WORLD_TEST: PASS，并在 ImGui 面板显示各项检查结果与轨迹。
+//!
+//!  4. OnDetach()
+//!       -> 销毁 World，使其与内部 Schedule 执行最后的析构兜底；随后解除 ProbeSystem 绑定。
+//!
+//! Trace 记录 Update 四阶段的实际调用顺序；LifecycleTrace 记录
+//! Attach / Begin / End / Detach，因此测试不仅断言“是否调用”，还断言“调用顺序是否正确”。
+// 与其他模块测试隔离；由 SandBoxApp 根据环境变量决定是否创建该 Layer。
+class SystemTestLayer final : public Ayin::Layer {
 public:
-	TestLayer();
-	~TestLayer() override;
+	SystemTestLayer();
+	~SystemTestLayer() override;
 
 	void OnAttach() override;
 	void OnDetach() override;
@@ -34,6 +67,8 @@ private:
 		std::unordered_map<std::string, int> DetachCount;
 		// Trace 只保存最近一次调度的执行轨迹，例如 Early:Update。
 		std::vector<std::string> Trace;
+		// 生命周期轨迹用于验证正序进入和逆序退出规则。
+		std::vector<std::string> LifecycleTrace;
 		std::string Failure;
 		const Ayin::Scene* ExpectedScene = nullptr;
 		float ExpectedDelta = 0.0f;
@@ -46,6 +81,11 @@ private:
 		bool ContextForwardingPassed = false;
 		bool DuplicateAddPassed = false;
 		bool RemovePassed = false;
+		bool AttachOrderPassed = false;
+		bool BeginEndOrderPassed = false;
+		bool TransitionPassed = false;
+		bool DestructorCleanupPassed = false;
+		bool MoveConstructionPassed = false;
 		bool WorldLifecyclePassed = false;
 		bool LiveFramePassed = false;
 		bool ContextValid = true;
@@ -62,6 +102,8 @@ private:
 
 		void OnAttach() override;
 		void OnDetach() override;
+		void OnBegin(const Ayin::SystemContext& context) override;
+		void OnEnd(const Ayin::SystemContext& context) override;
 
 	protected:
 		virtual const char* Name() const = 0;
@@ -113,6 +155,7 @@ private:
 	// 分别测试 Pipeline/World 和裸 SystemSchedule 的行为。
 	bool CheckPipelineAndWorld();
 	bool CheckScheduleLifecycle();
+	bool CheckDestructorCleanupAndMove();
 
 	// 比较 SystemContext 中的场景和时间步是否被正确转发。
 	std::vector<std::string> ExpectedEditorTrace() const;
