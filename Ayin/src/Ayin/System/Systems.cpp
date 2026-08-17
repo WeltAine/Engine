@@ -41,9 +41,10 @@ namespace Ayin{
 
 	void ScriptSystem::OnPreUpdate(const SystemContext& systemContext) {
 
-		//! 处理上一帧的删除和 bind
+		//! 处理上一帧的删除和 bind / 场景反序列化时与编辑时也可能使用
+		//! 为了在编辑是有正真可编辑的目标，当脚本绑定时时一定有实例的
 
-		auto func = [](entt::entity, NativeScriptComponent& nsc) -> void {
+		auto func = [&systemContext](entt::entity entity, NativeScriptComponent& nsc) -> void {
 
 				//! 那些可能调用到即将销毁的 script 的阶段不要在该阶段运行。
 				//! 顺序固定为：先释放当前 head，再提交最后一次 Bind 请求，最后实例化新 head。
@@ -56,6 +57,20 @@ namespace Ayin{
 
 				nsc.InstantiateHead();		// 内有 前置 Bound 状态要求
 
+				//? 感觉不需要这段，编辑阶段没必要绑定啥的？或许是有必要的？脚本即使在编辑阶段或许也有和实体的同步需求
+				if (static_cast<bool>(systemContext.Mode & SceneMode::Editor) && nsc.ScriptData.str != NativeScriptComponent::NullScriptData) {
+					// 将编辑模式下的设置操控实体和反序列化移动到这里
+					AYIN_CORE_ASSERT(nsc.ScriptableInstance, "Script {} instantiate failure", nsc.ScriptName);
+
+					nsc.ScriptableInstance->SetEntity(Entity{ entity, &systemContext.Scene });
+					// 反序列化
+					const bool noException = ScriptRegistry::DeserializeScriptByScriptName(nsc, nsc.ScriptName, nsc.ScriptData.str);
+					if (!noException && nsc.ScriptData.str != NativeScriptComponent::NullScriptData && !nsc.ScriptData.str.empty())
+						AYIN_CORE_WARN(" {0} script deserialize failure", nsc.ScriptName);
+					nsc.ScriptData = NativeScriptComponent::NullScriptData;
+
+				}
+
 			};
 
 
@@ -67,7 +82,10 @@ namespace Ayin{
 
 	void ScriptSystem::OnUpdate(const SystemContext& systemContext) {
 
-		auto func = [&scene = systemContext.Scene, deltaTime = systemContext.DeltaTime](entt::entity entity, NativeScriptComponent& nsc) -> void {
+		if ( static_cast<bool>(systemContext.Mode & SceneMode::Editor))
+			return;
+
+		auto updateScript = [&scene = systemContext.Scene, deltaTime = systemContext.DeltaTime](entt::entity entity, NativeScriptComponent& nsc) -> void {
 
 			switch (nsc.GetScriptLifecycleState()) {
 
@@ -113,9 +131,39 @@ namespace Ayin{
 
 			};
 
-		systemContext.Scene.Each<NativeScriptComponent>(func);
+		systemContext.Scene.Each<NativeScriptComponent>(updateScript);
 
 	}
+
+	void ScriptSystem::OnEnd(const SystemContext& systemContext) {
+
+		// 系统运行的收尾阶段
+		// 考虑到同时适配三个模式，其中 只有 Editor 模式数据有长期保留（它的场景数据生命周期应当和 编辑器 一致），多次启动的可能；而另外两者一旦停止也就放弃了本次模拟
+		// 所以我们采取保留配置，但是删除实例的方法，这样如果场景还存在的话，下一可以对脚本恢复配置，而 Editor 刚好也基本只调整配置，不真正运行脚本
+
+		auto endScript = [](entt::entity, NativeScriptComponent& nsc) {
+
+			switch (nsc.m_State) {
+
+			case NativeScriptComponent::ScriptLifecycleState::Active:
+				if (nsc.ScriptableInstance)
+					nsc.ScriptableInstance->OnDestroy();
+
+				[[fallthrough]];
+
+			case NativeScriptComponent::ScriptLifecycleState::Instantiated:
+				nsc.ReleaseInstance();
+				break;
+
+			case NativeScriptComponent::ScriptLifecycleState::Bound:
+			case NativeScriptComponent::ScriptLifecycleState::Unbound:
+				break;
+			}
+			};
+
+		systemContext.Scene.Each<NativeScriptComponent>(endScript);
+
+	};
 
 
 	void ScriptSystem::StopAllScript(Scene& scene) {

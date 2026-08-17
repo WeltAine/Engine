@@ -156,6 +156,8 @@ namespace Ayin {
 
 	public:
 
+		~SchedulePhase() = default;
+
 		SchedulePhase& AddSystem(const PhaseSystemEntry& phaseSystemEntry);
 
 		template<typename System>
@@ -202,7 +204,17 @@ namespace Ayin {
 
 	public:
 
+		SystemSchedule() = default;
+		~SystemSchedule();
+		SystemSchedule(const SystemSchedule&) = delete;
+		SystemSchedule& operator=(const SystemSchedule&) = delete;	//! 会有旧状态的处理，可以有，但暂时没什么不要，需要新的 Schedule 建议直接 Pipeline 构建
+		SystemSchedule(SystemSchedule&&) noexcept = default;
+		SystemSchedule& operator=(SystemSchedule&&) = delete;		//! 和拷贝一致
+
+
+		void Begin(const SystemContext& systemContext);
         void Run(const SystemContext& context);
+		void End(const SystemContext& systemContext);
 
         template<typename System>
             requires std::derived_from<System, ISystem>&& std::default_initializable<System>
@@ -395,6 +407,7 @@ namespace Ayin {
 	private:
 
 		std::vector<SystemEntry> m_Systems;
+		std::vector<SystemID> m_BegunSystems;	// 执行过 OnBegin 的 System
 
 		int m_NextOrder = 0;
 

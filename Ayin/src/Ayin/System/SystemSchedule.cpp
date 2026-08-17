@@ -36,6 +36,46 @@ namespace Ayin {
 
 namespace Ayin {
 
+
+	SystemSchedule::~SystemSchedule() {
+
+		// OnAttach 按注册顺序执行，因此析构时以相反顺序解除系统。
+		std::ranges::for_each(
+			m_Systems | std::views::reverse,
+			[](const SystemEntry& entry) -> void {
+				entry.Instance->OnDetach();
+			});
+
+	};
+
+
+
+	void SystemSchedule::Begin(const SystemContext& systemContext) {
+
+		m_BegunSystems.clear();
+
+		std::vector<SystemEntry*> runnableSystems;
+		for (SystemEntry& entry : m_Systems) {
+			if (static_cast<bool>(entry.Specification.ModeMask & systemContext.Mode))
+				runnableSystems.emplace_back(&entry);
+		}
+
+		// 相同 Order 保留注册顺序；不改变 m_Systems 自身的所有权和注册顺序。
+		std::stable_sort(
+			runnableSystems.begin(), runnableSystems.end(),
+			[](const SystemEntry* leftEntry, const SystemEntry* rightEntry) -> bool {
+				return leftEntry->Specification.Order < rightEntry->Specification.Order;
+			});
+
+		for (SystemEntry* entry : runnableSystems) {
+			m_BegunSystems.emplace_back(entry->Information.Id);
+			entry->Instance->OnBegin(systemContext);
+		}
+
+	};
+
+
+
 	void SystemSchedule::Run(const SystemContext& context) {
 
 		SystemContext phaseContext = context;
@@ -93,6 +133,25 @@ namespace Ayin {
 		presentationPhase_Update(m_Presentation_Phase);
 
 	}
+
+
+	void SystemSchedule::End(const SystemContext& systemContext) {
+
+		// 与 Begin 相反的顺序结束，只处理本次真正执行过 OnBegin 的系统。
+		std::ranges::for_each(
+			m_BegunSystems | std::views::reverse,
+			[this, &systemContext](const SystemID& systemId) -> void {
+
+				auto entry = this->FindSystem(systemId);
+				if (entry != this->m_Systems.end())
+					entry->Instance->OnEnd(systemContext);
+
+			});
+
+		m_BegunSystems.clear();
+
+	};
+
 
 	std::vector<SystemEntry>::iterator SystemSchedule::FindSystem(SystemID systemId) {
 

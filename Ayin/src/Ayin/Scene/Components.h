@@ -483,52 +483,7 @@ namespace Ayin {
 
 	private:
 
-		//Todo: 准备移除（等 world 被应用）
-		inline ScriptableEntity* Instantiate() {
-
-			if (m_State != ScriptLifecycleState::Bound) {
-				AYIN_CORE_ASSERT(false, "Script is not bound");
-				return nullptr;
-			}
-
-			if (!ScriptableInstance && InstantiateFunction) {
-				this->InstantiateFunction(*this);
-
-				if (ScriptableInstance)
-					m_State = ScriptLifecycleState::Instantiated;
-			}
-
-			return this->ScriptableInstance;
-
-		}
-
-		//Todo: 准备移除（等 world 被应用）
-		inline void ActiveScript(const Entity& entity = Entity{}) {
-
-			if (m_State != ScriptLifecycleState::Instantiated) {
-				AYIN_CORE_ASSERT(false, "Script LifeLoop Error: ScriptableInstance is null");
-				return;
-			}
-
-			ScriptableInstance->SetEntity(entity);
-			ScriptableInstance->OnCreate();
-
-			m_State = ScriptLifecycleState::Active;
-
-		};
-
-		//Todo: 准备移除（等 world 被应用）
-		inline void Update(Timestep deltaTime) {
-
-			if (m_State != ScriptLifecycleState::Active) {
-				AYIN_CORE_ASSERT(false, "Script LifeLoop Error");
-				return;
-			}
-
-			ScriptableInstance->OnUpdate(deltaTime);
-
-		};
-
+		// 关闭脚本，Active 则调用 OnDestroy，之后关闭实例，清空绑定相关状态（构造，释放，脚本名称，脚本序列化数据）
 		inline void StopScript() {
 
 			// UnBind 延迟释放当前 head；Scene 析构时仍然可以直接走这里同步释放。

@@ -23,10 +23,14 @@ namespace Ayin{
 		virtual inline void OnAttach() {};
 		virtual inline void OnDetach() {};
 
+		virtual inline void OnBegin(const SystemContext& systemContext) {};
+
 		virtual inline void OnPreUpdate(const SystemContext& systemContext) {};
 		virtual inline void OnUpdate(const SystemContext& systemContext) {};
 		virtual inline void OnPostUpdate(const SystemContext& systemContext) {};
 		virtual inline void OnPresentationUpdate(const SystemContext& systemContext) {};
+
+		virtual inline void OnEnd(const SystemContext& systemContext) {};
 
 	};
 
@@ -79,9 +83,13 @@ namespace Ayin{
 
 	public:
 
+		virtual void OnBegin(const SystemContext& systemContext) override {};
+
 		virtual void OnPreUpdate(const SystemContext& systemContext) override;
 
 		virtual void OnUpdate(const SystemContext& systemContext) override;
+
+		virtual void OnEnd(const SystemContext& systemContext) override;
 
 		static void StopAllScript(Scene& scene);
 
@@ -92,7 +100,13 @@ namespace Ayin{
 	class RenderSystem : public ISystem{
 
 	public:
+
+		//ToDo: 相机处理
+		virtual void OnBegin(const SystemContext& systemContext) override {};
+
 		virtual void OnUpdate(const SystemContext& systemContext) override;
+
+		virtual void OnEnd(const SystemContext& systemContext) override {};
 
 	};
 

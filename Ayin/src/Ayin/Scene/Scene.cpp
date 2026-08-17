@@ -405,25 +405,6 @@ namespace Ayin{
 
 		// 脚本初始化（挂在实际脚本）、更新
 		{
-			m_Registry.view<NativeScriptComponent>().each([=](entt::entity entity, NativeScriptComponent& nsc) {
-
-				if (!nsc.HasScript()) {//没有绑定脚本类型
-					return;
-				}
-
-				switch (nsc.GetScriptLifecycleState()) {
-
-				case(NativeScriptComponent::ScriptLifecycleState::Bound):
-					nsc.Instantiate();
-
-				case(NativeScriptComponent::ScriptLifecycleState::Instantiated):
-					nsc.ActiveScript(Entity{ entity, this }); break;
-
-				case(NativeScriptComponent::ScriptLifecycleState::Active):
-					nsc.Update(deltaTime);
-
-				};
-				});
 		}
 
 		// 相机矩阵更新
@@ -516,25 +497,6 @@ namespace Ayin{
 
 		// 脚本初始化（挂在实际脚本）、更新
 		{
-			m_Registry.view<NativeScriptComponent>().each([=](entt::entity entity, NativeScriptComponent& nsc) {
-
-				if (!nsc.HasScript()) {//没有绑定脚本类型
-					return;
-				}
-
-				switch (nsc.GetScriptLifecycleState()) {
-
-				case(NativeScriptComponent::ScriptLifecycleState::Bound):
-					nsc.Instantiate();
-
-				case(NativeScriptComponent::ScriptLifecycleState::Instantiated):
-					nsc.ActiveScript(Entity{ entity, this }); break;
-
-				case(NativeScriptComponent::ScriptLifecycleState::Active):
-					nsc.Update(deltaTime);
-
-				};
-				});
 		}
 
 		// 相机矩阵更新
