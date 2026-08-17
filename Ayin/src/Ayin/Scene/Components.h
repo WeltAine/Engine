@@ -318,6 +318,8 @@ namespace Ayin {
 
 		SceneCamera Camera;
 
+		uint8_t RenderOrder = 0;
+
 		CameraComponent() = default;
 		CameraComponent(const CameraProp& cameraProp)
 			:Camera{ cameraProp }
@@ -368,7 +370,9 @@ namespace Ayin {
 
 		struct glaze {
 			using T = CameraComponent;
-			static constexpr auto value = glz::object("Camera", &T::Camera);
+			static constexpr auto value = glz::object(
+				"Camera", &T::Camera,
+				"RenderOrder", &T::RenderOrder);
 		};
 
 	};

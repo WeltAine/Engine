@@ -48,6 +48,8 @@ namespace Ayin {
 
 		SystemPhase Phase = SystemPhase::None;			//当前阶段
 
+		EditorCamera* EditorView = nullptr;
+
 	};
 
 

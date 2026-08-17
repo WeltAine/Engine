@@ -40,16 +40,24 @@ namespace Ayin {
 	};
 	bool World::Update(Timestep deltaTime) {
 
+		Update(deltaTime, nullptr);
+
+	};
+
+
+	bool World::Update(Timestep deltaTime, EditorCamera* editorCamera) {
+
 		if (!SessionReady()) {
 			AYIN_CORE_WARN("Invalid SceneMode or Scene.");
 			return false;
 		}
 
-		SystemContext context{ 
+		SystemContext context{
 			.Scene{*m_ActiveScene},
 			.DeltaTime{deltaTime},
 			.Mode{m_CurrentMode},
-			.Phase{SystemPhase::None}
+			.Phase{SystemPhase::None},
+			.EditorView{editorCamera}
 		};
 
 		m_SystemSchedule.Run(context);
@@ -57,6 +65,7 @@ namespace Ayin {
 		return true;
 
 	};
+
 
 	bool World::EndWorldExecutionSession() {
 
