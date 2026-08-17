@@ -51,6 +51,9 @@ namespace Ayin {
 
 		AYIN_PROFILE_FUNCTION();
 
+		//! 那些具备全局堆资源的静态系统，需要在这里释放
+		//x 看起来是不错的单例释放顺序的控制手段
+
 		Renderer::Shutdown();
 
 		//文件弹窗反初始化

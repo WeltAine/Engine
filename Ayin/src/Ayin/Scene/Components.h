@@ -403,8 +403,8 @@ namespace Ayin {
 
 		ScriptableEntity* ScriptableInstance = nullptr;
 
-		std::string ScriptName{ NoneScriptName };//它基本上是实时的
-		glz::raw_json ScriptData{ NullScriptData };//只会在序列化和反序列化是被赋值，所以小心赃值。在未bind和非法脚本时未null
+		std::string ScriptName{ NoneScriptName };	// 它时脚本实例，序列化以以它为依据
+		glz::raw_json ScriptData{ NullScriptData };	// 存储序列化数据，也就是说它应当仅在反序列化时使用，一旦反序列化结束应当置空
 		//x 一开始是不想这么设计的，而是转换成内部定义的中间结构体，该结构 没有外露
 		//x 但那样导致一个问题我在通过json反序列化时，NSC必须bind，否者会影响回收操作，这一点注册器解决了。
 		//x 其二时ScriptAbleEntity需要所影响的Enity（目前没有涉及复杂的复数个同组件的情况），这一点我目前通过上下文来解决（但后续可能移除）
