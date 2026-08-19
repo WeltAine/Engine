@@ -12,50 +12,6 @@
 #include <unordered_set>
 
 
-namespace {
-
-	//! Glaze序列化的是数据内部的阻断，它对组合结构的序列化很自然
-	//! 但EnTT的ECS结构，是一种数据结构式的组合方式，并不是类内组合，这使得序列化困难
-	//! 我们需要一些顶层结构来真正组合它们，在数据结构式组合和类内组合之间架起桥梁，这就是EntityJsonEntry和SceneJson，这样来让Glaze序列化
-
-	struct EntityJsonEntry {
-
-		uint64_t UUID{};
-		std::map<std::string, glz::raw_json> Components;//会导致序列化文件中的组件顺序不固定，但没关系，反序列化时是根据组件名称来找的
-
-		struct glaze {
-
-			using T = EntityJsonEntry;
-
-			static constexpr auto value = glz::object(
-				"UUID", &T::UUID,
-				"Components", &T::Components
-			);
-
-		};
-
-	};
-
-	struct SceneJson {
-
-		std::string SceneName;
-		std::vector<EntityJsonEntry> Entities;
-
-		struct glaze {
-
-			using T = SceneJson;
-
-			static constexpr auto value = glz::object(
-				"SceneName", &T::SceneName,
-				"Entities", &T::Entities
-			);
-
-		};
-
-	};
-
-}
-
 namespace Ayin {
 
 	SceneSerializer::SceneSerializer(const Ref<Scene>& scene)
@@ -89,48 +45,17 @@ namespace Ayin {
 	};
 
 	std::string SceneSerializer::SerializerToString() {
-	
+
 		if (m_Scene.get() == nullptr)
 			return {};
+	
+		std::optional<SceneJson> sceneData = BuildSceneJson();
 
-		// 创建场景序列化中间结构
-		SceneJson sceneData;
-		sceneData.SceneName = m_Scene->GetName();
-
-		// 逐个处理场景中Entity
-		for (auto entityID : m_Scene->m_Registry.storage<entt::entity>()) {
-
-			Entity entity = { entityID, m_Scene.get() };
-			if (!entity)
-				return {};
-
-			SceneSerializerContext::SetCurrentEntity(entity);
-
-			// 创建Entity序列化中间结构
-			EntityJsonEntry entry;
-			entry.UUID = entity.GetComponents<IDComponent>().ID;
-
-			// 处理Enity拥有的所有组件
-			for (auto& desc : ComponentRegistry::GetAllComponentDescriptors()) {
-				// 获取组件行为
-
-				if (entity.HasComponent(desc.id)) {
-
-					std::string compJson = desc.serialize(entity);
-					if (!compJson.empty() && compJson != "{}") {
-						entry.Components[desc.displayName] = glz::raw_json{ std::move(compJson) };
-					}
-
-				}
-
-			}
-
-			sceneData.Entities.push_back(std::move(entry));
-
-		}
+		if (!sceneData)
+			return {};
 
 		// 序列化中间结构
-		auto result = glz::write_json(sceneData);
+		auto result = glz::write_json(*sceneData);
 		if (!result) {
 			AYIN_CORE_ERROR("Failed to serialize scene to JSON: {}", glz::format_error(result.error()));
 
@@ -159,16 +84,14 @@ namespace Ayin {
 		std::string jsonStr = buffer.str();
 
 		// 构建反序列化中间层
-		SceneJson sceneData;
-		auto err = glz::read_json(sceneData, jsonStr);
-		if (err) {
-			AYIN_CORE_ERROR("Failed to parse scene JSON: {}", glz::format_error(err, jsonStr));
+		std::optional<SceneJson> sceneData = BuildSceneJsonFrom(jsonStr);
+
+		if (!sceneData)
 			return;
-		}
 
 		//! 检查场景是否存在 UUID 异常（UUID 重复）
 		std::unordered_set<uint64_t> serializedEntityUUIDs;
-		for (auto& entityEntry : sceneData.Entities) {
+		for (auto& entityEntry : (*sceneData).Entities) {
 			const bool inserted = serializedEntityUUIDs.insert(entityEntry.UUID).second;//! 检查 UUID 是否已经存在
 			if (!inserted) {
 				AYIN_CORE_ERROR("Duplicate entity UUID in scene file: {} ({})", entityEntry.UUID, filepath);
@@ -177,13 +100,13 @@ namespace Ayin {
 		}
 
 		// 反序列化回场景
-		m_Scene->SetName(sceneData.SceneName);
+		m_Scene->SetName((*sceneData).SceneName);
 
 		// UUID 转换处理结构
 		std::unordered_map<UUID, UUID> oldUUID_newUUID_map;
 
 		// 逐个生成实体
-		for (auto& entityEntry : sceneData.Entities) {
+		for (auto& entityEntry : (*sceneData).Entities) {
 
 			Entity entity = m_Scene->CreateEntity("Entity");
 
@@ -226,17 +149,16 @@ namespace Ayin {
 
 
 		// 脚本处理
-		auto&& nativeScriptComponentView = m_Scene->m_Registry.view<NativeScriptComponent>();
-
-		// 只绑定脚本类型；实例化、ScriptData 回填和 OnCreate 统一由 ScriptSystem 延迟处理。
-		nativeScriptComponentView.each([=](entt::entity, NativeScriptComponent& nsc) {
+		auto bindScript = [=](entt::entity, NativeScriptComponent& nsc) {
 				if (!nsc.HasScript()) {
 					return;
 				}
 
 				bool bound = ScriptRegistry::BindScriptByScriptName(nsc, nsc.ScriptName);
 				AYIN_CORE_ASSERT(bound, "Script '{}' is not registered", nsc.ScriptName);
-			});
+			};
+
+		m_Scene->Each<NativeScriptComponent>(bindScript);
 
 	};
 
@@ -248,16 +170,14 @@ namespace Ayin {
 	void SceneSerializer::DeserializerFromString(const std::string& jsonStr) {
 	
 		// 构建反序列化中间层
-		SceneJson sceneData;
-		auto err = glz::read_json(sceneData, jsonStr);
-		if (err) {
-			AYIN_CORE_ERROR("Failed to parse scene JSON: {}", glz::format_error(err, jsonStr));
+		std::optional<SceneJson> sceneData = BuildSceneJsonFrom(jsonStr);
+
+		if (!sceneData)
 			return;
-		}
 
 		//! 检查场景是否存在 UUID 异常（UUID 重复）
 		std::unordered_set<uint64_t> serializedEntityUUIDs;
-		for (auto& entityEntry : sceneData.Entities) {
+		for (auto& entityEntry : (*sceneData).Entities) {
 			const bool inserted = serializedEntityUUIDs.insert(entityEntry.UUID).second;//! 检查 UUID 是否已经存在
 			if (!inserted) {
 				AYIN_CORE_ERROR("Duplicate entity UUID in scene file: {} ({})", entityEntry.UUID, "Runtime scenario file");
@@ -266,13 +186,13 @@ namespace Ayin {
 		}
 
 		// 反序列化回场景
-		m_Scene->SetName(sceneData.SceneName);
+		m_Scene->SetName((*sceneData).SceneName);
 
 		// UUID 转换处理结构
 		std::unordered_map<UUID, UUID> oldUUID_newUUID_map;
 
 		// 逐个生成实体
-		for (auto& entityEntry : sceneData.Entities) {
+		for (auto& entityEntry : (*sceneData).Entities) {
 
 			Entity entity = m_Scene->CreateEntity("Entity");
 
@@ -331,7 +251,67 @@ namespace Ayin {
 	};
 
 
+	std::optional<SceneJson> SceneSerializer::BuildSceneJson() {
+	
+		if (m_Scene.get() == nullptr)
+			return std::nullopt;
 
+		// 创建场景序列化中间结构
+		SceneJson sceneData;
+		sceneData.SceneName = m_Scene->GetName();
+
+		// 逐个处理场景中Entity
+		for (auto entityID : m_Scene->m_Registry.storage<entt::entity>()) {
+
+			Entity entity = { entityID, m_Scene.get() };
+			if (!entity)
+				return std::nullopt;
+
+			SceneSerializerContext::SetCurrentEntity(entity);
+
+			// 创建Entity序列化中间结构
+			EntityJsonEntry entry;
+			entry.UUID = entity.GetComponents<IDComponent>().ID;
+
+			// 处理Enity拥有的所有组件
+			for (auto& desc : ComponentRegistry::GetAllComponentDescriptors()) {
+				// 获取组件行为
+
+				if (entity.HasComponent(desc.id)) {
+
+					std::string compJson = desc.serialize(entity);
+					if (!compJson.empty() && compJson != "{}") {
+						entry.Components[desc.displayName] = glz::raw_json{ std::move(compJson) };
+					}
+
+				}
+
+			}
+
+			sceneData.Entities.push_back(std::move(entry));
+
+		}
+
+		return sceneData;
+
+	};
+
+
+	std::optional<SceneJson> SceneSerializer::BuildSceneJsonFrom(const std::string_view& jsonStr) {
+	
+		SceneJson sceneData;
+		auto err = glz::read_json(sceneData, jsonStr);
+		if (err) {
+			AYIN_CORE_ERROR("Failed to parse scene JSON: {}", glz::format_error(err, jsonStr));
+			return std::nullopt;
+		}
+
+		return sceneData;
+
+	};
+
+
+	// --------------------------------------------------------------------------------------------------------------
 
 	static SceneSerializerContextData s_SceneSerializerContextData;
 

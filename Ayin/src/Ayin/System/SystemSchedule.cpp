@@ -1,6 +1,8 @@
 #include<AyinPch.h>
 
-#include"Ayin/System/SystemSchedule.h"
+#include "Ayin/System/SystemPipeline.h"
+#include "Ayin/System/SystemSchedule.h"
+#include "Ayin/System/SystemRegistry.h"
 
 namespace Ayin {
 
@@ -8,7 +10,7 @@ namespace Ayin {
 
 		auto it = std::ranges::find_if(m_OrderedSystems, 
 			[&phaseSystemEntry](const PhaseSystemEntry& entry) -> bool {
-				return entry.Id == phaseSystemEntry.Id; 
+				return entry.RuntimeId == phaseSystemEntry.RuntimeId;
 			});
 
 		if (it != m_OrderedSystems.end())
@@ -22,7 +24,7 @@ namespace Ayin {
 	SchedulePhase& SchedulePhase::RemoveSystem(const SystemID systemId) {
 
 		auto it = std::ranges::find_if(m_OrderedSystems,
-			[&systemId](const PhaseSystemEntry& entry) -> bool {return entry.Id == systemId; }
+			[&systemId](const PhaseSystemEntry& entry) -> bool {return entry.RuntimeId == systemId; }
 		);
 
 		if (it != m_OrderedSystems.end())
@@ -68,7 +70,7 @@ namespace Ayin {
 			});
 
 		for (SystemEntry* entry : runnableSystems) {
-			m_BegunSystems.emplace_back(entry->Information.Id);
+			m_BegunSystems.emplace_back(entry->Information.RuntimeId);
 			entry->Instance->OnBegin(systemContext);
 		}
 
@@ -153,12 +155,48 @@ namespace Ayin {
 	};
 
 
+	SystemSchedule& SystemSchedule::AddSystem(const SystemRegistration& systemRegistration) {
+	
+		auto it = FindSystem(systemRegistration.Information.RuntimeId);
+		if (it != m_Systems.end())
+			return *this;
+
+		//！触发移动语义
+		SystemEntry& entry = m_Systems.emplace_back(
+			std::move<SystemEntry>(
+				SystemEntry{
+				.Information{.RuntimeId{systemRegistration.Information.RuntimeId}, .Name{systemRegistration.Information.Name}},
+				.Specification{.PhaseMask{systemRegistration.Specification.PhaseMask}, .ModeMask{systemRegistration.Specification.ModeMask}, .Order{systemRegistration.Specification.Order}},
+				.Instance{SystemRegistry::CreateSystemBy(systemRegistration.Information.RuntimeId)},
+				}
+				));
+
+		// 尝试反序列化
+		if (systemRegistration.SystemData.str != SystemRegistration::NullSystemData)
+			SystemRegistry::DeserializeSystem(entry.Instance, entry.Information.Name, systemRegistration.SystemData.str);
+
+		// 插入回调
+		m_Systems.back().Instance->OnAttach();
+		m_NextOrder = std::max(m_NextOrder, systemRegistration.Specification.Order + 1);
+
+		// 阶段编辑
+		PhaseSystemEntry phaseEntry = static_cast<PhaseSystemEntry>(m_Systems.back());
+		std::vector<SystemPhase> phases = Disassemble<SystemPhase>(systemRegistration.Specification.PhaseMask);
+
+		InsertSystemToPhase(phaseEntry, phases);
+
+		return *this;
+
+	};
+
+
+
 	std::vector<SystemEntry>::iterator SystemSchedule::FindSystem(SystemID systemId) {
 
 		auto it = std::ranges::find_if(
 			m_Systems,
 			[&systemId](const SystemEntry& entry) ->bool {
-				return entry.Information.Id == systemId;
+				return entry.Information.RuntimeId == systemId;
 			}
 		);
 
@@ -170,7 +208,7 @@ namespace Ayin {
 		auto it = std::ranges::find_if(
 			m_Systems,
 			[&systemId](const SystemEntry& entry)->bool {
-				return entry.Information.Id == systemId;
+				return entry.Information.RuntimeId == systemId;
 			}
 		);
 
@@ -192,5 +230,22 @@ namespace Ayin {
 		}
 
 	};
+
+	void SystemSchedule::InsertSystemToPhase(const PhaseSystemEntry& phaseSystemEntry, const std::vector<SystemPhase>& phases) {
+
+		for (const SystemPhase& phase : phases) {
+			switch (phase) {
+
+			case(SystemPhase::PreUpdate): m_PreUpdate_Phase.AddSystem(phaseSystemEntry); break;;
+			case(SystemPhase::Update): m_Update_Phase.AddSystem(phaseSystemEntry); break;;
+			case(SystemPhase::PostUpdate): m_PostUpdate_Phase.AddSystem(phaseSystemEntry); break;
+			case(SystemPhase::Presentation): m_Presentation_Phase.AddSystem(phaseSystemEntry); break;
+			default: break;
+
+			}
+		}
+
+	};
+
 
 };

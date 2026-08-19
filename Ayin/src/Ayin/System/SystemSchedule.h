@@ -38,6 +38,7 @@ namespace Ayin {
 	inline constexpr bool enable_bitmask_operators<SystemPhase> = true;
 
 
+
 	struct SystemContext {
 
 		Scene& Scene;									//当前更新的场景
@@ -56,30 +57,34 @@ namespace Ayin {
 
 	// ------------------------------------------------------------------------------------------------------------------------
 
+	// 系统信息（运行时 ID 和 名称）
 	struct SystemInformation {
 
-		SystemID Id;
+		SystemID RuntimeId;
+
 		std::string Name;
 
 	};
 
+	// 系统配置
 	struct SystemSpecification {
 
 		SystemPhase PhaseMask = SystemPhase::None;
 		SceneMode ModeMask = SceneMode::None;
-		int Order = 0;
+		int Order = -1;											// -1 表示不指定顺序（将由程序以自动递加的顺序设定）
 
 	};
 
+	// 阶段条目
 	struct PhaseSystemEntry : ISystem {
 
-		SystemID Id;
+		SystemID RuntimeId;
 
 		int Order = 0;
 
 		SceneMode ModeMask = SceneMode::None;
 
-		ISystem* raw_ptr = nullptr;		//! 观测式系统实例
+		ISystem* raw_ptr = nullptr;								//! 观测式系统实例
 
 
 
@@ -95,10 +100,10 @@ namespace Ayin {
 
 			inline bool operator() (const PhaseSystemEntry& leftEntry, const PhaseSystemEntry& rightEntry) const {
 
-				if (leftEntry.Id != rightEntry.Id && leftEntry.Order != rightEntry.Order)
+				if (leftEntry.RuntimeId != rightEntry.RuntimeId && leftEntry.Order != rightEntry.Order)
 					return leftEntry.Order < rightEntry.Order;
 
-				return leftEntry.Id < rightEntry.Id;
+				return leftEntry.RuntimeId < rightEntry.RuntimeId;
 
 			};
 
@@ -107,7 +112,7 @@ namespace Ayin {
 
 	};
 
-
+	// 系统条目
 	struct SystemEntry {
 
 		SystemInformation Information;
@@ -120,7 +125,7 @@ namespace Ayin {
 
 			PhaseSystemEntry entry{};
 
-			entry.Id = Information.Id;
+			entry.RuntimeId = Information.RuntimeId;
 			entry.Order = Specification.Order;
 			entry.ModeMask = Specification.ModeMask;
 
@@ -140,10 +145,10 @@ namespace Ayin {
 			//! 末尾的 const 表示比较过程不修改比较器自身。否则标准库无法在 const 上下文中安全使用它。
 			inline bool operator() (const SystemEntry& leftEntry, const SystemEntry& rightEntry) {
 
-				if (leftEntry.Information.Id != rightEntry.Information.Id && leftEntry.Specification.Order != rightEntry.Specification.Order)
+				if (leftEntry.Information.RuntimeId != rightEntry.Information.RuntimeId && leftEntry.Specification.Order != rightEntry.Specification.Order)
 					return leftEntry.Specification.Order < rightEntry.Specification.Order;
 
-				return leftEntry.Information.Id < rightEntry.Information.Id;
+				return leftEntry.Information.RuntimeId < rightEntry.Information.RuntimeId;
 
 			};
 
@@ -169,7 +174,7 @@ namespace Ayin {
 			SystemID id = GetSystemID<System>();
 
 			auto it = std::ranges::find_if(m_OrderedSystems,
-				[&id](const PhaseSystemEntry& entry) -> bool {return entry.Id == id; }
+				[&id](const PhaseSystemEntry& entry) -> bool {return entry.RuntimeId == id; }
 			);
 
 			if (it != m_OrderedSystems.end())
@@ -202,6 +207,8 @@ namespace Ayin {
 	// -----------------------------------------------------------------------------------------------------------------------------
 
 
+	struct SystemRegistration;
+
 	class SystemSchedule {
 
 	public:
@@ -218,6 +225,11 @@ namespace Ayin {
         void Run(const SystemContext& context);
 		void End(const SystemContext& systemContext);
 
+
+
+		SystemSchedule& AddSystem(const SystemRegistration& systemRegistration);
+
+
         template<typename System>
             requires std::derived_from<System, ISystem>&& std::default_initializable<System>
         inline SystemSchedule& AddSystem(const std::vector<SystemPhase>& phases, const std::vector<SceneMode>& modes, int order) {
@@ -233,11 +245,15 @@ namespace Ayin {
             for (const SceneMode mode : modes)
                 modeMask |= mode;
 
-            m_Systems.emplace_back(SystemEntry{
+			//！触发移动语义
+            m_Systems.emplace_back(
+				std::move<SystemEntry>(
+				SystemEntry{
                 .Information{.Id{GetSystemID<System>()}, .Name{typeid(System).name()}},
                 .Specification{.PhaseMask{phaseMask}, .ModeMask{modeMask}, .Order{order}},
                 .Instance{CreateScope<System>()},
-            });
+				}
+			));
             m_Systems.back().Instance->OnAttach();
             m_NextOrder = std::max(m_NextOrder, order + 1);
 
@@ -376,7 +392,7 @@ namespace Ayin {
 			auto it = std::ranges::find_if(
 				m_Systems,
 				[](const SystemEntry& entry) ->bool {
-					return entry.Information.Id == GetSystemID<System>();
+					return entry.Information.RuntimeId == GetSystemID<System>();
 				}
 			);
 
@@ -390,7 +406,7 @@ namespace Ayin {
 			auto it = std::ranges::find_if(
 				m_Systems,
 				[](const SystemEntry& entry)->bool {
-					return entry.Information.Id == GetSystemID<System>();
+					return entry.Information.RuntimeId == GetSystemID<System>();
 				}
 			);
 
@@ -405,6 +421,7 @@ namespace Ayin {
 	private:
 
 		void InsertSystemToPhase(const PhaseSystemEntry& phaseSystemEntry, const std::initializer_list<SystemPhase>& phases);
+		void InsertSystemToPhase(const PhaseSystemEntry& phaseSystemEntry, const std::vector<SystemPhase>& phases);
 
 	private:
 
@@ -420,3 +437,21 @@ namespace Ayin {
 
 	};
 };
+
+
+template<>
+struct glz::meta<Ayin::SystemPhase> {
+
+	using enum Ayin::SystemPhase;
+
+	static constexpr auto value = glz::enumerate(
+		None,
+
+		PreUpdate,
+		Update,
+		PostUpdate,
+		Presentation
+	);
+
+};
+

@@ -66,6 +66,7 @@ private:
 
 	//						编辑用场景				运行模拟时场景
 	Ayin::Ref<Ayin::Scene> m_EditorScene = nullptr, m_TempScene = nullptr;
+	Ayin::Ref<Ayin::World> m_EditorWorld = nullptr, m_ActiveWorld = nullptr;
 	EditorState m_EditorState = EditorState::Editor;
 	
 

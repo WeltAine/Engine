@@ -32,6 +32,8 @@ namespace Ayin{
 
 		virtual inline void OnEnd(const SystemContext& systemContext) {};
 
+		virtual inline void OnGui() {};
+
 	};
 
 	// ------------------------------------------------------------------------------------------------
@@ -63,7 +65,7 @@ namespace Ayin{
 		requires std::derived_from<System, ISystem>
 	[[nodiscard]] SystemID GetSystemID() noexcept {
 
-		return entt::type_hash<System>::value();
+		return ::entt::type_hash<System>::value();
 
 	};
 

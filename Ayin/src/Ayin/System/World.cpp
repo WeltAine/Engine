@@ -40,7 +40,7 @@ namespace Ayin {
 	};
 	bool World::Update(Timestep deltaTime) {
 
-		Update(deltaTime, nullptr);
+		return Update(deltaTime, nullptr);
 
 	};
 

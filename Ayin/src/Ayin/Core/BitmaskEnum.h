@@ -51,6 +51,47 @@ namespace Ayin {
 		//! static_cast 当转换为非引用类型时会产生拷贝操作，也就是返回一个新值
 	};
 
+	template<BitmaskEnum E>
+	constexpr E& Synthesis(const std::vector<E>& elements) {
+		
+		E result = 0;
+
+		for (E& element : elements) {
+			result |= element;
+		}
+
+		return result;
+	
+	}
+
+	template<BitmaskEnum E>
+	constexpr std::vector<E> Disassemble(E mask) {
+	
+		using UnderlyingType = std::underlying_type_t<E>;
+		using UnsignedType = std::make_unsigned_t<UnderlyingType>;// 把某个整数类型转换成对应的无符号整数类型。 int -> unsigned int
+		//? 为何要转换成无符号类型
+		//! 有符号整数通常会把最高位当作符号位。但位掩码中的每一位都应该只是一个独立的 bit，不应该被解释成正数或负数。
+		//! 使用无符号类型可以明确表示“这是位模式”，而不是普通的有符号数值。
+
+		constexpr std::size_t bitCount = std::numeric_limits<UnsignedType>::digits;	// 它表示某个数值类型有多少个有效二进制位。
+
+		std::vector<E> result;
+
+		for (std::size_t bitIndex = 0; bitIndex < bitCount; ++bitIndex) {
+
+			// 当前尝试的值：0001、0010、0100、1000 ...
+			const UnsignedType currentBit =
+				static_cast<UnsignedType>(1) << bitIndex;
+
+			// mask 中包含当前 bit
+			if ((mask & currentBit) != 0) {
+				result.push_back(static_cast<E>(currentBit));
+			}
+		}
+
+		return result;
+	
+	}
 
 
 };

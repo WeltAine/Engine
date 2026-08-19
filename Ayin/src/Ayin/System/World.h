@@ -24,6 +24,7 @@ namespace Ayin {
 	public:
 
 		World(Ref<Scene> scene, const SystemPipeline& systemPipeline);
+		World(Ref<Scene> scene, SystemSchedule&& systemSchedule);
 		~World();
 
 		// 返回 bool 表明是否真的被执行还是遭遇了异常, bool 可以显式暴露非法调用

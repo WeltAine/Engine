@@ -205,3 +205,22 @@ namespace Ayin {
 
 
 }
+
+
+template<>
+struct glz::meta<Ayin::SceneMode> {
+
+	using enum Ayin::SceneMode;
+
+	static constexpr auto value = glz::enumerate(
+		None,
+
+		Editor,
+		Simulation,
+		Runtime,
+
+		AllSceneMode
+	);
+
+};
+

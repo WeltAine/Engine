@@ -47,6 +47,8 @@ namespace Ayin {
 
 
 	private:
+
+		//! 数据变方法，很好的起到了隐藏数据的作用。嘛，至少看起来确实像一个系统，而让人忽视它具备状态的事实
 		static std::unordered_map<std::string, ScriptDescriptor>& GetAllScriptDescriptors();
 
 		static std::optional<ScriptDescriptor> GetScriptDescriptor(const ::std::string& scriptName);
@@ -73,7 +75,7 @@ namespace Ayin {
 				return "{}";
 			}
 			else {
-				return std::move(*result);
+				return *result;
 			}
 		}
 		else {

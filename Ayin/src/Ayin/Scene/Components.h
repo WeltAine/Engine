@@ -403,7 +403,7 @@ namespace Ayin {
 
 	public:
 		static constexpr const char* NoneScriptName = "none";
-		static constexpr const char* NullScriptData = "null";
+		static constexpr const char* NullScriptData = "{}";
 
 		ScriptableEntity* ScriptableInstance = nullptr;
 
