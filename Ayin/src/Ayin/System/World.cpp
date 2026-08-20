@@ -83,6 +83,18 @@ namespace Ayin {
 	};
 
 
+	void World::ResetSchedule(const SystemPipeline& systemPipeline) {
+		
+		m_SystemSchedule.Clear();
+		m_CurrentMode = SceneMode::None;
+
+		systemPipeline.Build(m_SystemSchedule);
+
+
+	}; 
+
+
+
 	bool World::TransitionMode(SceneMode mode) {
 
 		if (mode == SceneMode::None)

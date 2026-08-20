@@ -1,5 +1,7 @@
 #pragma once
+#include <cstddef>
 #include <memory>
+#include <type_traits>
 
 
 //通过宏来完成 _declspec(dllexport/dllimport)的自动化过程
@@ -64,7 +66,50 @@ namespace Ayin {
 		return std::make_unique<T>(std::forward<Args>(args)...);
 	};
 
-	//ToDo 这里有个问题，高层很多都是抽象的，导致无法构造，构造方式不统一的情况下，可能没法调用
+	// 非拥有式资源视图。View 不延长资源生命周期，调用方必须确保资源在 View 使用期间仍然有效。
+	// Ref、Scope 和普通指针在构造时都会被统一保存为原始指针。
+	template<typename T>
+	class View {
+	public:
+		constexpr View() noexcept = default;
+		constexpr View(std::nullptr_t) noexcept {};
+
+		template<typename U, std::enable_if_t<std::is_convertible_v<U*, T*>, int> = 0>
+		constexpr View(U* resource) noexcept
+			: m_Resource(resource) {};
+
+		template<typename U, std::enable_if_t<std::is_convertible_v<U*, T*>, int> = 0>
+		constexpr View(const Ref<U>& resource) noexcept
+			: m_Resource(resource.get()) {};
+
+		template<typename U, std::enable_if_t<std::is_convertible_v<U*, T*>, int> = 0>
+		constexpr View(const Scope<U>& resource) noexcept
+			: m_Resource(resource.get()) {};
+
+		// 禁止从临时智能指针构造，避免临时对象销毁后 View 立即悬空。
+		template<typename U>
+		View(Ref<U>&&) = delete;
+
+		template<typename U>
+		View(const Ref<U>&&) = delete;
+
+		template<typename U>
+		View(Scope<U>&&) = delete;
+
+		template<typename U>
+		View(const Scope<U>&&) = delete;
+
+		[[nodiscard]] constexpr T* Get() const noexcept { return m_Resource; };
+		[[nodiscard]] constexpr T* operator->() const noexcept { return m_Resource; };
+		[[nodiscard]] constexpr T& operator*() const noexcept { return *m_Resource; };
+		[[nodiscard]] constexpr explicit operator bool() const noexcept { return m_Resource != nullptr; };
+
+		constexpr void Reset(T* resource = nullptr) noexcept { m_Resource = resource; };
+
+	private:
+		T* m_Resource = nullptr;
+	};
+
 
 
 

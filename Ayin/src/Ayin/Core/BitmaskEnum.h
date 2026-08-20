@@ -15,25 +15,33 @@ namespace Ayin {
 	template<BitmaskEnum E>
 	constexpr E operator| (E leftEnum, E rightEnum) {
 		using UnderlyingType = std::underlying_type_t<E>;	// 得到某个枚举实际使用的整数存储类型
-		return static_cast<E>(static_cast<UnderlyingType>(leftEnum) | static_cast<UnderlyingType>(rightEnum));
+		using UnsignedType = std::make_unsigned_t<UnderlyingType>;// 把某个整数类型转换成对应的无符号整数类型。 int -> unsigned int
+
+		return static_cast<E>(static_cast<UnsignedType>(leftEnum) | static_cast<UnsignedType>(rightEnum));
 	};
 
 	template<BitmaskEnum E>
 	constexpr E operator& (E leftEnum, E rightEnum) {
 		using UnderlyingType = std::underlying_type_t<E>;	// 得到某个枚举实际使用的整数存储类型
-		return static_cast<E>(static_cast<UnderlyingType>(leftEnum) & static_cast<UnderlyingType>(rightEnum));
+		using UnsignedType = std::make_unsigned_t<UnderlyingType>;// 把某个整数类型转换成对应的无符号整数类型。 int -> unsigned int
+
+		return static_cast<E>(static_cast<UnsignedType>(leftEnum) & static_cast<UnsignedType>(rightEnum));
 	};
 
 	template<BitmaskEnum E>
 	constexpr E operator^ (E leftEnum, E rightEnum) {
 		using UnderlyingType = std::underlying_type_t<E>;	// 得到某个枚举实际使用的整数存储类型
-		return static_cast<E>(static_cast<UnderlyingType>(leftEnum) ^ static_cast<UnderlyingType>(rightEnum));
+		using UnsignedType = std::make_unsigned_t<UnderlyingType>;// 把某个整数类型转换成对应的无符号整数类型。 int -> unsigned int
+
+		return static_cast<E>(static_cast<UnsignedType>(leftEnum) ^ static_cast<UnsignedType>(rightEnum));
 	};
 
 	template<BitmaskEnum E>
 	constexpr E operator~ (E mode) {
 		using UnderlyingType = std::underlying_type_t<E>;	// 得到某个枚举实际使用的整数存储类型
-		return static_cast<E>(~static_cast<UnderlyingType>(mode));
+		using UnsignedType = std::make_unsigned_t<UnderlyingType>;// 把某个整数类型转换成对应的无符号整数类型。 int -> unsigned int
+
+		return static_cast<E>(~static_cast<UnsignedType>(mode));
 	};
 
 	template<BitmaskEnum E>
@@ -56,7 +64,7 @@ namespace Ayin {
 		
 		E result = 0;
 
-		for (E& element : elements) {
+		for (const E& element : elements) {
 			result |= element;
 		}
 
@@ -84,7 +92,7 @@ namespace Ayin {
 				static_cast<UnsignedType>(1) << bitIndex;
 
 			// mask 中包含当前 bit
-			if ((mask & currentBit) != 0) {
+			if ((static_cast<UnsignedType>mask & currentBit) != 0) {
 				result.push_back(static_cast<E>(currentBit));
 			}
 		}

@@ -36,17 +36,37 @@ namespace Ayin {
 
 };
 
+
+
 namespace Ayin {
 
 
 	SystemSchedule::~SystemSchedule() {
 
-		// OnAttach 按注册顺序执行，因此析构时以相反顺序解除系统。
-		std::ranges::for_each(
-			m_Systems | std::views::reverse,
-			[](const SystemEntry& entry) -> void {
-				entry.Instance->OnDetach();
-			});
+		Clear();
+
+	};
+
+
+	SystemSchedule& SystemSchedule::operator=(SystemSchedule&& other) noexcept {
+
+		if (this == &other)
+			return *this;
+
+		Clear();
+
+		m_Systems = std::move(other.m_Systems);
+		m_BegunSystems = std::move(other.m_BegunSystems);
+		m_NextOrder = other.m_NextOrder;
+		m_PreUpdate_Phase = std::move(other.m_PreUpdate_Phase);
+		m_Update_Phase = std::move(other.m_Update_Phase);
+		m_PostUpdate_Phase = std::move(other.m_PostUpdate_Phase);
+		m_Presentation_Phase = std::move(other.m_Presentation_Phase);
+
+		other.m_NextOrder = 0;
+		other.m_BegunSystems.clear();
+
+		return *this;
 
 	};
 
@@ -157,33 +177,50 @@ namespace Ayin {
 
 	SystemSchedule& SystemSchedule::AddSystem(const SystemRegistration& systemRegistration) {
 	
-		auto it = FindSystem(systemRegistration.Information.RuntimeId);
-		if (it != m_Systems.end())
+		// 获取描述符（正确的系统描述）
+		const SystemDescriptor* descriptor = SystemRegistry::GetSystemDescriptor(systemRegistration.Information.RuntimeId);
+		if (descriptor == nullptr)
+			descriptor = SystemRegistry::GetSystemDescriptor(systemRegistration.Information.Name);
+
+		if (descriptor == nullptr) {
+			AYIN_CORE_ERROR("System '{}' is not registered", systemRegistration.Information.Name);
+			return *this;
+		}
+
+		// 检查是否已经存在
+		if (FindSystem(descriptor->Information.RuntimeId) != m_Systems.end())
 			return *this;
 
-		//！触发移动语义
+		const int order = systemRegistration.Specification.Order < 0
+			? m_NextOrder
+			: systemRegistration.Specification.Order;
+
+		// 构建实例和反序列化
+		Scope<ISystem> instance = descriptor->CreateSystem();
+		if (!instance) {
+			AYIN_CORE_ERROR("Failed to create system '{}'", descriptor->Information.Name);
+			return *this;
+		}
+
+		if (systemRegistration.SystemData.str != SystemRegistration::NullSystemData && !descriptor->DeserializeSystem(instance, systemRegistration.SystemData.str)) {
+			AYIN_CORE_ERROR("Failed to deserialize system '{}'", descriptor->Information.Name);
+			return *this;
+		}
+
+		// 插入系统
 		SystemEntry& entry = m_Systems.emplace_back(
-			std::move<SystemEntry>(
-				SystemEntry{
-				.Information{.RuntimeId{systemRegistration.Information.RuntimeId}, .Name{systemRegistration.Information.Name}},
-				.Specification{.PhaseMask{systemRegistration.Specification.PhaseMask}, .ModeMask{systemRegistration.Specification.ModeMask}, .Order{systemRegistration.Specification.Order}},
-				.Instance{SystemRegistry::CreateSystemBy(systemRegistration.Information.RuntimeId)},
-				}
-				));
+			SystemEntry{
+				.Information{.RuntimeId{descriptor->Information.RuntimeId}, .Name{descriptor->Information.Name}},
+				.Specification{.PhaseMask{systemRegistration.Specification.PhaseMask}, .ModeMask{systemRegistration.Specification.ModeMask}, .Order{order}},
+				.Instance{std::move(instance)},
+			});
 
-		// 尝试反序列化
-		if (systemRegistration.SystemData.str != SystemRegistration::NullSystemData)
-			SystemRegistry::DeserializeSystem(entry.Instance, entry.Information.Name, systemRegistration.SystemData.str);
-
-		// 插入回调
-		m_Systems.back().Instance->OnAttach();
-		m_NextOrder = std::max(m_NextOrder, systemRegistration.Specification.Order + 1);
+		entry.Instance->OnAttach();
+		m_NextOrder = std::max(m_NextOrder, order + 1);
 
 		// 阶段编辑
-		PhaseSystemEntry phaseEntry = static_cast<PhaseSystemEntry>(m_Systems.back());
-		std::vector<SystemPhase> phases = Disassemble<SystemPhase>(systemRegistration.Specification.PhaseMask);
-
-		InsertSystemToPhase(phaseEntry, phases);
+		PhaseSystemEntry phaseEntry = static_cast<PhaseSystemEntry>(entry);
+		InsertSystemToPhase(phaseEntry, Disassemble<SystemPhase>(entry.Specification.PhaseMask));
 
 		return *this;
 
@@ -215,29 +252,13 @@ namespace Ayin {
 		return it;
 	};
 
-	void SystemSchedule::InsertSystemToPhase(const PhaseSystemEntry& phaseSystemEntry, const std::initializer_list<SystemPhase>& phases) {
-
-		for (const SystemPhase& phase : phases) {
-			switch (phase) {
-
-			case(SystemPhase::PreUpdate): m_PreUpdate_Phase.AddSystem(phaseSystemEntry); break;;
-			case(SystemPhase::Update): m_Update_Phase.AddSystem(phaseSystemEntry); break;;
-			case(SystemPhase::PostUpdate): m_PostUpdate_Phase.AddSystem(phaseSystemEntry); break;
-			case(SystemPhase::Presentation): m_Presentation_Phase.AddSystem(phaseSystemEntry); break;
-			default: break;
-
-			}
-		}
-
-	};
-
 	void SystemSchedule::InsertSystemToPhase(const PhaseSystemEntry& phaseSystemEntry, const std::vector<SystemPhase>& phases) {
 
 		for (const SystemPhase& phase : phases) {
 			switch (phase) {
 
-			case(SystemPhase::PreUpdate): m_PreUpdate_Phase.AddSystem(phaseSystemEntry); break;;
-			case(SystemPhase::Update): m_Update_Phase.AddSystem(phaseSystemEntry); break;;
+			case(SystemPhase::PreUpdate): m_PreUpdate_Phase.AddSystem(phaseSystemEntry); break;
+			case(SystemPhase::Update): m_Update_Phase.AddSystem(phaseSystemEntry); break;
 			case(SystemPhase::PostUpdate): m_PostUpdate_Phase.AddSystem(phaseSystemEntry); break;
 			case(SystemPhase::Presentation): m_Presentation_Phase.AddSystem(phaseSystemEntry); break;
 			default: break;
@@ -246,6 +267,63 @@ namespace Ayin {
 		}
 
 	};
+
+
+
+
+
+	void SystemSchedule::Clear() {
+
+		// OnAttach 按注册顺序执行，因此清理时以相反顺序解除系统。
+		std::ranges::for_each(
+			m_Systems | std::views::reverse,
+			[](const SystemEntry& entry) -> void {
+				if (entry.Instance)
+					entry.Instance->OnDetach();
+			});
+
+		m_Systems.clear();
+		m_BegunSystems.clear();
+		m_NextOrder = 0;
+		m_PreUpdate_Phase = {};
+		m_Update_Phase = {};
+		m_PostUpdate_Phase = {};
+		m_Presentation_Phase = {};
+
+	};
+	SystemEntry* SystemSchedule::FindSystemEntry(const SystemID systemId) {
+
+		auto it = FindSystem(systemId);
+		return it == m_Systems.end() ? nullptr : &*it;
+
+	};
+	const SystemEntry* SystemSchedule::FindSystemEntry(const SystemID systemId) const {
+
+		auto it = FindSystem(systemId);
+		return it == m_Systems.end() ? nullptr : &*it;
+
+	};
+	SystemEntry* SystemSchedule::FindSystemEntry(const std::string_view systemName) {
+
+		auto it = std::ranges::find_if(
+			m_Systems,
+			[systemName](const SystemEntry& entry) -> bool {
+				return entry.Information.Name == systemName;
+			});
+		return it == m_Systems.end() ? nullptr : &*it;
+
+	};
+	const SystemEntry* SystemSchedule::FindSystemEntry(const std::string_view systemName) const {
+
+		auto it = std::ranges::find_if(
+			m_Systems,
+			[systemName](const SystemEntry& entry) -> bool {
+				return entry.Information.Name == systemName;
+			});
+		return it == m_Systems.end() ? nullptr : &*it;
+
+	};
+
 
 
 };

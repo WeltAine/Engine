@@ -50,6 +50,9 @@
 #include "Ayin/System/SystemPipeline.h"
 #include "Ayin/System/SystemSchedule.h"
 #include "Ayin/System/World.h"
+#include "Ayin/System/WorldSerializer.h"
+#include "Ayin/System/SystemRegistry.h"
+#include "Ayin/System/SystemScheduleSerializer.h"
 // -----------------------------------
 
 

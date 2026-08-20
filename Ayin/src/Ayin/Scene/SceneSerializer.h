@@ -9,7 +9,7 @@
 
 #include <optional>
 
-namespace {
+namespace Ayin {
 
 	//! Glaze序列化的是数据内部的阻断，它对组合结构的序列化很自然
 	//! 但EnTT的ECS结构，是一种数据结构式的组合方式，并不是类内组合，这使得序列化困难
@@ -65,6 +65,8 @@ namespace Ayin {
 
 	class AYIN_API SceneSerializer {
 
+		friend class WorldSerializer;
+
 	public:
 
 		SceneSerializer() = default;
@@ -83,10 +85,10 @@ namespace Ayin {
 		void DeserializerRuntime(const std::string& filepath);
 		void DeserializerFromString(const std::string& jsonStr);
 
-	private:
-
 		std::optional<SceneJson> BuildSceneJson();
-		std::optional<SceneJson> BuildSceneJsonFrom(const std::string_view& jsonStr);
+		static std::optional<SceneJson> BuildSceneJsonFrom(const std::string_view& jsonStr);
+
+		void DeserializerFrom(const SceneJson& sceneJson);
 
 	private:
 

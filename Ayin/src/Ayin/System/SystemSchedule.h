@@ -143,7 +143,7 @@ namespace Ayin {
 			//? 比较器为什么一定是 const
 			//! std::set 把比较器当作容器规则，而不是可变状态。它会通过一个 const Compare 对象调用： operator()
 			//! 末尾的 const 表示比较过程不修改比较器自身。否则标准库无法在 const 上下文中安全使用它。
-			inline bool operator() (const SystemEntry& leftEntry, const SystemEntry& rightEntry) {
+			inline bool operator() (const SystemEntry& leftEntry, const SystemEntry& rightEntry) const {
 
 				if (leftEntry.Information.RuntimeId != rightEntry.Information.RuntimeId && leftEntry.Specification.Order != rightEntry.Specification.Order)
 					return leftEntry.Specification.Order < rightEntry.Specification.Order;
@@ -218,7 +218,7 @@ namespace Ayin {
 		SystemSchedule(const SystemSchedule&) = delete;
 		SystemSchedule& operator=(const SystemSchedule&) = delete;	//! 会有旧状态的处理，可以有，但暂时没什么不要，需要新的 Schedule 建议直接 Pipeline 构建
 		SystemSchedule(SystemSchedule&&) noexcept = default;
-		SystemSchedule& operator=(SystemSchedule&&) = delete;		//! 和拷贝一致
+		SystemSchedule& operator=(SystemSchedule&&) noexcept;		//! 为 World 更新 系统调度 做准备
 
 
 		void Begin(const SystemContext& systemContext);
@@ -232,149 +232,25 @@ namespace Ayin {
 
         template<typename System>
             requires std::derived_from<System, ISystem>&& std::default_initializable<System>
-        inline SystemSchedule& AddSystem(const std::vector<SystemPhase>& phases, const std::vector<SceneMode>& modes, int order) {
-            auto it = FindSystem<System>();
-            if (it != m_Systems.end())
-                return *this;
+		inline SystemSchedule& AddSystem(const std::vector<SystemPhase>& phases, const std::vector<SceneMode>& modes, int order);
 
-            SystemPhase phaseMask = SystemPhase::None;
-            for (const SystemPhase phase : phases)
-                phaseMask |= phase;
-
-            SceneMode modeMask = SceneMode::None;
-            for (const SceneMode mode : modes)
-                modeMask |= mode;
-
-			//！触发移动语义
-            m_Systems.emplace_back(
-				std::move<SystemEntry>(
-				SystemEntry{
-                .Information{.Id{GetSystemID<System>()}, .Name{typeid(System).name()}},
-                .Specification{.PhaseMask{phaseMask}, .ModeMask{modeMask}, .Order{order}},
-                .Instance{CreateScope<System>()},
-				}
-			));
-            m_Systems.back().Instance->OnAttach();
-            m_NextOrder = std::max(m_NextOrder, order + 1);
-
-            PhaseSystemEntry phaseEntry = static_cast<PhaseSystemEntry>(m_Systems.back());
-            for (const SystemPhase phase : phases) {
-                switch (phase) {
-                case SystemPhase::PreUpdate: m_PreUpdate_Phase.AddSystem(phaseEntry); break;
-                case SystemPhase::Update: m_Update_Phase.AddSystem(phaseEntry); break;
-                case SystemPhase::PostUpdate: m_PostUpdate_Phase.AddSystem(phaseEntry); break;
-                case SystemPhase::Presentation: m_Presentation_Phase.AddSystem(phaseEntry); break;
-                default: break;
-                }
-            }
-
-            return *this;
-        }
+		template<typename System>
+			requires std::derived_from<System, ISystem>&& std::default_initializable<System>
+		inline SystemSchedule& AddSystem(const std::vector<SystemPhase>& phases, const std::vector<SceneMode>& modes);
 
 
 		template<typename System>
 			requires std::derived_from<System, ISystem>&& std::default_initializable<System>
-		inline SystemSchedule& AddSystem(const std::initializer_list<SystemPhase>& phases, const std::initializer_list<SceneMode>& modes, int order) {	//! “缩写函数模板”或“简写函数模板”
-
-			auto it = FindSystem<System>();
-
-			if (it != m_Systems.end())
-				return *this;
-
-			//! 系统插入
-			SystemPhase phaseMask = SystemPhase::None;
-			for (const SystemPhase phase : phases) {
-				phaseMask |= phase;
-			}
-
-			SceneMode modeMask = SceneMode::None;
-			for (const SceneMode mode : modes) {
-				modeMask |= mode;
-			}
-
-			int systemsCount = m_Systems.size();	// 自动 Order 计数
-
-			m_Systems.emplace_back(
-				SystemEntry{
-					.Information{.Id{GetSystemID<System>()}, .Name{typeid(System).name()}},
-					.Specification{.PhaseMask{phaseMask}, .ModeMask{modeMask}, .Order{order}},
-					.Instance{CreateScope<System>()},
-				});
-			m_Systems.back().Instance->OnAttach();
-
-			if (systemsCount != m_Systems.size())
-				m_NextOrder = std::max(m_NextOrder, order + 1);
-
-			//! 阶段编辑
-			InsertSystemToPhase((PhaseSystemEntry)(m_Systems.back()), phases);
+		inline SystemSchedule& RemoveSystem();
 
 
-			return *this;
-
-		}
-
-
-		template<typename System>
-			requires std::derived_from<System, ISystem>&& std::default_initializable<System>
-		inline SystemSchedule& AddSystem(const std::initializer_list<SystemPhase>& phases, const std::initializer_list<SceneMode>& modes) {
-
-			auto it = FindSystem<System>();
-
-			if (it != m_Systems.end())
-				return *this;
-
-			//! 系统插入
-			SystemPhase phaseMask = SystemPhase::None;
-			for (const SystemPhase phase : phases) {
-				phaseMask |= phase;
-			}
-
-			SceneMode modeMask = SceneMode::None;
-			for (const SceneMode mode : modes) {
-				modeMask |= mode;
-			}
-			
-			int systemsCount = m_Systems.size();	// 自动 Order 计数
-
-			m_Systems.emplace_back(
-				SystemEntry{ 
-					.Information{.Id{GetSystemID<System>()}, .Name{typeid(System).name()}},
-					.Specification{.PhaseMask{phaseMask}, .ModeMask{modeMask}, .Order{m_NextOrder}},
-					.Instance{CreateScope<System>()},
-				});
-			m_Systems.back().Instance->OnAttach();
-
-			if (systemsCount != m_Systems.size())
-				m_NextOrder++;
-
-			//! 阶段编辑
-			InsertSystemToPhase((PhaseSystemEntry)(m_Systems.back()), phases);
-
-
-			return *this;
-
-		}
-
-		template<typename System>
-			requires std::derived_from<System, ISystem>&& std::default_initializable<System>
-		inline SystemSchedule& RemoveSystem() {
-
-			m_PreUpdate_Phase.RemoveSystem<System>();
-			m_Update_Phase.RemoveSystem<System>();
-			m_PostUpdate_Phase.RemoveSystem<System>();
-			m_Presentation_Phase.RemoveSystem<System>();
-
-
-			auto it = FindSystem<System>();
-			if (it != m_Systems.end()) {
-				it->Instance->OnDetach();
-				m_Systems.erase(it);
-				
-			}
-
-			return *this;
-
-		};
+		void Clear();
+		SystemEntry* FindSystemEntry(SystemID systemId);
+		const SystemEntry* FindSystemEntry(SystemID systemId) const;
+		SystemEntry* FindSystemEntry(std::string_view systemName);
+		const SystemEntry* FindSystemEntry(std::string_view systemName) const;
+		const std::vector<SystemEntry>& GetSystems() const { return m_Systems; };
+		std::vector<SystemEntry>& GetSystems() { return m_Systems; };
 
 
 		template<typename System>
@@ -387,31 +263,11 @@ namespace Ayin {
 
 		template<typename System>
 			requires std::derived_from<System, ISystem>
-		inline std::vector<SystemEntry>::iterator FindSystem() {
-
-			auto it = std::ranges::find_if(
-				m_Systems,
-				[](const SystemEntry& entry) ->bool {
-					return entry.Information.RuntimeId == GetSystemID<System>();
-				}
-			);
-
-			return it;
-		};
+		inline std::vector<SystemEntry>::iterator FindSystem();
 
 		template<typename System>
 			requires std::derived_from<System, ISystem>
-		inline std::vector<SystemEntry>::const_iterator FindSystem() const {
-
-			auto it = std::ranges::find_if(
-				m_Systems,
-				[](const SystemEntry& entry)->bool {
-					return entry.Information.RuntimeId == GetSystemID<System>();
-				}
-			);
-
-			return it;
-		};
+		inline std::vector<SystemEntry>::const_iterator FindSystem() const;
 
 		std::vector<SystemEntry>::iterator FindSystem(SystemID systemId);
 
@@ -420,7 +276,6 @@ namespace Ayin {
 
 	private:
 
-		void InsertSystemToPhase(const PhaseSystemEntry& phaseSystemEntry, const std::initializer_list<SystemPhase>& phases);
 		void InsertSystemToPhase(const PhaseSystemEntry& phaseSystemEntry, const std::vector<SystemPhase>& phases);
 
 	private:
@@ -436,6 +291,102 @@ namespace Ayin {
 		SchedulePhase m_Presentation_Phase;
 
 	};
+
+
+	template<typename System>
+		requires std::derived_from<System, ISystem>&& std::default_initializable<System>
+	inline SystemSchedule& SystemSchedule::AddSystem(const std::vector<SystemPhase>& phases, const std::vector<SceneMode>& modes, int order) {
+
+		auto it = FindSystem<System>();
+		if (it != m_Systems.end())
+			return *this;
+
+		SystemPhase phaseMask = SystemPhase::None;
+		for (const SystemPhase phase : phases)
+			phaseMask |= phase;
+
+		SceneMode modeMask = SceneMode::None;
+		for (const SceneMode mode : modes)
+			modeMask |= mode;
+
+		//！触发移动语义
+		m_Systems.emplace_back(
+			std::move<SystemEntry>(
+				SystemEntry{
+				.Information{.RuntimeId{GetSystemID<System>()}, .Name{typeid(System).name()}},
+				.Specification{.PhaseMask{phaseMask}, .ModeMask{modeMask}, .Order{order}},
+				.Instance{CreateScope<System>()},
+				}
+				));
+		m_Systems.back().Instance->OnAttach();
+		m_NextOrder = std::max(m_NextOrder, order + 1);
+
+		PhaseSystemEntry phaseEntry = (PhaseSystemEntry)(m_Systems.back());
+
+		InsertSystemToPhase(phaseEntry, phases);
+
+		return *this;
+	}
+
+	template<typename System>
+		requires std::derived_from<System, ISystem>&& std::default_initializable<System>
+	inline SystemSchedule& SystemSchedule::AddSystem(const std::vector<SystemPhase>& phases, const std::vector<SceneMode>& modes) {
+
+		return AddSystem<System>(phases, modes, m_NextOrder);
+
+	}
+
+	template<typename System>
+		requires std::derived_from<System, ISystem>&& std::default_initializable<System>
+	inline SystemSchedule& SystemSchedule::RemoveSystem() {
+
+		m_PreUpdate_Phase.RemoveSystem<System>();
+		m_Update_Phase.RemoveSystem<System>();
+		m_PostUpdate_Phase.RemoveSystem<System>();
+		m_Presentation_Phase.RemoveSystem<System>();
+
+
+		auto it = FindSystem<System>();
+		if (it != m_Systems.end()) {
+			it->Instance->OnDetach();
+			m_Systems.erase(it);
+
+		}
+
+		return *this;
+
+	};
+
+
+	template<typename System>
+		requires std::derived_from<System, ISystem>
+	inline std::vector<SystemEntry>::iterator SystemSchedule::FindSystem() {
+
+		auto it = std::ranges::find_if(
+			m_Systems,
+			[](const SystemEntry& entry) ->bool {
+				return entry.Information.RuntimeId == GetSystemID<System>();
+			}
+		);
+
+		return it;
+	};
+
+	template<typename System>
+		requires std::derived_from<System, ISystem>
+	inline std::vector<SystemEntry>::const_iterator SystemSchedule::FindSystem() const {
+
+		auto it = std::ranges::find_if(
+			m_Systems,
+			[](const SystemEntry& entry)->bool {
+				return entry.Information.RuntimeId == GetSystemID<System>();
+			}
+		);
+
+		return it;
+	};
+
+
 };
 
 

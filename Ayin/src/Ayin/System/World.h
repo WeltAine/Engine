@@ -12,6 +12,8 @@
 namespace Ayin {
 	
 	class World {
+
+		friend class WorldSerializer;
 	
 	private:
 
@@ -24,7 +26,6 @@ namespace Ayin {
 	public:
 
 		World(Ref<Scene> scene, const SystemPipeline& systemPipeline);
-		World(Ref<Scene> scene, SystemSchedule&& systemSchedule);
 		~World();
 
 		// 返回 bool 表明是否真的被执行还是遭遇了异常, bool 可以显式暴露非法调用
@@ -33,10 +34,19 @@ namespace Ayin {
 		//ToDo: 临时的重载，用于 编辑器 的编辑模式
 		bool Update(Timestep deltaTime, EditorCamera* editorCamera);
 		bool EndWorldExecutionSession();					// 转发到 Schedule 的 End 对已经 Begin 的系统进行
-	
+
 		inline bool SessionReady() const { return m_CurrentMode != SceneMode::None && m_ActiveScene != nullptr; };
 
+		void ResetSchedule(const SystemPipeline& systemPipeline);
+	
 		bool TransitionMode(SceneMode mode);
+
+		//? 有时候我会很纠结是否开放 Get 接口，尤其是这些和生命周期很相关的东西，外部访问可能非法改变状态以及生命周期的完整性
+		inline const Ref<Scene> GetScene() const { return m_ActiveScene; };
+		inline Ref<Scene> GetScene() { return m_ActiveScene; };
+		inline const SystemSchedule& GetSystemSchedule() const { return m_SystemSchedule; };
+		inline SystemSchedule& GetSystemSchedule() { return m_SystemSchedule; };
+		inline SceneMode GetCurrentMode() const { return m_CurrentMode; };
 
 	};
 

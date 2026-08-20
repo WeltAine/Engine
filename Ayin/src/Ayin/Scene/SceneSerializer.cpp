@@ -62,7 +62,7 @@ namespace Ayin {
 			return {};
 		}
 
-		return std::move(*result);
+		return *result;
 	};
 
 
@@ -89,76 +89,7 @@ namespace Ayin {
 		if (!sceneData)
 			return;
 
-		//! 检查场景是否存在 UUID 异常（UUID 重复）
-		std::unordered_set<uint64_t> serializedEntityUUIDs;
-		for (auto& entityEntry : (*sceneData).Entities) {
-			const bool inserted = serializedEntityUUIDs.insert(entityEntry.UUID).second;//! 检查 UUID 是否已经存在
-			if (!inserted) {
-				AYIN_CORE_ERROR("Duplicate entity UUID in scene file: {} ({})", entityEntry.UUID, filepath);
-				return;
-			}
-		}
-
-		// 反序列化回场景
-		m_Scene->SetName((*sceneData).SceneName);
-
-		// UUID 转换处理结构
-		std::unordered_map<UUID, UUID> oldUUID_newUUID_map;
-
-		// 逐个生成实体
-		for (auto& entityEntry : (*sceneData).Entities) {
-
-			Entity entity = m_Scene->CreateEntity("Entity");
-
-			SceneSerializerContext::SetCurrentEntity(entity);
-
-			oldUUID_newUUID_map.insert({ entityEntry.UUID, entity.GetComponents<IDComponent>().ID });
-
-			for (auto& [compName, rawJson] : entityEntry.Components) {
-
-				auto* desc = ComponentRegistry::GetComponentDescriptorByName(compName);// 获取组件行为
-				if (desc) {
-					desc->deserialize(entity, rawJson.str);//反序列化时需要转回字符串
-				} else {
-					AYIN_CORE_WARN("Unknown component type in scene file: {}", compName);
-				}
-
-			}
-
-		}
-
-		SceneSerializerContext::EraseEntityContext();	// 放到 for 里也行，不过逻辑上一次就够了，除非出意外了
-
-
-		// 矫正旧的关系组件
-		auto&& relationShipView = m_Scene->m_Registry.view<RelationShipComponent>();
-		for (auto&& [entity, relation] : relationShipView.each()) {
-			
-			if (relation.ParentUUID && oldUUID_newUUID_map.find(relation.ParentUUID) != oldUUID_newUUID_map.end()) {// ParentID 不是0，0是场景； 并且 map 映射中存在
-				relation.ParentUUID = oldUUID_newUUID_map[relation.ParentUUID];
-			}
-
-			std::ranges::for_each(relation.ChildrenUUID, 
-				[&oldUUID_newUUID_map](UUID& childID) { 
-					if(oldUUID_newUUID_map.find(childID) != oldUUID_newUUID_map.end())
-						childID = oldUUID_newUUID_map[childID]; 
-				});
-		
-		}
-
-
-
-		// 脚本处理
-		auto bindScript = [=](entt::entity, NativeScriptComponent& nsc) {
-				if (!nsc.HasScript()) {
-					return;
-				}
-
-				bool bound = ScriptRegistry::BindScriptByScriptName(nsc, nsc.ScriptName);
-				AYIN_CORE_ASSERT(bound, "Script '{}' is not registered", nsc.ScriptName);
-			};
-
-		m_Scene->Each<NativeScriptComponent>(bindScript);
+		DeserializerFrom(*sceneData);
 
 	};
 
@@ -175,78 +106,7 @@ namespace Ayin {
 		if (!sceneData)
 			return;
 
-		//! 检查场景是否存在 UUID 异常（UUID 重复）
-		std::unordered_set<uint64_t> serializedEntityUUIDs;
-		for (auto& entityEntry : (*sceneData).Entities) {
-			const bool inserted = serializedEntityUUIDs.insert(entityEntry.UUID).second;//! 检查 UUID 是否已经存在
-			if (!inserted) {
-				AYIN_CORE_ERROR("Duplicate entity UUID in scene file: {} ({})", entityEntry.UUID, "Runtime scenario file");
-				return;
-			}
-		}
-
-		// 反序列化回场景
-		m_Scene->SetName((*sceneData).SceneName);
-
-		// UUID 转换处理结构
-		std::unordered_map<UUID, UUID> oldUUID_newUUID_map;
-
-		// 逐个生成实体
-		for (auto& entityEntry : (*sceneData).Entities) {
-
-			Entity entity = m_Scene->CreateEntity("Entity");
-
-			SceneSerializerContext::SetCurrentEntity(entity);
-
-			oldUUID_newUUID_map.insert({ entityEntry.UUID, entity.GetComponents<IDComponent>().ID });
-
-			for (auto& [compName, rawJson] : entityEntry.Components) {
-
-				auto* desc = ComponentRegistry::GetComponentDescriptorByName(compName);// 获取组件行为
-				if (desc) {
-					desc->deserialize(entity, rawJson.str);//反序列化时需要转回字符串
-				}
-				else {
-					AYIN_CORE_WARN("Unknown component type in scene file: {}", compName);
-				}
-
-			}
-
-		}
-
-		SceneSerializerContext::EraseEntityContext();	// 放到 for 里也行，不过逻辑上一次就够了，除非出意外了
-
-
-		// 矫正旧的关系组件
-		auto&& relationShipView = m_Scene->m_Registry.view<RelationShipComponent>();
-		for (auto&& [entity, relation] : relationShipView.each()) {
-
-			if (relation.ParentUUID && oldUUID_newUUID_map.find(relation.ParentUUID) != oldUUID_newUUID_map.end()) {// ParentID 不是0，0是场景； 并且 map 映射中存在
-				relation.ParentUUID = oldUUID_newUUID_map[relation.ParentUUID];
-			}
-
-			std::ranges::for_each(relation.ChildrenUUID,
-				[&oldUUID_newUUID_map](UUID& childID) {
-					if (oldUUID_newUUID_map.find(childID) != oldUUID_newUUID_map.end())
-						childID = oldUUID_newUUID_map[childID];
-				});
-
-		}
-
-
-
-		// 脚本处理
-		auto&& nativeScriptComponentView = m_Scene->m_Registry.view<NativeScriptComponent>();
-
-		// 只绑定脚本类型；实例化、ScriptData 回填和 OnCreate 统一由 ScriptSystem 延迟处理。
-		nativeScriptComponentView.each([=](entt::entity, NativeScriptComponent& nsc) {
-			if (!nsc.HasScript()) {
-				return;
-			}
-
-			bool bound = ScriptRegistry::BindScriptByScriptName(nsc, nsc.ScriptName);
-			AYIN_CORE_ASSERT(bound, "Script '{}' is not registered", nsc.ScriptName);
-			});
+		DeserializerFrom(*sceneData);
 
 	};
 
@@ -309,6 +169,86 @@ namespace Ayin {
 		return sceneData;
 
 	};
+
+
+	void SceneSerializer::DeserializerFrom(const SceneJson& sceneJson) {
+	
+		//! 检查场景是否存在 UUID 异常（UUID 重复）
+		std::unordered_set<uint64_t> serializedEntityUUIDs;
+		for (auto& entityEntry : sceneJson.Entities) {
+			const bool inserted = serializedEntityUUIDs.insert(entityEntry.UUID).second;//! 检查 UUID 是否已经存在
+			if (!inserted) {
+				AYIN_CORE_ERROR("Duplicate entity UUID in scene file: {} ({})", entityEntry.UUID, "Runtime scenario file");
+				return;
+			}
+		}
+
+		// 反序列化回场景
+		m_Scene->SetName(sceneJson.SceneName);
+
+		// UUID 转换处理结构
+		std::unordered_map<UUID, UUID> oldUUID_newUUID_map;
+
+		// 逐个生成实体
+		for (auto& entityEntry : sceneJson.Entities) {
+
+			Entity entity = m_Scene->CreateEntity("Entity");
+
+			SceneSerializerContext::SetCurrentEntity(entity);
+
+			oldUUID_newUUID_map.insert({ entityEntry.UUID, entity.GetComponents<IDComponent>().ID });
+
+			for (auto& [compName, rawJson] : entityEntry.Components) {
+
+				auto* desc = ComponentRegistry::GetComponentDescriptorByName(compName);// 获取组件行为
+				if (desc) {
+					desc->deserialize(entity, rawJson.str);//反序列化时需要转回字符串
+				}
+				else {
+					AYIN_CORE_WARN("Unknown component type in scene file: {}", compName);
+				}
+
+			}
+
+		}
+
+		SceneSerializerContext::EraseEntityContext();	// 放到 for 里也行，不过逻辑上一次就够了，除非出意外了
+
+
+		// 矫正旧的关系组件
+		auto&& relationShipView = m_Scene->m_Registry.view<RelationShipComponent>();
+		for (auto&& [entity, relation] : relationShipView.each()) {
+
+			if (relation.ParentUUID && oldUUID_newUUID_map.find(relation.ParentUUID) != oldUUID_newUUID_map.end()) {// ParentID 不是0，0是场景； 并且 map 映射中存在
+				relation.ParentUUID = oldUUID_newUUID_map[relation.ParentUUID];
+			}
+
+			std::ranges::for_each(relation.ChildrenUUID,
+				[&oldUUID_newUUID_map](UUID& childID) {
+					if (oldUUID_newUUID_map.find(childID) != oldUUID_newUUID_map.end())
+						childID = oldUUID_newUUID_map[childID];
+				});
+
+		}
+
+
+
+		// 脚本处理
+		auto&& nativeScriptComponentView = m_Scene->m_Registry.view<NativeScriptComponent>();
+
+		// 只绑定脚本类型；实例化、ScriptData 回填和 OnCreate 统一由 ScriptSystem 延迟处理。
+		nativeScriptComponentView.each([=](entt::entity, NativeScriptComponent& nsc) {
+			if (!nsc.HasScript()) {
+				return;
+			}
+
+			bool bound = ScriptRegistry::BindScriptByScriptName(nsc, nsc.ScriptName);
+			AYIN_CORE_ASSERT(bound, "Script '{}' is not registered", nsc.ScriptName);
+			});
+
+
+	};
+
 
 
 	// --------------------------------------------------------------------------------------------------------------
