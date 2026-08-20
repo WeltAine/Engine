@@ -3,10 +3,11 @@
 #include "Ayin/Core/Core.h"
 
 #include "Ayin/System/SystemSchedule.h"
-#include "Ayin/System/SystemPipeline.h"
 #include "Ayin/System/Systems.h"
 
 namespace Ayin {
+
+	struct SystemRegistration;
 
 	// 系统是否具备独立的序列化要求
 	template<typename System>
@@ -14,6 +15,8 @@ namespace Ayin {
 
 	
 	struct AYIN_API SystemDescriptor {
+
+		static constexpr const char* NullSystemData = "{}";
 
 		SystemInformation Information;
 		SystemSpecification DefaultSpecification;
@@ -23,14 +26,7 @@ namespace Ayin {
 		std::function<bool(Scope<ISystem>&, const std::string&)> DeserializeSystem;			// 反序列化 系统改的自有数据
 
 		// 支持从 描述符 转换为对应 注册配置
-		operator SystemRegistration() const {
-			
-			return SystemRegistration{
-				.Information{Information},
-				.Specification{DefaultSpecification}
-			};
-
-		}
+		operator SystemRegistration() const;
 
 		};
 
@@ -85,9 +81,9 @@ namespace Ayin {
 		}
 
 		SystemSpecification specification{
-			.Order{order},
 			.PhaseMask{phaseMask},
-			.ModeMask{modeMask}
+			.ModeMask{modeMask},
+			.Order{order}
 		};
 
 
@@ -110,19 +106,19 @@ namespace Ayin {
 
 					auto result = ::glz::write_json(*system);
 					if (!result) {
-						return SystemRegistration::NullSystemData;
+						return SystemDescriptor::NullSystemData;
 					}
 
 					return *result;
 
 				}
 				else {
-					return SystemRegistration::NullSystemData;
+					return SystemDescriptor::NullSystemData;
 				}
 
 			}
 
-			return SystemRegistration::NullSystemData;
+			return SystemDescriptor::NullSystemData;
 
 			};
 
@@ -150,7 +146,7 @@ namespace Ayin {
 
 			}
 
-			return json.empty() || json == SystemRegistration::NullSystemData;
+			return json.empty() || json == SystemDescriptor::NullSystemData;
 
 			};
 
@@ -189,10 +185,10 @@ namespace Ayin {
 	{ __VA_ARGS__ }
 
 #define AYIN_SCENEMODE_LIST(...) \
-	{ _VA_ARGS_ }
+	{ __VA_ARGS__ }
 
 #define AYIN_SYSTEM(System, Phases_List, Modes_list, Order) \
-		inline static ::Ayin::detail::SystemRegistrar<System> AYIN_CONCAT(_reg_, System)(Phases_list, Modes_list, Order);\
+		inline static ::Ayin::detail::SystemRegistrar<System> AYIN_CONCAT(_reg_, System)(Phases_List, Modes_list, Order);
 
 	// AYIN_SYSTEM(RenderSystem, AYIN_SYSTEMPHASE_LIST(Update, PostUpdate), AYIN_SCENEMODE_LIST(Editor, Runtime), 100)
 

@@ -1,6 +1,11 @@
 #pragma once
 #include "Ayin/Core/Core.h"
 
+#include <cstddef>
+#include <limits>
+#include <type_traits>
+#include <vector>
+
 namespace Ayin {
 
 	//! 通过 operator 隐式调用，模板 + 类型萃取 + 概念 来支持 enum 的位操作
@@ -60,9 +65,9 @@ namespace Ayin {
 	};
 
 	template<BitmaskEnum E>
-	constexpr E& Synthesis(const std::vector<E>& elements) {
+	constexpr E Synthesis(const std::vector<E>& elements) {
 		
-		E result = 0;
+		E result{};
 
 		for (const E& element : elements) {
 			result |= element;
@@ -92,7 +97,7 @@ namespace Ayin {
 				static_cast<UnsignedType>(1) << bitIndex;
 
 			// mask 中包含当前 bit
-			if ((static_cast<UnsignedType>mask & currentBit) != 0) {
+			if ((static_cast<UnsignedType>(mask) & currentBit) != 0) {
 				result.push_back(static_cast<E>(currentBit));
 			}
 		}

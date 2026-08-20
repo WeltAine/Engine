@@ -13,6 +13,8 @@ namespace Ayin {
 
 
 
+	struct SystemJson;
+
 	struct AYIN_API SystemRegistration {
 
 		SystemInformation Information;
@@ -53,9 +55,11 @@ namespace Ayin {
 	public:
 
 		class AYIN_API Builder {
+		public:
+			using RegistrationSet = std::set<SystemRegistration, SystemRegistration::SystemRegistrationCompareByOrder>;
 
 		private:
-			std::set<SystemRegistration, SystemRegistration::SystemRegistrationCompareByOrder> m_Registrations;
+			RegistrationSet m_Registrations;
 			int m_NextOrder = 0;
 
 		public:
@@ -85,7 +89,7 @@ namespace Ayin {
 			Builder& SetSystemSpecification(SystemID systemId, const SystemSpecification& specification);
 
 
-			inline const std::set<SystemRegistration>& GetRegistrations() const { return m_Registrations; };
+			inline const RegistrationSet& GetRegistrations() const { return m_Registrations; };
 
 
 			bool ContainSystem(SystemID systemId) const;
@@ -93,10 +97,10 @@ namespace Ayin {
 
 		private:
 
-			std::set<SystemRegistration, SystemRegistration::SystemRegistrationCompareByOrder>::iterator FindSystem(SystemID systemId);
-			std::set<SystemRegistration, SystemRegistration::SystemRegistrationCompareByOrder>::iterator FindSystem(const std::string_view systemName);
-			std::set<SystemRegistration, SystemRegistration::SystemRegistrationCompareByOrder>::const_iterator FindSystem(SystemID systemId) const;
-			std::set<SystemRegistration, SystemRegistration::SystemRegistrationCompareByOrder>::const_iterator FindSystem(const std::string_view systemName) const;
+			RegistrationSet::iterator FindSystem(SystemID systemId);
+			RegistrationSet::iterator FindSystem(const std::string_view systemName);
+			RegistrationSet::const_iterator FindSystem(SystemID systemId) const;
+			RegistrationSet::const_iterator FindSystem(const std::string_view systemName) const;
 
 		};
 
@@ -137,7 +141,7 @@ namespace Ayin {
 		}
 
 		SystemRegistration systemRegistration{
-			.Information{.Name{typeid(System).nams()}, .RuntimeId{GetSystemID<System>()}},
+			.Information{.RuntimeId{GetSystemID<System>()}, .Name{typeid(System).name()}},
 			.Specification{.PhaseMask{phaseMask}, .ModeMask{modeMask}, .Order{order}}
 		};
 

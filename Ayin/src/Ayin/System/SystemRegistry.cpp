@@ -1,9 +1,18 @@
 #include <AyinPch.h>
 
 #include "Ayin/System/SystemRegistry.h"
+#include "Ayin/System/SystemPipeline.h"
 
 
 namespace Ayin {
+
+
+	SystemDescriptor::operator SystemRegistration() const {
+		return SystemRegistration{
+			.Information{Information},
+			.Specification{DefaultSpecification}
+		};
+	}
 
 
 	Scope<ISystem> SystemRegistry::CreateSystemBy(const std::string_view systemName) {
@@ -33,7 +42,7 @@ namespace Ayin {
 		const SystemDescriptor* systemDescriptor = GetSystemDescriptor(systemName);
 
 		if (systemDescriptor == nullptr)
-			return SystemRegistration::NullSystemData;
+			return SystemDescriptor::NullSystemData;
 
 		return systemDescriptor->SerializeSystem(system);
 
@@ -43,7 +52,7 @@ namespace Ayin {
 		const SystemDescriptor* systemDescriptor = GetSystemDescriptor(systemId);
 
 		if (systemDescriptor == nullptr)
-			return SystemRegistration::NullSystemData;
+			return SystemDescriptor::NullSystemData;
 
 		return systemDescriptor->SerializeSystem(system);
 
@@ -55,7 +64,7 @@ namespace Ayin {
 		const SystemDescriptor* systemDescriptor = GetSystemDescriptor(systemName);
 
 		if (systemDescriptor == nullptr)
-			return SystemRegistration::NullSystemData;
+			return false;
 
 		return systemDescriptor->DeserializeSystem(system, json);
 
@@ -65,7 +74,7 @@ namespace Ayin {
 		const SystemDescriptor* systemDescriptor = GetSystemDescriptor(systemId);
 
 		if (systemDescriptor == nullptr)
-			return SystemRegistration::NullSystemData;
+			return false;
 
 		return systemDescriptor->DeserializeSystem(system, json);
 

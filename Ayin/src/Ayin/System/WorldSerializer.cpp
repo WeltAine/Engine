@@ -14,7 +14,7 @@ namespace Ayin {
 		std::string jsonStr = SerializerToString();
 
 
-		std::ofstream ofs{filepath.data()};
+		std::ofstream ofs{std::string{filepath}};//! string_view.data() 只返回指针，没有确切大小信息（尽管 string_view 本体有），所以可能越界读取（不是超过读取范围，而是超过 view 限制的范围）
 		if (!ofs.is_open()) {
 			AYIN_CORE_ERROR("Failed to open file for writing: {}", filepath);
 			return false;
@@ -53,17 +53,17 @@ namespace Ayin {
 	bool WorldSerializer::Deserializer(const std::string_view filepath) {
 	
 		// 获取反序列化文件数据
-		std::ifstream ifs{ filepath.data()};
+		std::ifstream ifs{std::string{filepath}};
 		if (!ifs.is_open()) {
 			AYIN_CORE_ERROR("Failed to open .world file: {}", filepath);
-			return;
+			return false;
 		}
 
 		std::stringstream buffer;
 		buffer << ifs.rdbuf();
-		std::string_view jsonStr = buffer.str();
+		const std::string jsonStr = buffer.str();//! buffer.str() 返回的是临时 string 对象，这会导致std::string_view 会悬空
 
-		DeserializerFromString(jsonStr);
+		return DeserializerFromString(jsonStr);
 
 	};
 	bool WorldSerializer::DeserializerRuntime(const std::string_view filepath) {

@@ -107,6 +107,8 @@ namespace Ayin {
 
 		m_Registrations.erase(it);
 		m_Registrations.emplace(registration);
+
+		return *this;
 	
 	};
 
@@ -123,10 +125,12 @@ namespace Ayin {
 		m_Registrations.erase(it);
 		m_Registrations.emplace(registration);
 
+		return *this;
+
 	};
 
 
-	std::set<SystemRegistration>::iterator SystemPipeline::Builder::FindSystem(SystemID systemId) {
+	SystemPipeline::Builder::RegistrationSet::iterator SystemPipeline::Builder::FindSystem(SystemID systemId) {
 	
 		auto it = std::ranges::find_if(m_Registrations,
 			[systemId](const SystemRegistration& systemRegistration) -> bool {
@@ -137,7 +141,7 @@ namespace Ayin {
 		return it;
 
 	};
-	std::set<SystemRegistration>::iterator SystemPipeline::Builder::FindSystem(const std::string_view systemName) {
+	SystemPipeline::Builder::RegistrationSet::iterator SystemPipeline::Builder::FindSystem(const std::string_view systemName) {
 	
 		auto it = std::ranges::find_if(m_Registrations,
 			[systemName](const SystemRegistration& systemRegistration) -> bool {
@@ -148,7 +152,7 @@ namespace Ayin {
 		return it;
 
 	};
-	std::set<SystemRegistration>::const_iterator SystemPipeline::Builder::FindSystem(SystemID systemId) const {
+	SystemPipeline::Builder::RegistrationSet::const_iterator SystemPipeline::Builder::FindSystem(SystemID systemId) const {
 
 		auto it = std::ranges::find_if(m_Registrations,
 			[systemId](const SystemRegistration& systemRegistration) -> bool {
@@ -159,7 +163,7 @@ namespace Ayin {
 		return it;
 
 	};
-	std::set<SystemRegistration>::const_iterator SystemPipeline::Builder::FindSystem(const std::string_view systemName) const {
+	SystemPipeline::Builder::RegistrationSet::const_iterator SystemPipeline::Builder::FindSystem(const std::string_view systemName) const {
 
 		auto it = std::ranges::find_if(m_Registrations,
 			[systemName](const SystemRegistration& systemRegistration) -> bool {
@@ -173,10 +177,10 @@ namespace Ayin {
 
 
 	bool SystemPipeline::Builder::ContainSystem(SystemID systemId) const {
-		if (FindSystem(systemId) != m_Registrations.end()) return true;
+		return FindSystem(systemId) != m_Registrations.end();
 	};
 	bool SystemPipeline::Builder::ContainSystem(const std::string_view systemName) const {
-		if (FindSystem(systemName) != m_Registrations.end()) return true;
+		return FindSystem(systemName) != m_Registrations.end();
 	};
 
 
