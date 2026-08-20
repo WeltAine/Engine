@@ -4,7 +4,9 @@
 #include "Ayin/Core/Timestep.h"
 #include "Ayin/Scene/Scene.h"
 #include "Ayin/System/SystemPipeline.h"
+#include "Ayin/System/SystemRegistry.h"
 #include "Ayin/System/SystemSchedule.h"
+#include "Ayin/System/SystemScheduleSerializer.h"
 #include "Ayin/System/World.h"
 
 #include <array>
@@ -24,7 +26,7 @@
 //!       -> ProbeSystem::Bind(m_State)
 //!          将所有测试 System 的静态观测入口绑定到本 Layer 的 TestState。
 //!       -> BuildWorld()
-//!          注册 Early / Late / Runtime 三个探针 System，构建 Pipeline、Scene 与 World，
+//!          注册全部测试 System，构建 Pipeline、Scene 与 World，
 //!          并立刻验证 OnAttach 是否按注册顺序发生。
 //!       -> RunOneShotChecks()
 //!          不依赖真实应用帧，直接执行下面三组确定性规则检查：
@@ -34,6 +36,10 @@
 //!             Update 阶段执行、RemoveSystem 与单次 OnDetach。
 //!          c) CheckDestructorCleanupAndMove()：Schedule / World 析构兜底清理，以及
 //!             SystemSchedule 移动构造后不会遗漏或重复生命周期回调。
+//!          d) CheckScheduleBaseline()：记录当前裸 Schedule 的重复 Begin、重复 End、
+//!             Begin 前 Run 与运行中 Clear 行为；阶段 4 将据此替换为目标状态机断言。
+//!          e) CheckSystemSerialization()：验证 mask 的 JSON 表达，以及现有 DTO 到
+//!             Builder 的 round-trip 骨架。
 //!
 //!  2. OnUpdate(deltaTime)
 //!       -> 若一次性检查全部通过，RunLiveFrame(deltaTime) 使用 Application 提供的真实帧时间
@@ -65,6 +71,8 @@ private:
 		// 用映射按 System 名称分别统计生命周期回调，避免多个测试 System 的计数混在一起。
 		std::unordered_map<std::string, int> AttachCount;
 		std::unordered_map<std::string, int> DetachCount;
+		std::unordered_map<std::string, int> BeginCount;
+		std::unordered_map<std::string, int> EndCount;
 		// Trace 只保存最近一次调度的执行轨迹，例如 Early:Update。
 		std::vector<std::string> Trace;
 		// 生命周期轨迹用于验证正序进入和逆序退出规则。
@@ -86,6 +94,9 @@ private:
 		bool TransitionPassed = false;
 		bool DestructorCleanupPassed = false;
 		bool MoveConstructionPassed = false;
+		bool ScheduleBaselinePassed = false;
+		bool MaskJsonPassed = false;
+		bool SerializationRoundTripPassed = false;
 		bool WorldLifecyclePassed = false;
 		bool LiveFramePassed = false;
 		bool ContextValid = true;
@@ -141,6 +152,24 @@ private:
 		const char* Name() const override { return "Lifecycle"; }
 	};
 
+	// 这个 System 保存一个可序列化的普通字段，用于建立当前序列化链路的 round-trip 基线。
+	class SerializationSystem final : public ProbeSystem {
+	public:
+		int Exposure = 1;
+
+		struct glaze {
+			using T = SerializationSystem;
+			static constexpr auto value = glz::object(
+				"Exposure", &T::Exposure
+			);
+		};
+
+	protected:
+		const char* Name() const override { return "Serialization"; }
+	};
+
+	// 注册只在本测试进程内执行一次，避免测试所依赖的全局 Registry 产生重复描述符。
+	void RegisterTestSystems();
 	// 第一轮检查在 OnAttach 中完成，不依赖应用主循环。
 	void RunOneShotChecks();
 	// 第二轮检查通过真实 OnUpdate 调用 World，验证应用循环中的实际路径。
@@ -156,6 +185,8 @@ private:
 	bool CheckPipelineAndWorld();
 	bool CheckScheduleLifecycle();
 	bool CheckDestructorCleanupAndMove();
+	bool CheckScheduleBaseline();
+	bool CheckSystemSerialization();
 
 	// 比较 SystemContext 中的场景和时间步是否被正确转发。
 	std::vector<std::string> ExpectedEditorTrace() const;

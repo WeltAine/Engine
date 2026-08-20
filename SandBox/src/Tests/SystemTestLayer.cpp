@@ -54,6 +54,7 @@ void SystemTestLayer::OnAttach() {
 	// 先绑定观测状态，再创建 World，确保 Pipeline 中的 System 在 OnAttach
 	// 时就能把生命周期数据写入当前 SystemTestLayer。
 	ProbeSystem::Bind(&m_State);
+	RegisterTestSystems();
 	BuildWorld();
 	RunOneShotChecks();
 }
@@ -80,6 +81,22 @@ void SystemTestLayer::OnUpdate(const Ayin::Timestep deltaTime) {
 		m_AutoExitRequested = true;
 		Ayin::Application::Get().Close();
 	}
+}
+
+void SystemTestLayer::RegisterTestSystems() {
+	// Registry 是进程级静态存储；同一个 SandBox 进程内即使重建测试 Layer，
+	// 也不能把相同类型重复注册进去。
+	static bool registered = false;
+	if (registered) {
+		return;
+	}
+
+	Ayin::SystemRegistry::Registry<EarlySystem>({}, {}, 0);
+	Ayin::SystemRegistry::Registry<LateSystem>({}, {}, 0);
+	Ayin::SystemRegistry::Registry<RuntimeSystem>({}, {}, 0);
+	Ayin::SystemRegistry::Registry<LifecycleSystem>({}, {}, 0);
+	Ayin::SystemRegistry::Registry<SerializationSystem>({}, {}, 0);
+	registered = true;
 }
 
 void SystemTestLayer::BuildWorld() {
@@ -120,10 +137,12 @@ void SystemTestLayer::RunOneShotChecks() {
 	const bool pipelinePassed = CheckPipelineAndWorld();
 	const bool schedulePassed = CheckScheduleLifecycle();
 	const bool cleanupPassed = CheckDestructorCleanupAndMove();
+	const bool baselinePassed = CheckScheduleBaseline();
+	const bool serializationPassed = CheckSystemSerialization();
 	m_RanChecks = true;
 
 	// 一次性检查失败时也标记完成，使自动化运行能够退出并报告 FAIL，而不是一直挂起窗口。
-	if (!pipelinePassed || !schedulePassed || !cleanupPassed || !m_State.Failure.empty()) {
+	if (!pipelinePassed || !schedulePassed || !cleanupPassed || !baselinePassed || !serializationPassed || !m_State.Failure.empty()) {
 		m_State.Completed = true;
 	}
 }
@@ -356,6 +375,127 @@ bool SystemTestLayer::CheckDestructorCleanupAndMove() {
 	return passed;
 }
 
+
+bool SystemTestLayer::CheckScheduleBaseline() {
+	// 这里刻意记录重构前的裸 Schedule 行为，而不是把阶段 4 的目标状态机
+	// 伪装成已经实现。重构 Schedule 时应修改本检查的期望，而不是丢掉这份基线。
+	Ayin::SystemSchedule schedule;
+	const Ayin::Timestep expectedDelta{ 0.75f };
+	m_State.Trace.clear();
+	m_State.LifecycleTrace.clear();
+	m_State.ContextValid = true;
+	m_State.ExpectedScene = m_Scene.get();
+	m_State.ExpectedDelta = expectedDelta.GetSeconds();
+
+	const int attachBefore = m_State.AttachCount["Lifecycle"];
+	const int detachBefore = m_State.DetachCount["Lifecycle"];
+	const int beginBefore = m_State.BeginCount["Lifecycle"];
+	const int endBefore = m_State.EndCount["Lifecycle"];
+
+	schedule.AddSystem<LifecycleSystem>({ Ayin::SystemPhase::Update }, { Ayin::SceneMode::Editor });
+	const Ayin::SystemContext context{
+		.Scene = *m_Scene,
+		.DeltaTime = expectedDelta,
+		.Mode = Ayin::SceneMode::Editor,
+	};
+
+	// 当前实现尚未维护 Ready / Running 状态：Begin 前 Run 会直接触发 Update；
+	// 重复 Begin 会再次回调，而第二次 End 因 m_BegunSystems 已清空成为无操作。
+	schedule.Run(context);
+	schedule.Begin(context);
+	schedule.Begin(context);
+	schedule.End(context);
+	schedule.End(context);
+
+	const bool runBeforeBeginPassed =
+		m_State.Trace == std::vector<std::string>{ "Lifecycle:Update" };
+	const bool repeatedLifecyclePassed =
+		m_State.AttachCount["Lifecycle"] == attachBefore + 1 &&
+		m_State.BeginCount["Lifecycle"] == beginBefore + 2 &&
+		m_State.EndCount["Lifecycle"] == endBefore + 1;
+
+	// 当前 Clear 不会为已经 Begin 的 System 补发 End；它只会执行一次 Detach。
+	schedule.Begin(context);
+	schedule.Clear();
+	const bool clearWhileBegunPassed =
+		m_State.BeginCount["Lifecycle"] == beginBefore + 3 &&
+		m_State.EndCount["Lifecycle"] == endBefore + 1 &&
+		m_State.DetachCount["Lifecycle"] == detachBefore + 1;
+
+	m_State.ScheduleBaselinePassed = runBeforeBeginPassed && repeatedLifecyclePassed &&
+		clearWhileBegunPassed && m_State.ContextValid;
+	if (!m_State.ScheduleBaselinePassed) {
+		SetFailure("Schedule lifecycle baseline changed unexpectedly");
+	}
+
+	return m_State.ScheduleBaselinePassed;
+}
+
+bool SystemTestLayer::CheckSystemSerialization() {
+	// SystemJson 的 Phases / Modes 是离散枚举数组，而不是底层整数 mask。
+	// 这个检查同时覆盖 Glaze 的枚举 metadata 和现有 Serializer 的中间 DTO。
+	Ayin::SystemSchedule source;
+	source.AddSystem<SerializationSystem>(
+		{ Ayin::SystemPhase::Update, Ayin::SystemPhase::Presentation },
+		{ Ayin::SceneMode::Editor, Ayin::SceneMode::Runtime },
+		7);
+
+	Ayin::SystemEntry* sourceEntry = source.FindSystemEntry(Ayin::GetSystemID<SerializationSystem>());
+	if (sourceEntry == nullptr || sourceEntry->Instance == nullptr) {
+		SetFailure("serialization source system was not created");
+		return false;
+	}
+
+	static_cast<SerializationSystem*>(sourceEntry->Instance.get())->Exposure = 42;
+	const std::optional<Ayin::SystemPipelineJson> pipelineJson =
+		Ayin::SystemScheduleSerializer::BuildSystemPipelineJson(source);
+	if (!pipelineJson || pipelineJson->Systems.size() != 1) {
+		SetFailure("Schedule did not produce one system JSON record");
+		return false;
+	}
+
+	const Ayin::SystemJson& systemJson = pipelineJson->Systems.front();
+	const bool maskShapePassed =
+		systemJson.Phases == std::vector<Ayin::SystemPhase>{ Ayin::SystemPhase::Update, Ayin::SystemPhase::Presentation } &&
+		systemJson.Modes == std::vector<Ayin::SceneMode>{ Ayin::SceneMode::Editor, Ayin::SceneMode::Runtime };
+
+	auto writtenJson = glz::write_json(*pipelineJson);
+	if (!writtenJson) {
+		SetFailure("System pipeline JSON write failed");
+		return false;
+	}
+
+	const bool namedMaskPassed =
+		writtenJson->find("\"Update\"") != std::string::npos &&
+		writtenJson->find("\"Presentation\"") != std::string::npos &&
+		writtenJson->find("\"Editor\"") != std::string::npos &&
+		writtenJson->find("\"Runtime\"") != std::string::npos;
+	m_State.MaskJsonPassed = maskShapePassed && namedMaskPassed;
+
+	const std::optional<Ayin::SystemPipelineJson> parsedJson =
+		Ayin::SystemScheduleSerializer::BuildSystemPipelineJsonFrom(*writtenJson);
+	if (!parsedJson) {
+		SetFailure("System pipeline JSON read failed");
+		return false;
+	}
+
+	Ayin::SystemPipeline::Builder builder = Ayin::SystemScheduleSerializer::Deserializer(*parsedJson);
+	Ayin::SystemPipeline pipeline = builder.Build();
+	Ayin::SystemSchedule restored = pipeline.CreateSchedule();
+	const Ayin::SystemEntry* restoredEntry = restored.FindSystemEntry(Ayin::GetSystemID<SerializationSystem>());
+	const SerializationSystem* restoredSystem = restoredEntry == nullptr || restoredEntry->Instance == nullptr
+		? nullptr
+		: static_cast<const SerializationSystem*>(restoredEntry->Instance.get());
+
+	m_State.SerializationRoundTripPassed = m_State.MaskJsonPassed && restoredSystem != nullptr &&
+		restoredSystem->Exposure == 42;
+	if (!m_State.SerializationRoundTripPassed) {
+		SetFailure("System JSON round-trip did not preserve masks or configuration");
+	}
+
+	return m_State.SerializationRoundTripPassed;
+}
+
 void SystemTestLayer::RunLiveFrame(const Ayin::Timestep deltaTime) {
 	// 这是对主循环路径的最终验证：使用真实帧时间调用 World 一次完整生命周期。
 	m_State.Trace.clear();
@@ -438,6 +578,9 @@ void SystemTestLayer::OnImGuiRender() {
 	RenderCheck("Mode transition", m_State.TransitionPassed);
 	RenderCheck("Destructor fallback cleanup", m_State.DestructorCleanupPassed);
 	RenderCheck("Schedule move construction", m_State.MoveConstructionPassed);
+	RenderCheck("Schedule legacy baseline", m_State.ScheduleBaselinePassed);
+	RenderCheck("Mask JSON", m_State.MaskJsonPassed);
+	RenderCheck("Serialization round-trip", m_State.SerializationRoundTripPassed);
 	RenderCheck("Live World frame", m_State.LiveFramePassed);
 	if (!m_State.Failure.empty()) {
 		ImGui::Separator();
@@ -478,6 +621,7 @@ void SystemTestLayer::ProbeSystem::OnBegin(const Ayin::SystemContext& context) {
 		if (&context.Scene != s_State->ExpectedScene || context.Phase != Ayin::SystemPhase::None) {
 			s_State->ContextValid = false;
 		}
+		++s_State->BeginCount[Name()];
 		s_State->LifecycleTrace.emplace_back(
 			std::string{ Name() } + ":Begin:" + ModeName(context.Mode));
 	}
@@ -488,6 +632,7 @@ void SystemTestLayer::ProbeSystem::OnEnd(const Ayin::SystemContext& context) {
 		if (&context.Scene != s_State->ExpectedScene || context.Phase != Ayin::SystemPhase::None) {
 			s_State->ContextValid = false;
 		}
+		++s_State->EndCount[Name()];
 		s_State->LifecycleTrace.emplace_back(
 			std::string{ Name() } + ":End:" + ModeName(context.Mode));
 	}
