@@ -1,6 +1,7 @@
 #include <AyinPch.h>
 
 #include "Ayin/System/SystemScheduleSerializer.h"
+#include "Ayin/System/SystemSchedule.h"
 
 namespace Ayin {
 	

@@ -6,7 +6,6 @@
 
 #include "Ayin/Core/Timestep.h"
 
-#include "Ayin/System/Systems.h"
 
 #include <optional>
 #include <string>
@@ -14,6 +13,7 @@
 
 namespace Ayin{
 
+	class ScriptSystem;
 
 	class ScriptableEntity {
 

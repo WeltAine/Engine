@@ -2,8 +2,16 @@
 
 #include "Ayin/Core/Core.h"
 
-#include "Ayin/System/SystemSchedule.h"
-#include "Ayin/System/Systems.h"
+#include "Ayin/System/SystemTypes.h"
+
+#include <glaze/glaze.hpp>
+
+#include <concepts>
+#include <functional>
+#include <initializer_list>
+#include <string>
+#include <string_view>
+#include <vector>
 
 namespace Ayin {
 

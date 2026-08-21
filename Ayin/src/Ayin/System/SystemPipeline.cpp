@@ -1,6 +1,7 @@
 #include <AyinPch.h>
 
 #include "Ayin/System/SystemPipeline.h"
+#include "Ayin/System/SystemSchedule.h"
 #include "Ayin/System/SystemScheduleSerializer.h"
 #include "Ayin/Core/BitmaskEnum.h"
 #include <algorithm>

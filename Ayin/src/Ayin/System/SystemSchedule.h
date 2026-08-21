@@ -2,11 +2,8 @@
 
 #include "Ayin/Core/Core.h"
 
-#include "Ayin/Core/BitmaskEnum.h"
-
-#include "Ayin/Scene/Scene.h"
-
-#include "Ayin/System/Systems.h"
+#include "Ayin/System/SystemContext.h"
+#include "Ayin/System/SystemTypes.h"
 
 #include <algorithm>
 #include <concepts>
@@ -22,58 +19,6 @@
 
 
 namespace Ayin {
-
-	enum class AYIN_API SystemPhase : uint8_t {
-
-		None = 0,
-
-		PreUpdate = BIT(0),
-		Update = BIT(1),
-		PostUpdate = BIT(2),
-		Presentation = BIT(3)
-
-	};
-
-	template<>
-	inline constexpr bool enable_bitmask_operators<SystemPhase> = true;
-
-
-
-	struct SystemContext {
-
-		Scene& Scene;									//当前更新的场景
-
-		Timestep DeltaTime = {};						//时间间隔
-
-		SceneMode Mode = SceneMode::None;				//场景运行模式
-
-		SystemPhase Phase = SystemPhase::None;			//当前阶段
-
-		EditorCamera* EditorView = nullptr;
-
-	};
-
-
-
-	// ------------------------------------------------------------------------------------------------------------------------
-
-	// 系统信息（运行时 ID 和 名称）
-	struct SystemInformation {
-
-		SystemID RuntimeId;
-
-		std::string Name;
-
-	};
-
-	// 系统配置
-	struct SystemSpecification {
-
-		SystemPhase PhaseMask = SystemPhase::None;
-		SceneMode ModeMask = SceneMode::None;
-		int Order = -1;											// -1 表示不指定顺序（将由程序以自动递加的顺序设定）
-
-	};
 
 	// 阶段条目
 	struct PhaseSystemEntry : ISystem {
@@ -388,21 +333,3 @@ namespace Ayin {
 
 
 };
-
-
-template<>
-struct glz::meta<Ayin::SystemPhase> {
-
-	using enum Ayin::SystemPhase;
-
-	static constexpr auto value = glz::enumerate(
-		None,
-
-		PreUpdate,
-		Update,
-		PostUpdate,
-		Presentation
-	);
-
-};
-

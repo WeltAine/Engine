@@ -1,9 +1,15 @@
 #pragma once
 
-#include"Ayin/Core/Core.h"
+#include "Ayin/Core/Core.h"
 
-#include "Ayin/System/SystemSchedule.h"
+#include "Ayin/Serialization/Json/EngineEnumJson.h"
 #include "Ayin/System/SystemPipeline.h"
+#include "Ayin/System/SystemRegistry.h"
+
+#include <optional>
+#include <string>
+#include <string_view>
+#include <vector>
 
 namespace Ayin {
 
@@ -49,6 +55,8 @@ namespace Ayin {
 
 	};
 
+
+	class SystemSchedule;
 
 	struct SystemPipelineJson {
 

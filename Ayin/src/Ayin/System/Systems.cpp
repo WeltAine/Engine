@@ -2,6 +2,7 @@
 
 
 #include "Ayin/System/Systems.h"
+#include "Ayin/System/SystemContext.h"
 
 #include "Ayin/Scene/Components.h"
 

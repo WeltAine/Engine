@@ -2,11 +2,15 @@
 
 #include "Ayin/Core/Core.h"
 
-#include "Ayin/System/Systems.h"
+#include "Ayin/System/SystemTypes.h"
 
-#include "Ayin/System/SystemSchedule.h"
+#include <glaze/glaze.hpp>
 
-#include "Ayin/System/SystemRegistry.h"
+#include <concepts>
+#include <set>
+#include <string_view>
+#include <typeinfo>
+#include <vector>
 
 
 namespace Ayin {
@@ -14,6 +18,7 @@ namespace Ayin {
 
 
 	struct SystemJson;
+	class SystemSchedule;
 
 	struct AYIN_API SystemRegistration {
 

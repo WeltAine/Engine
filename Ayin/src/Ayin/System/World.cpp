@@ -2,7 +2,8 @@
 
 #include "Ayin/System/World.h"
 
-#include "Ayin/System/SystemSchedule.h"
+#include "Ayin/Scene/Scene.h"
+#include "Ayin/System/SystemContext.h"
 
 namespace Ayin {
 	

@@ -3,7 +3,7 @@
 #include "Ayin/Core/Core.h"
 #include "Ayin/Core/Timestep.h"
 #include "Ayin/Scene/EditorCamera.h"
-#include "Ayin/Core/BitmaskEnum.h"
+#include "Ayin/Scene/SceneMode.h"
 
 #include <entt/entt.hpp>
 #include <string>
@@ -15,44 +15,6 @@ namespace Ayin {
 	class Entity;
 
 	struct DestroyComponent;
-
-	// ----------------------------------------------------------------------------------------------------------------
-
-	// 场景模式
-	enum class SceneMode : uint8_t {
-
-		None = 0,
-		Editor = BIT(0),
-		Simulation = BIT(1),
-		Runtime = BIT(2),
-
-		AllSceneMode = BIT(3) - 1
-
-	};
-
-	//! 模板变量特化
-	template<>
-	inline constexpr bool enable_bitmask_operators<SceneMode> = true;
-
-
-
-
-	//! C++20 的 abbreviated function template，中文一般叫“缩写函数模板”或“简写函数模板”
-	//! 本质上等价于一个带约束的模板函数：
-	//! template <typename... Modes>
-	//!  	requires (std::same_as<Modes, SceneMode> && ...)
-	//!constexpr SceneModeMask ToMask(Modes... modes)
-	//!{
-	//!		return (static_cast<SceneModeMask>(modes) | ...);
-	//!}
-	constexpr SceneMode ToMask(std::same_as<SceneMode> auto... modes) {
-	
-		return (SceneMode{ 0 } | ... | static_cast<SceneMode>(modes));
-		//!带初始值的二元折叠表达式，不采用一元折叠是为了防止空参数调用 ToMask() 时，| 折叠表达式没有初始值，进而导致编译失败
-	
-	}
-
-	inline bool Contains(SceneMode mask, SceneMode mode) {return (bool)(int)(uint8_t)(mask & mode); }
 
 	// ----------------------------------------------------------------------------------------------------------------
 
@@ -205,22 +167,3 @@ namespace Ayin {
 
 
 }
-
-
-template<>
-struct glz::meta<Ayin::SceneMode> {
-
-	using enum Ayin::SceneMode;
-
-	static constexpr auto value = glz::enumerate(
-		None,
-
-		Editor,
-		Simulation,
-		Runtime,
-
-		AllSceneMode
-	);
-
-};
-

@@ -2,15 +2,15 @@
 
 #include "Ayin/Core/Core.h"
 
-#include "Ayin/Scene/Scene.h"
+#include "Ayin/Scene/SceneMode.h"
+#include "Ayin/System/SystemPipeline.h"
 #include "Ayin/System/SystemSchedule.h"
 
-#include "Ayin/System/SystemPipeline.h"
-
-#include "Ayin/Scene/EditorCamera.h"
-
 namespace Ayin {
-	
+
+	class EditorCamera;
+	class Scene;
+
 	class World {
 
 		friend class WorldSerializer;
