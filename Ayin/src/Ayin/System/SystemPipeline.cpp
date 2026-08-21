@@ -36,16 +36,19 @@ namespace Ayin {
 		DefinitionList definitions;
 		definitions.reserve(m_Definitions.size());
 
+		bool valid = true;
 		for (const SystemDefinition& definition : m_Definitions) {
 
-			// 通过集合降重
+			// Build 不再静默丢弃非法定义；候选 Pipeline 必须完整有效才能提交。
 			if (!types.emplace(definition.Type).second) {
 				AYIN_CORE_ERROR("System '{}' appears more than once in the Pipeline", definition.Type);
+				valid = false;
 				continue;
 			}
 
 			if (SystemRegistry::GetSystemDescriptor(definition.Type) == nullptr) {
 				AYIN_CORE_ERROR("System '{}' is not registered", definition.Type);
+				valid = false;
 				continue;
 			}
 
@@ -62,6 +65,7 @@ namespace Ayin {
 
 		SystemPipeline pipeline;
 		pipeline.m_Definitions = std::move(definitions);
+		pipeline.m_Valid = valid && pipeline.m_Definitions.size() == m_Definitions.size();
 		return pipeline;
 
 	};
@@ -132,6 +136,19 @@ namespace Ayin {
 
 	};
 
+	SystemPipeline::Builder& SystemPipeline::Builder::SetSystemConfiguration(
+		const SystemID systemId,
+		const SystemConfiguration& configuration) {
+
+		auto it = FindSystem(systemId);
+		if (it != m_Definitions.end())
+			it->Configuration = configuration;
+
+		return *this;
+
+	};
+
+
 	SystemPipeline::Builder& SystemPipeline::Builder::SetSystemSpecification(
 		const SystemID systemId,
 		const SystemSpecification& specification) {
@@ -198,14 +215,36 @@ namespace Ayin {
 	};
 
 
-	void SystemPipeline::Build(SystemSchedule& schedule) const {
+	bool SystemPipeline::Build(SystemSchedule& schedule) const {
 
-		for (const SystemDefinition& definition : m_Definitions)
-			schedule.AddSystem(definition);
+		if (!m_Valid)
+			return false;
+
+		if (!schedule.BeginConstruction())
+			return false;
+
+		for (const SystemDefinition& definition : m_Definitions) {
+			if (!schedule.BuildSystem(definition)) {
+				schedule.ClearSystems();
+				return false;
+			}
+		}
+
+		return schedule.FinishConstruction();
 
 	};
 
 	SystemSchedule SystemPipeline::CreateSchedule() const {
+
+		SystemSchedule schedule{};
+		if (Build(schedule) && !schedule.AttachSystems())
+			schedule.ClearSystems();
+		return schedule;
+
+	};
+
+	//? 可安全替代的未 Attach 的 schedule？
+	SystemSchedule SystemPipeline::CreateDetachedSchedule() const {
 
 		SystemSchedule schedule{};
 		Build(schedule);

@@ -238,6 +238,31 @@ bool SystemTestLayer::CheckPipelineAndWorld() {
 		passed = false;
 	}
 
+	// Apply 先完整构建候选 Schedule，再结束旧 Schedule，并恢复原有 Editor 会话。
+	m_State.LifecycleTrace.clear();
+	Ayin::SystemPipeline::Builder replacementBuilder;
+	replacementBuilder.AddSystem<EarlySystem>(
+		{ Ayin::SystemPhase::Update },
+		{ Ayin::SceneMode::Editor });
+	const Ayin::SystemPipeline replacementPipeline = replacementBuilder.Build();
+	const std::size_t attachTraceSizeBeforeCandidate = m_State.LifecycleTrace.size();
+	Ayin::SystemSchedule detachedCandidate = replacementPipeline.CreateDetachedSchedule();
+	const bool candidateConstructionPassed =
+		detachedCandidate.IsBuilt() && !detachedCandidate.IsAttached() &&
+		m_State.LifecycleTrace.size() == attachTraceSizeBeforeCandidate;
+	Ayin::World applyWorld{ m_Scene, m_Pipeline };
+	const bool applyStarted = applyWorld.BeginWorldExecutionSession(Ayin::SceneMode::Editor);
+	const bool applySucceeded = applyStarted && applyWorld.ApplyPipeline(replacementPipeline);
+	const std::vector<std::string> expectedApplyLifecycle{
+		"Early:Attach", "Late:Attach", "Runtime:Attach",
+		"Early:Begin:Editor", "Late:Begin:Editor", "Runtime:Detach", "Late:Detach", "Early:Detach",
+		"Early:Attach", "Early:Begin:Editor"
+	};
+	const bool applyEnded = applySucceeded && applyWorld.EndWorldExecutionSession();
+	m_State.ApplyPassed = candidateConstructionPassed && applyEnded && m_State.LifecycleTrace == expectedApplyLifecycle;
+	if (!m_State.ApplyPassed)
+		SetFailure("World Apply lifecycle replacement mismatch");
+
 	// 空 Scene 不能建立会话，后续 Update/End 也必须保持拒绝。
 	Ayin::SystemPipeline::Builder emptyBuilder;
 	Ayin::World emptyWorld(nullptr, emptyBuilder.Build());
@@ -252,62 +277,65 @@ bool SystemTestLayer::CheckPipelineAndWorld() {
 }
 
 bool SystemTestLayer::CheckScheduleLifecycle() {
-	Ayin::SystemSchedule schedule;
-	// 这一组测试绕过 World，直接验证 Schedule 自己的注册和生命周期接口。
+	// 这一组测试绕过 World，验证 Pipeline 创建出的 Schedule 生命周期。
 	const Ayin::Timestep expectedDelta{ 0.5f };
 	m_State.Trace.clear();
 	m_State.ContextValid = true;
 	m_State.ExpectedScene = m_Scene.get();
 	m_State.ExpectedDelta = expectedDelta.GetSeconds();
 
-	// 第二次添加同一种 System 不应创建第二个实例，也不应再次 OnAttach。
-	schedule.AddSystem<LifecycleSystem>({ Ayin::SystemPhase::Update }, { Ayin::SceneMode::Editor });
-	schedule.AddSystem<LifecycleSystem>({ Ayin::SystemPhase::Update }, { Ayin::SceneMode::Editor });
-	const bool duplicatePassed = schedule.Contain<LifecycleSystem>() && m_State.AttachCount["Lifecycle"] == 1;
-	m_State.DuplicateAddPassed = duplicatePassed;
-	if (!duplicatePassed) {
-		SetFailure("duplicate system registration was not ignored");
-	}
+	Ayin::SystemPipeline::Builder lifecycleBuilder;
+	lifecycleBuilder.AddSystem<LifecycleSystem>(
+		{ Ayin::SystemPhase::Update },
+		{ Ayin::SceneMode::Editor });
+	Ayin::SystemSchedule schedule = lifecycleBuilder.Build().CreateSchedule();
 
-	Ayin::SystemContext context{
+	const bool builtPassed = schedule.IsBuilt() && schedule.FindSystemInstance(Ayin::GetSystemID<LifecycleSystem>()) != nullptr &&
+		m_State.AttachCount["Lifecycle"] == 1;
+	m_State.DuplicateAddPassed = builtPassed;
+	if (!builtPassed)
+		SetFailure("Pipeline did not create an immutable Lifecycle Schedule");
+
+	const Ayin::SystemContext context{
 		.Scene = *m_Scene,
 		.DeltaTime = expectedDelta,
 		.Mode = Ayin::SceneMode::Editor,
 		.Phase = Ayin::SystemPhase::None,
 	};
-	// LifecycleSystem 只注册 Update，因此轨迹中只能出现一个 Update。
+
+	// Schedule 只有在 Begin 后才会执行阶段回调。
 	schedule.Run(context);
-	const bool runPassed = m_State.Trace == std::vector<std::string>{ "Lifecycle:Update" } && m_State.ContextValid;
-	if (!runPassed) {
-		SetFailure("lifecycle system did not run with the expected context");
-	}
+	schedule.Begin(context);
+	schedule.Begin(context);
+	schedule.Run(context);
+	schedule.End(context);
+	schedule.End(context);
 
-	// 连续移除两次，验证第二次是安全的无操作，并且 OnDetach 只发生一次。
-	schedule.RemoveSystem<LifecycleSystem>();
-	schedule.RemoveSystem<LifecycleSystem>();
-	const bool removePassed = !schedule.Contain<LifecycleSystem>() && m_State.DetachCount["Lifecycle"] == 1;
-	m_State.RemovePassed = removePassed;
-	if (!removePassed) {
-		SetFailure("system removal or detach lifecycle mismatch");
-	}
+	const bool lifecyclePassed =
+		m_State.Trace == std::vector<std::string>{ "Lifecycle:Update" } &&
+		m_State.BeginCount["Lifecycle"] == 1 &&
+		m_State.EndCount["Lifecycle"] == 1 &&
+		m_State.ContextValid;
+	if (!lifecyclePassed)
+		SetFailure("lifecycle state machine did not enforce Begin/Run/End rules");
 
-	// 显式 order 为 -1 的 LateSystem 应排在 order 为 0 的 EarlySystem 前面。
-	Ayin::SystemSchedule explicitSchedule;
+	Ayin::SystemPipeline::Builder explicitBuilder;
+	explicitBuilder
+		.AddSystem<LateSystem>({ Ayin::SystemPhase::Update }, { Ayin::SceneMode::Editor }, -1)
+		.AddSystem<EarlySystem>({ Ayin::SystemPhase::Update }, { Ayin::SceneMode::Editor }, 0);
+	Ayin::SystemSchedule explicitSchedule = explicitBuilder.Build().CreateSchedule();
 	m_State.Trace.clear();
-	explicitSchedule.AddSystem<LateSystem>({ Ayin::SystemPhase::Update }, { Ayin::SceneMode::Editor }, -1);
-	explicitSchedule.AddSystem<EarlySystem>({ Ayin::SystemPhase::Update }, { Ayin::SceneMode::Editor }, 0);
+	explicitSchedule.Begin(context);
 	explicitSchedule.Run(context);
+	explicitSchedule.End(context);
 	const bool explicitPassed = m_State.Trace == std::vector<std::string>{ "Late:Update", "Early:Update" };
 	m_State.ExplicitOrderPassed = explicitPassed;
-	if (!explicitPassed) {
+	if (!explicitPassed)
 		SetFailure("explicit system order mismatch");
-	}
-	explicitSchedule.RemoveSystem<LateSystem>();
-	explicitSchedule.RemoveSystem<EarlySystem>();
 
-	return duplicatePassed && runPassed && removePassed && explicitPassed;
+	m_State.RemovePassed = lifecyclePassed;
+	return builtPassed && lifecyclePassed && explicitPassed;
 }
-
 bool SystemTestLayer::CheckDestructorCleanupAndMove() {
 	bool passed = true;
 	const Ayin::SystemContext editorContext{
@@ -315,13 +343,15 @@ bool SystemTestLayer::CheckDestructorCleanupAndMove() {
 		.Mode = Ayin::SceneMode::Editor,
 	};
 
-	// Schedule 析构必须按注册的相反顺序 Detach。
+	// Schedule 析构必须按成功 Attach 的相反顺序 Detach。
 	m_State.LifecycleTrace.clear();
 	{
-		Ayin::SystemSchedule schedule;
-		schedule.AddSystem<EarlySystem>({}, { Ayin::SceneMode::Editor });
-		schedule.AddSystem<LateSystem>({}, { Ayin::SceneMode::Editor });
-		schedule.AddSystem<RuntimeSystem>({}, { Ayin::SceneMode::Editor });
+		Ayin::SystemPipeline::Builder builder;
+		builder
+			.AddSystem<EarlySystem>({}, { Ayin::SceneMode::Editor })
+			.AddSystem<LateSystem>({}, { Ayin::SceneMode::Editor })
+			.AddSystem<RuntimeSystem>({}, { Ayin::SceneMode::Editor });
+		Ayin::SystemSchedule schedule = builder.Build().CreateSchedule();
 	}
 	const std::vector<std::string> expectedScheduleDestruction{
 		"Early:Attach", "Late:Attach", "Runtime:Attach",
@@ -329,12 +359,14 @@ bool SystemTestLayer::CheckDestructorCleanupAndMove() {
 	};
 	const bool scheduleDestructorPassed = m_State.LifecycleTrace == expectedScheduleDestruction;
 
-	// 默认移动构造必须转移所有权；被移动对象析构时不能重复 Detach。
+	// 移动构造必须转移所有权；被移动对象析构时不能重复 Detach。
 	m_State.LifecycleTrace.clear();
 	{
-		Ayin::SystemSchedule source;
-		source.AddSystem<EarlySystem>({}, { Ayin::SceneMode::Editor });
-		source.AddSystem<LateSystem>({}, { Ayin::SceneMode::Editor });
+		Ayin::SystemPipeline::Builder builder;
+		builder
+			.AddSystem<EarlySystem>({}, { Ayin::SceneMode::Editor })
+			.AddSystem<LateSystem>({}, { Ayin::SceneMode::Editor });
+		Ayin::SystemSchedule source = builder.Build().CreateSchedule();
 		Ayin::SystemSchedule destination{ std::move(source) };
 		destination.Begin(editorContext);
 		destination.End(editorContext);
@@ -347,7 +379,7 @@ bool SystemTestLayer::CheckDestructorCleanupAndMove() {
 	};
 	m_State.MoveConstructionPassed = m_State.LifecycleTrace == expectedMoveLifecycle;
 
-	// World 在活动会话中析构时，先兜底 End，再由 Schedule 逆序 Detach。
+	// World 在活动会话中析构时，World 自己先 End，再由 Schedule 逆序 Detach。
 	m_State.LifecycleTrace.clear();
 	{
 		Ayin::World world{ m_Scene, m_Pipeline };
@@ -376,12 +408,11 @@ bool SystemTestLayer::CheckDestructorCleanupAndMove() {
 
 	return passed;
 }
-
-
 bool SystemTestLayer::CheckScheduleBaseline() {
-	// 这里刻意记录重构前的裸 Schedule 行为，而不是把阶段 4 的目标状态机
-	// 伪装成已经实现。重构 Schedule 时应修改本检查的期望，而不是丢掉这份基线。
-	Ayin::SystemSchedule schedule;
+	// 阶段 4 后，Schedule 拓扑由 Pipeline 构建并冻结；生命周期只由 Begin/Run/End 控制。
+	Ayin::SystemPipeline::Builder builder;
+	builder.AddSystem<LifecycleSystem>({ Ayin::SystemPhase::Update }, { Ayin::SceneMode::Editor });
+	Ayin::SystemSchedule schedule = builder.Build().CreateSchedule();
 	const Ayin::Timestep expectedDelta{ 0.75f };
 	m_State.Trace.clear();
 	m_State.LifecycleTrace.clear();
@@ -389,50 +420,45 @@ bool SystemTestLayer::CheckScheduleBaseline() {
 	m_State.ExpectedScene = m_Scene.get();
 	m_State.ExpectedDelta = expectedDelta.GetSeconds();
 
-	const int attachBefore = m_State.AttachCount["Lifecycle"];
 	const int detachBefore = m_State.DetachCount["Lifecycle"];
 	const int beginBefore = m_State.BeginCount["Lifecycle"];
 	const int endBefore = m_State.EndCount["Lifecycle"];
 
-	schedule.AddSystem<LifecycleSystem>({ Ayin::SystemPhase::Update }, { Ayin::SceneMode::Editor });
 	const Ayin::SystemContext context{
 		.Scene = *m_Scene,
 		.DeltaTime = expectedDelta,
 		.Mode = Ayin::SceneMode::Editor,
 	};
 
-	// 当前实现尚未维护 Ready / Running 状态：Begin 前 Run 会直接触发 Update；
-	// 重复 Begin 会再次回调，而第二次 End 因 m_BegunSystems 已清空成为无操作。
+	// Begin 前 Run 不得调用 Update；重复 Begin / End 都不得重复回调。
 	schedule.Run(context);
 	schedule.Begin(context);
 	schedule.Begin(context);
+	schedule.Run(context);
 	schedule.End(context);
 	schedule.End(context);
 
-	const bool runBeforeBeginPassed =
-		m_State.Trace == std::vector<std::string>{ "Lifecycle:Update" };
-	const bool repeatedLifecyclePassed =
-		m_State.AttachCount["Lifecycle"] == attachBefore + 1 &&
-		m_State.BeginCount["Lifecycle"] == beginBefore + 2 &&
+	const bool lifecycleStatePassed =
+		m_State.Trace == std::vector<std::string>{ "Lifecycle:Update" } &&
+		m_State.BeginCount["Lifecycle"] == beginBefore + 1 &&
 		m_State.EndCount["Lifecycle"] == endBefore + 1;
 
-	// 当前 Clear 不会为已经 Begin 的 System 补发 End；它只会执行一次 Detach。
+	// Shutdown 必须显式接收真实 Context；重复调用不得重复 Detach。
 	schedule.Begin(context);
-	schedule.Clear();
-	const bool clearWhileBegunPassed =
-		m_State.BeginCount["Lifecycle"] == beginBefore + 3 &&
-		m_State.EndCount["Lifecycle"] == endBefore + 1 &&
-		m_State.DetachCount["Lifecycle"] == detachBefore + 1;
+	schedule.Shutdown(context);
+	schedule.Shutdown(context);
+	const bool shutdownPassed =
+		m_State.BeginCount["Lifecycle"] == beginBefore + 2 &&
+		m_State.EndCount["Lifecycle"] == endBefore + 2 &&
+		m_State.DetachCount["Lifecycle"] == detachBefore + 1 &&
+		!schedule.IsActive();
 
-	m_State.ScheduleBaselinePassed = runBeforeBeginPassed && repeatedLifecyclePassed &&
-		clearWhileBegunPassed && m_State.ContextValid;
-	if (!m_State.ScheduleBaselinePassed) {
-		SetFailure("Schedule lifecycle baseline changed unexpectedly");
-	}
+	m_State.ScheduleBaselinePassed = lifecycleStatePassed && shutdownPassed && m_State.ContextValid;
+	if (!m_State.ScheduleBaselinePassed)
+		SetFailure("SystemSchedule lifecycle state machine mismatch");
 
 	return m_State.ScheduleBaselinePassed;
 }
-
 bool SystemTestLayer::CheckPipelineBuilder() {
 	// Builder 使用 vector 保存可编辑定义：同 Order 的相对顺序由 stable_sort 保留，唯一性单独检查。
 	Ayin::SystemPipeline::Builder builder;
@@ -469,9 +495,9 @@ bool SystemTestLayer::CheckPipelineBuilder() {
 	Ayin::SystemSchedule schedule = pipeline.CreateSchedule();
 	const Ayin::SystemEntry* serializedEntry =
 		schedule.FindSystemEntry(Ayin::GetSystemID<SerializationSystem>());
-	const SerializationSystem* serializedSystem = serializedEntry == nullptr || serializedEntry->Instance == nullptr
+	const SerializationSystem* serializedSystem = serializedEntry == nullptr || serializedEntry->GetInstance() == nullptr
 		? nullptr
-		: static_cast<const SerializationSystem*>(serializedEntry->Instance.get());
+		: static_cast<const SerializationSystem*>(schedule.FindSystemInstance(Ayin::GetSystemID<SerializationSystem>()));
 	const bool pipelinePassed = pipelineDefinitions.size() == 3 &&
 		pipelineDefinitions[0].Type == definitions[0].Type &&
 		pipelineDefinitions[1].Type == definitions[1].Type &&
@@ -551,19 +577,23 @@ bool SystemTestLayer::CheckSystemRegistry() {
 bool SystemTestLayer::CheckSystemSerialization() {
 	// SystemJson 的 Phases / Modes 是离散枚举数组，而不是底层整数 mask。
 	// 这个检查同时覆盖 Glaze 的枚举 metadata 和现有 Serializer 的中间 DTO。
-	Ayin::SystemSchedule source;
-	source.AddSystem<SerializationSystem>(
-		{ Ayin::SystemPhase::Update, Ayin::SystemPhase::Presentation },
-		{ Ayin::SceneMode::Editor, Ayin::SceneMode::Runtime },
-		7);
-
-	Ayin::SystemEntry* sourceEntry = source.FindSystemEntry(Ayin::GetSystemID<SerializationSystem>());
-	if (sourceEntry == nullptr || sourceEntry->Instance == nullptr) {
+	Ayin::SystemPipeline::Builder sourceBuilder;
+	sourceBuilder.AddSystem(Ayin::SystemDefinition{
+		.Type{"SandBox.Tests.SerializationSystem"},
+		.Specification{
+			.PhaseMask{Ayin::SystemPhase::Update | Ayin::SystemPhase::Presentation},
+			.ModeMask{Ayin::SceneMode::Editor | Ayin::SceneMode::Runtime},
+			.Order{7}
+		}
+	});
+	Ayin::SystemSchedule source = sourceBuilder.Build().CreateSchedule();
+	Ayin::ISystem* sourceInstance = source.FindSystemInstance(Ayin::GetSystemID<SerializationSystem>());
+	if (sourceInstance == nullptr) {
 		SetFailure("serialization source system was not created");
 		return false;
 	}
 
-	static_cast<SerializationSystem*>(sourceEntry->Instance.get())->Exposure = 42;
+	static_cast<SerializationSystem*>(sourceInstance)->Exposure = 42;
 	const std::optional<Ayin::SystemPipelineJson> pipelineJson =
 		Ayin::SystemScheduleSerializer::BuildSystemPipelineJson(source);
 	if (!pipelineJson || pipelineJson->Systems.size() != 1) {
@@ -599,20 +629,16 @@ bool SystemTestLayer::CheckSystemSerialization() {
 	Ayin::SystemPipeline::Builder builder = Ayin::SystemScheduleSerializer::Deserializer(*parsedJson);
 	Ayin::SystemPipeline pipeline = builder.Build();
 	Ayin::SystemSchedule restored = pipeline.CreateSchedule();
-	const Ayin::SystemEntry* restoredEntry = restored.FindSystemEntry(Ayin::GetSystemID<SerializationSystem>());
-	const SerializationSystem* restoredSystem = restoredEntry == nullptr || restoredEntry->Instance == nullptr
-		? nullptr
-		: static_cast<const SerializationSystem*>(restoredEntry->Instance.get());
+	const SerializationSystem* restoredSystem = static_cast<const SerializationSystem*>(
+		restored.FindSystemInstance(Ayin::GetSystemID<SerializationSystem>()));
 
 	m_State.SerializationRoundTripPassed = m_State.MaskJsonPassed && restoredSystem != nullptr &&
 		restoredSystem->Exposure == 42;
-	if (!m_State.SerializationRoundTripPassed) {
+	if (!m_State.SerializationRoundTripPassed)
 		SetFailure("System JSON round-trip did not preserve masks or configuration");
-	}
 
 	return m_State.SerializationRoundTripPassed;
 }
-
 void SystemTestLayer::RunLiveFrame(const Ayin::Timestep deltaTime) {
 	// 这是对主循环路径的最终验证：使用真实帧时间调用 World 一次完整生命周期。
 	m_State.Trace.clear();
@@ -689,7 +715,7 @@ void SystemTestLayer::OnImGuiRender() {
 	RenderCheck("Context forwarding", m_State.ContextForwardingPassed);
 	RenderCheck("World lifecycle", m_State.WorldLifecyclePassed);
 	RenderCheck("Duplicate add", m_State.DuplicateAddPassed);
-	RenderCheck("Remove and detach", m_State.RemovePassed);
+	RenderCheck("Schedule structure frozen", m_State.RemovePassed);
 	RenderCheck("Attach registration order", m_State.AttachOrderPassed);
 	RenderCheck("Begin/End reverse order", m_State.BeginEndOrderPassed);
 	RenderCheck("Mode transition", m_State.TransitionPassed);
@@ -701,6 +727,7 @@ void SystemTestLayer::OnImGuiRender() {
 	RenderCheck("Mask JSON", m_State.MaskJsonPassed);
 	RenderCheck("Serialization round-trip", m_State.SerializationRoundTripPassed);
 	RenderCheck("Live World frame", m_State.LiveFramePassed);
+	RenderCheck("World Apply", m_State.ApplyPassed);
 	if (!m_State.Failure.empty()) {
 		ImGui::Separator();
 		ImGui::Text("Failure: %s", m_State.Failure.c_str());

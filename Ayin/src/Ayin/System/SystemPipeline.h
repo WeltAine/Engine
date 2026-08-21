@@ -50,6 +50,7 @@ namespace Ayin {
 			Builder& RemoveSystem(std::string_view typeKey);
 			Builder& RemoveSystemPhase(SystemID systemId, SystemPhase phase);
 			Builder& SetSystemSpecification(SystemID systemId, const SystemSpecification& specification);
+			Builder& SetSystemConfiguration(SystemID systemId, const SystemConfiguration& configuration);
 
 			inline const DefinitionList& GetDefinitions() const { return m_Definitions; };
 
@@ -69,11 +70,16 @@ namespace Ayin {
 	private:
 
 		std::vector<SystemDefinition> m_Definitions;
+		bool m_Valid = true;		// pipeline 是否有效
 
 	public:
 
-		void Build(SystemSchedule& schedule) const;
+		bool Build(SystemSchedule& schedule) const;
 		SystemSchedule CreateSchedule() const;
+		// World 在替换 Schedule 时使用未 Attach 的候选对象，确保旧 Schedule
+		// 的 End / Detach 完成后，新的 OnAttach 才会产生外部生命周期影响。
+		SystemSchedule CreateDetachedSchedule() const;
+		inline bool IsValid() const { return m_Valid; };
 		inline const std::vector<SystemDefinition>& GetDefinitions() const { return m_Definitions; };
 
 	};

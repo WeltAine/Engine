@@ -1,203 +1,220 @@
 #include<AyinPch.h>
 
-#include "Ayin/System/SystemPipeline.h"
 #include "Ayin/System/SystemSchedule.h"
 #include "Ayin/System/SystemRegistry.h"
 
 namespace Ayin {
 
-	SchedulePhase& SchedulePhase::AddSystem(const PhaseSystemEntry& phaseSystemEntry) {	//! “缩写函数模板”或“简写函数模板”
-
-		auto it = std::ranges::find_if(m_OrderedSystems, 
-			[&phaseSystemEntry](const PhaseSystemEntry& entry) -> bool {
-				return entry.RuntimeId == phaseSystemEntry.RuntimeId;
-			});
-
-		if (it != m_OrderedSystems.end())
-			return *this;
-
-		m_OrderedSystems.insert(phaseSystemEntry);
-		return *this;
-
-	};
-
-	SchedulePhase& SchedulePhase::RemoveSystem(const SystemID systemId) {
-
-		auto it = std::ranges::find_if(m_OrderedSystems,
-			[&systemId](const PhaseSystemEntry& entry) -> bool {return entry.RuntimeId == systemId; }
-		);
-
-		if (it != m_OrderedSystems.end())
-			m_OrderedSystems.erase(it);
-
-		return *this;
-
-	};
-
-};
-
-
-
-namespace Ayin {
-
-
 	SystemSchedule::~SystemSchedule() {
 
-		Clear();
+		if (IsActive())
+			AYIN_CORE_WARN("SystemSchedule was destroyed while active; World should End it before destruction");
+
+		DetachSystems();
 
 	};
 
+	SystemSchedule::SystemSchedule(SystemSchedule&& other) noexcept {
+
+		MoveFrom(std::move(other));
+
+	};
 
 	SystemSchedule& SystemSchedule::operator=(SystemSchedule&& other) noexcept {
 
 		if (this == &other)
 			return *this;
 
-		Clear();
+		if (IsActive())
+			AYIN_CORE_WARN("Replacing an active SystemSchedule; the owner should End it first");
 
-		m_Systems = std::move(other.m_Systems);
-		m_BegunSystems = std::move(other.m_BegunSystems);
-		m_NextOrder = other.m_NextOrder;
-		m_PreUpdate_Phase = std::move(other.m_PreUpdate_Phase);
-		m_Update_Phase = std::move(other.m_Update_Phase);
-		m_PostUpdate_Phase = std::move(other.m_PostUpdate_Phase);
-		m_Presentation_Phase = std::move(other.m_Presentation_Phase);
-
-		other.m_NextOrder = 0;
-		other.m_BegunSystems.clear();
+		DetachSystems();
+		MoveFrom(std::move(other));
 
 		return *this;
 
 	};
 
 
-
 	void SystemSchedule::Begin(const SystemContext& systemContext) {
 
-		m_BegunSystems.clear();
-
-		std::vector<SystemEntry*> runnableSystems;
-		for (SystemEntry& entry : m_Systems) {
-			if (static_cast<bool>(entry.Specification.ModeMask & systemContext.Mode))
-				runnableSystems.emplace_back(&entry);
+		if (!m_TopologySealed) {
+			AYIN_CORE_WARN("SystemSchedule must be built before Begin");
+			return;
 		}
 
-		// 相同 Order 保留注册顺序；不改变 m_Systems 自身的所有权和注册顺序。
-		std::stable_sort(
-			runnableSystems.begin(), runnableSystems.end(),
-			[](const SystemEntry* leftEntry, const SystemEntry* rightEntry) -> bool {
-				return leftEntry->Specification.Order < rightEntry->Specification.Order;
-			});
+		if (!m_Attached) {
+			AYIN_CORE_WARN("SystemSchedule must be attached before Begin");
+			return;
+		}
 
-		for (SystemEntry* entry : runnableSystems) {
-			m_BegunSystems.emplace_back(entry->Information.RuntimeId);
-			entry->Instance->OnBegin(systemContext);
+		if (IsActive()) {
+			AYIN_CORE_WARN("SystemSchedule is already active");
+			return;
+		}
+
+		if (systemContext.Mode == SceneMode::None) {
+			AYIN_CORE_WARN("SystemSchedule can not begin with SceneMode::None");
+			return;
+		}
+
+
+		// 开始对该模式下可以运行的 System 进行 OnBegin()，并记录已经成功 Begin 的 System
+		m_BegunSystems.clear();
+		m_LifecycleState = LifecycleState::Active;
+
+		for (const SystemIndex index : m_BeginPlan) {
+			SystemEntry& entry = m_Systems[index];
+			if (!Contains(entry.Specification.ModeMask, systemContext.Mode))
+				continue;
+
+			try {
+				entry.Instance->OnBegin(systemContext);
+				m_BegunSystems.emplace_back(index);
+			}
+			catch (const std::exception& exception) {
+				AYIN_CORE_ERROR("System '{}' failed during OnBegin: {}", entry.Information.TypeKey, exception.what());
+			}
+			catch (...) {
+				AYIN_CORE_ERROR("System '{}' failed during OnBegin", entry.Information.TypeKey);
+			}
 		}
 
 	};
-
 
 
 	void SystemSchedule::Run(const SystemContext& context) {
 
+		if (!IsActive()) {
+			AYIN_CORE_WARN("SystemSchedule must begin before running");
+			return;
+		}
+
 		SystemContext phaseContext = context;
 
+		// 让目标阶段中的 System 执行特定回调（因为我们的系统支持同时在不同阶段运作）
+													// 目标阶段				让每个阶段执行的回调
+		const auto runPhase = [this, &phaseContext](const SystemPhase phase, auto callback) -> void {
 
-		auto prePhase_Update = [&phaseContext](SchedulePhase& phase) -> void {
+			phaseContext.Phase = phase;
+			for (const SystemIndex index : GetPhasePlan(phase)) {
+				SystemEntry& entry = m_Systems[index];
+				if (!Contains(entry.Specification.ModeMask, phaseContext.Mode))
+					continue;
 
-			std::ranges::for_each(phase, [&phaseContext](const PhaseSystemEntry& entry) -> void
-				{
-					const_cast<PhaseSystemEntry&>(entry).OnPreUpdate(phaseContext);
-				});
+				try {
+					callback(*entry.Instance, phaseContext);
+				}
+				catch (const std::exception& exception) {
+					AYIN_CORE_ERROR("System '{}' failed during phase {}: {}", entry.Information.TypeKey, static_cast<int>(phase), exception.what());
+				}
+				catch (...) {
+					AYIN_CORE_ERROR("System '{}' failed during phase {}", entry.Information.TypeKey, static_cast<int>(phase));
+				}
+			}
 
-			};
+		};
 
-		auto updatePhase_Update = [&phaseContext](SchedulePhase& phase) -> void {
-
-			std::ranges::for_each(phase, [&phaseContext](const PhaseSystemEntry& entry) -> void
-				{
-					const_cast<PhaseSystemEntry&>(entry).OnUpdate(phaseContext);
-				});
-
-			};
-
-		auto postPhase_Update = [&phaseContext](SchedulePhase& phase) -> void {
-
-			std::ranges::for_each(phase, [&phaseContext](const PhaseSystemEntry& entry) -> void
-				{
-					const_cast<PhaseSystemEntry&>(entry).OnPostUpdate(phaseContext);
-				});
-
-			};
-
-		auto presentationPhase_Update = [&phaseContext](SchedulePhase& phase) -> void {
-
-			std::ranges::for_each(phase, [&phaseContext](const PhaseSystemEntry& entry) -> void
-				{
-					const_cast<PhaseSystemEntry&>(entry).OnPresentationUpdate(phaseContext);
-				});
-
-			};
-
-
-
-
-		phaseContext.Phase = SystemPhase::PreUpdate;
-		prePhase_Update(m_PreUpdate_Phase);
-
-		phaseContext.Phase = SystemPhase::Update;
-		updatePhase_Update(m_Update_Phase);
-
-		phaseContext.Phase = SystemPhase::PostUpdate;
-		postPhase_Update(m_PostUpdate_Phase);
-
-		phaseContext.Phase = SystemPhase::Presentation;
-		presentationPhase_Update(m_Presentation_Phase);
-
-	}
-
-
-	void SystemSchedule::End(const SystemContext& systemContext) {
-
-		// 与 Begin 相反的顺序结束，只处理本次真正执行过 OnBegin 的系统。
-		std::ranges::for_each(
-			m_BegunSystems | std::views::reverse,
-			[this, &systemContext](const SystemID& systemId) -> void {
-
-				auto entry = this->FindSystem(systemId);
-				if (entry != this->m_Systems.end())
-					entry->Instance->OnEnd(systemContext);
-
-			});
-
-		m_BegunSystems.clear();
+		runPhase(SystemPhase::PreUpdate, [](ISystem& system, const SystemContext& phaseContext) { system.OnPreUpdate(phaseContext); });
+		runPhase(SystemPhase::Update, [](ISystem& system, const SystemContext& phaseContext) { system.OnUpdate(phaseContext); });
+		runPhase(SystemPhase::PostUpdate, [](ISystem& system, const SystemContext& phaseContext) { system.OnPostUpdate(phaseContext); });
+		runPhase(SystemPhase::Presentation, [](ISystem& system, const SystemContext& phaseContext) { system.OnPresentationUpdate(phaseContext); });
 
 	};
 
 
-	SystemSchedule& SystemSchedule::AddSystem(const SystemDefinition& definition) {
-	
-		// 获取描述符（正确的系统描述）
-		const SystemDescriptor* descriptor = SystemRegistry::GetSystemDescriptor(definition.Type);
+	//? 对所有系统 OnGui ？这也太离谱了吧，编辑器中也只会对选中的 system 进行交互而已！用网格或者蓝图显示 Schedule 的系统结构！
+	void SystemSchedule::OnGui() {
 
-		if (descriptor == nullptr) {
-			AYIN_CORE_ERROR("System '{}' is not registered", definition.Type);
-			return *this;
+		for (SystemEntry& entry : m_Systems) {
+			try {
+				entry.Instance->OnGui();
+			}
+			catch (const std::exception& exception) {
+				AYIN_CORE_ERROR("System '{}' failed during OnGui: {}", entry.Information.TypeKey, exception.what());
+			}
+			catch (...) {
+				AYIN_CORE_ERROR("System '{}' failed during OnGui", entry.Information.TypeKey);
+			}
 		}
 
-		// 检查是否已经存在
-		if (FindSystem(descriptor->RuntimeId) != m_Systems.end())
-			return *this;
+	};
 
-		const int order = definition.Specification.Order < 0
-			? m_NextOrder
-			: definition.Specification.Order;
 
-		// 构建实例和反序列化
+	void SystemSchedule::End(const SystemContext& systemContext) {
+
+		if (!IsActive()) {
+			AYIN_CORE_WARN("SystemSchedule is not active");
+			return;
+		}
+
+		for (auto it = m_BegunSystems.rbegin(); it != m_BegunSystems.rend(); ++it) {
+			SystemEntry& entry = m_Systems[*it];
+
+			try {
+				entry.Instance->OnEnd(systemContext);
+			}
+			catch (const std::exception& exception) {
+				AYIN_CORE_ERROR("System '{}' failed during OnEnd: {}", entry.Information.TypeKey, exception.what());
+			}
+			catch (...) {
+				AYIN_CORE_ERROR("System '{}' failed during OnEnd", entry.Information.TypeKey);
+			}
+		}
+
+		m_BegunSystems.clear();
+		m_LifecycleState = LifecycleState::Idle;
+
+	};
+
+
+	void SystemSchedule::Shutdown(const SystemContext& systemContext) {
+
+		if (IsActive())
+			End(systemContext);
+
+		ClearSystems();
+
+	};
+
+
+	bool SystemSchedule::BeginConstruction() {
+
+		if (m_TopologySealed || !m_Systems.empty())
+			return false;
+
+		m_AttachSequence.clear();
+		m_BeginPlan.clear();
+		for (auto& phasePlan : m_PhasePlans)
+			phasePlan.clear();
+
+		return true;
+
+	};
+
+
+	bool SystemSchedule::BuildSystem(const SystemDefinition& definition) {
+
+		if (m_TopologySealed) {
+			AYIN_CORE_ERROR("SystemSchedule topology is already sealed");
+			return false;
+		}
+
+		const SystemDescriptor* descriptor = SystemRegistry::GetSystemDescriptor(definition.Type);
+		if (descriptor == nullptr) {
+			AYIN_CORE_ERROR("System '{}' is not registered", definition.Type);
+			return false;
+		}
+
+		if (FindSystem(descriptor->RuntimeId) != m_Systems.end()) {
+			AYIN_CORE_ERROR("System '{}' has already been added", descriptor->TypeKey);
+			return false;
+		}
+
 		Scope<ISystem> instance = SystemRegistry::CreateSystemBy(descriptor->RuntimeId);
 		if (!instance) {
 			AYIN_CORE_ERROR("Failed to create system '{}'", descriptor->TypeKey);
-			return *this;
+			return false;
 		}
 
 		if (definition.Configuration.Json != "{}") {
@@ -205,116 +222,276 @@ namespace Ayin {
 				*instance, descriptor->RuntimeId, definition.Configuration.Json);
 			if (!result) {
 				AYIN_CORE_ERROR("Failed to deserialize system '{}': {}", descriptor->TypeKey, result.Error);
-				return *this;
+				return false;
 			}
 		}
 
-		// 插入系统
-		SystemEntry& entry = m_Systems.emplace_back(
-			SystemEntry{
-				.Information{.RuntimeId{descriptor->RuntimeId}, .TypeKey{descriptor->TypeKey}},
-				.Specification{.PhaseMask{definition.Specification.PhaseMask}, .ModeMask{definition.Specification.ModeMask}, .Order{order}},
-				.Instance{std::move(instance)},
-			});
+		m_Systems.emplace_back(
+			SystemInformation{.RuntimeId{descriptor->RuntimeId}, .TypeKey{descriptor->TypeKey}},
+			SystemSpecification{.PhaseMask{definition.Specification.PhaseMask}, .ModeMask{definition.Specification.ModeMask}, .Order{definition.Specification.Order}},
+			std::move(instance));
 
-		entry.Instance->OnAttach();
-		m_NextOrder = std::max(m_NextOrder, order + 1);
 
-		// 阶段编辑
-		PhaseSystemEntry phaseEntry = static_cast<PhaseSystemEntry>(entry);
-		InsertSystemToPhase(phaseEntry, Disassemble<SystemPhase>(entry.Specification.PhaseMask));
-
-		return *this;
+		return true;
 
 	};
 
 
+	bool SystemSchedule::FinishConstruction() {
 
-	std::vector<SystemEntry>::iterator SystemSchedule::FindSystem(SystemID systemId) {
+		RebuildExecutionPlans();
+		m_TopologySealed = true;
+		return true;
 
-		auto it = std::ranges::find_if(
-			m_Systems,
-			[&systemId](const SystemEntry& entry) ->bool {
-				return entry.Information.RuntimeId == systemId;
+	};
+
+
+	bool SystemSchedule::AttachSystems() {
+
+		if (!m_TopologySealed || IsActive()) {
+			AYIN_CORE_WARN("SystemSchedule must be built and idle before Attach");
+			return false;
+		}
+
+		if (m_Attached)
+			return true;
+
+		for (SystemIndex index = 0; index < m_Systems.size(); ++index) {
+			SystemEntry& entry = m_Systems[index];
+
+			try {
+				entry.Instance->OnAttach();
+				m_AttachSequence.emplace_back(index);
 			}
-		);
-
-		return it;
-	};
-
-	std::vector<SystemEntry>::const_iterator SystemSchedule::FindSystem(SystemID systemId) const {
-
-		auto it = std::ranges::find_if(
-			m_Systems,
-			[&systemId](const SystemEntry& entry)->bool {
-				return entry.Information.RuntimeId == systemId;
+			catch (const std::exception& exception) {
+				AYIN_CORE_ERROR("System '{}' failed during OnAttach: {}", entry.Information.TypeKey, exception.what());
+				DetachSystems();
+				return false;
 			}
-		);
-
-		return it;
-	};
-
-	void SystemSchedule::InsertSystemToPhase(const PhaseSystemEntry& phaseSystemEntry, const std::vector<SystemPhase>& phases) {
-
-		for (const SystemPhase& phase : phases) {
-			switch (phase) {
-
-			case(SystemPhase::PreUpdate): m_PreUpdate_Phase.AddSystem(phaseSystemEntry); break;
-			case(SystemPhase::Update): m_Update_Phase.AddSystem(phaseSystemEntry); break;
-			case(SystemPhase::PostUpdate): m_PostUpdate_Phase.AddSystem(phaseSystemEntry); break;
-			case(SystemPhase::Presentation): m_Presentation_Phase.AddSystem(phaseSystemEntry); break;
-			default: break;
-
+			catch (...) {
+				AYIN_CORE_ERROR("System '{}' failed during OnAttach", entry.Information.TypeKey);
+				DetachSystems();
+				return false;
 			}
 		}
 
+		m_Attached = true;
+		return true;
+
 	};
 
 
+	void SystemSchedule::ClearSystems() {
 
+		if (IsActive()) {
+			AYIN_CORE_WARN("SystemSchedule must End before clearing systems");
+			return;
+		}
 
-
-	void SystemSchedule::Clear() {
-
-		// OnAttach 按注册顺序执行，因此清理时以相反顺序解除系统。
-		std::ranges::for_each(
-			m_Systems | std::views::reverse,
-			[](const SystemEntry& entry) -> void {
-				if (entry.Instance)
-					entry.Instance->OnDetach();
-			});
-
+		DetachSystems();
 		m_Systems.clear();
+		m_AttachSequence.clear();
+		m_BeginPlan.clear();
+		for (auto& phasePlan : m_PhasePlans)
+			phasePlan.clear();
 		m_BegunSystems.clear();
-		m_NextOrder = 0;
-		m_PreUpdate_Phase = {};
-		m_Update_Phase = {};
-		m_PostUpdate_Phase = {};
-		m_Presentation_Phase = {};
+		m_TopologySealed = false;
+		m_Attached = false;
 
 	};
-	SystemEntry* SystemSchedule::FindSystemEntry(const SystemID systemId) {
+
+
+	void SystemSchedule::DetachSystems() {
+
+		if (!m_Attached && m_AttachSequence.empty())
+			return;
+
+		for (auto it = m_AttachSequence.rbegin(); it != m_AttachSequence.rend(); ++it) {
+			if (*it >= m_Systems.size())
+				continue;
+
+			SystemEntry& entry = m_Systems[*it];
+			if (!entry.Instance)
+				continue;
+
+			try {
+				entry.Instance->OnDetach();
+			}
+			catch (const std::exception& exception) {
+				AYIN_CORE_ERROR("System '{}' failed during OnDetach: {}", entry.Information.TypeKey, exception.what());
+			}
+			catch (...) {
+				AYIN_CORE_ERROR("System '{}' failed during OnDetach", entry.Information.TypeKey);
+			}
+		}
+
+		m_AttachSequence.clear();
+		m_Attached = false;
+
+	};
+
+
+	std::vector<SystemSchedule::SystemIndex>& SystemSchedule::GetPhasePlan(const SystemPhase phase) {
+
+		switch (phase) {
+		case SystemPhase::PreUpdate: return m_PhasePlans[0];
+		case SystemPhase::Update: return m_PhasePlans[1];
+		case SystemPhase::PostUpdate: return m_PhasePlans[2];
+		case SystemPhase::Presentation: return m_PhasePlans[3];
+		default:
+			AYIN_CORE_ASSERT(false, "Invalid SystemPhase for SystemSchedule");
+			return m_PhasePlans[0];
+		}
+
+	};
+
+	const std::vector<SystemSchedule::SystemIndex>& SystemSchedule::GetPhasePlan(const SystemPhase phase) const {
+
+		return const_cast<SystemSchedule*>(this)->GetPhasePlan(phase);
+
+	};
+
+
+	void SystemSchedule::RebuildExecutionPlans() {
+
+		m_BeginPlan.clear();
+		for (auto& phasePlan : m_PhasePlans)
+			phasePlan.clear();
+
+		for (SystemIndex index = 0; index < m_Systems.size(); ++index) {
+			const SystemSpecification& specification = m_Systems[index].Specification;
+			m_BeginPlan.emplace_back(index);
+
+			if (static_cast<bool>(specification.PhaseMask & SystemPhase::PreUpdate))
+				GetPhasePlan(SystemPhase::PreUpdate).emplace_back(index);
+			if (static_cast<bool>(specification.PhaseMask & SystemPhase::Update))
+				GetPhasePlan(SystemPhase::Update).emplace_back(index);
+			if (static_cast<bool>(specification.PhaseMask & SystemPhase::PostUpdate))
+				GetPhasePlan(SystemPhase::PostUpdate).emplace_back(index);
+			if (static_cast<bool>(specification.PhaseMask & SystemPhase::Presentation))
+				GetPhasePlan(SystemPhase::Presentation).emplace_back(index);
+		}
+
+		const auto sortByOrder = [this](std::vector<SystemIndex>& plan) -> void {
+			std::stable_sort(
+				plan.begin(), plan.end(),
+				[this](const SystemIndex left, const SystemIndex right) -> bool {
+					return m_Systems[left].Specification.Order < m_Systems[right].Specification.Order;
+				});
+		};
+
+		sortByOrder(m_BeginPlan);
+		for (auto& phasePlan : m_PhasePlans)
+			sortByOrder(phasePlan);
+
+	};
+
+
+	void SystemSchedule::MoveFrom(SystemSchedule&& other) noexcept {
+
+		m_Systems = std::move(other.m_Systems);
+		m_AttachSequence = std::move(other.m_AttachSequence);
+		m_BeginPlan = std::move(other.m_BeginPlan);
+		m_PhasePlans = std::move(other.m_PhasePlans);
+		m_BegunSystems = std::move(other.m_BegunSystems);
+		m_LifecycleState = other.m_LifecycleState;
+		m_TopologySealed = other.m_TopologySealed;
+		m_Attached = other.m_Attached;
+
+		other.m_AttachSequence.clear();
+		other.m_BeginPlan.clear();
+		for (auto& phasePlan : other.m_PhasePlans)
+			phasePlan.clear();
+		other.m_BegunSystems.clear();
+		other.m_LifecycleState = LifecycleState::Idle;
+		other.m_TopologySealed = false;
+		other.m_Attached = false;
+
+	};
+
+
+	std::vector<SystemEntry>::iterator SystemSchedule::FindSystem(const SystemID systemId) {
+
+		return std::ranges::find_if(
+			m_Systems,
+			[systemId](const SystemEntry& entry) -> bool {
+				return entry.Information.RuntimeId == systemId;
+			});
+
+	};
+
+	std::vector<SystemEntry>::const_iterator SystemSchedule::FindSystem(const SystemID systemId) const {
+
+		return std::ranges::find_if(
+			m_Systems,
+			[systemId](const SystemEntry& entry) -> bool {
+				return entry.Information.RuntimeId == systemId;
+			});
+
+	};
+
+
+	std::vector<SystemRuntimeView> SystemSchedule::GetRuntimeViews() const {
+
+		std::vector<SystemRuntimeView> views;
+		views.reserve(m_Systems.size());
+
+		for (const SystemEntry& entry : m_Systems) {
+			views.emplace_back(SystemRuntimeView{
+				.Information{ &entry.Information },
+				.Specification{ &entry.Specification },
+				.Instance{ entry.GetInstance() }
+			});
+		}
+
+		return views;
+
+	};
+
+
+	ISystem* SystemSchedule::FindSystemInstance(const SystemID systemId) {
 
 		auto it = FindSystem(systemId);
-		return it == m_Systems.end() ? nullptr : &*it;
+		return it == m_Systems.end() ? nullptr : it->Instance.get();
 
 	};
-	const SystemEntry* SystemSchedule::FindSystemEntry(const SystemID systemId) const {
+
+	const ISystem* SystemSchedule::FindSystemInstance(const SystemID systemId) const {
 
 		auto it = FindSystem(systemId);
-		return it == m_Systems.end() ? nullptr : &*it;
+		return it == m_Systems.end() ? nullptr : it->Instance.get();
 
 	};
-	SystemEntry* SystemSchedule::FindSystemEntry(const std::string_view systemName) {
+
+	ISystem* SystemSchedule::FindSystemInstance(const std::string_view systemName) {
 
 		auto it = std::ranges::find_if(
 			m_Systems,
 			[systemName](const SystemEntry& entry) -> bool {
 				return entry.Information.TypeKey == systemName;
 			});
+		return it == m_Systems.end() ? nullptr : it->Instance.get();
+
+	};
+
+	const ISystem* SystemSchedule::FindSystemInstance(const std::string_view systemName) const {
+
+		auto it = std::ranges::find_if(
+			m_Systems,
+			[systemName](const SystemEntry& entry) -> bool {
+				return entry.Information.TypeKey == systemName;
+			});
+		return it == m_Systems.end() ? nullptr : it->Instance.get();
+
+	};
+
+	const SystemEntry* SystemSchedule::FindSystemEntry(const SystemID systemId) const {
+
+		auto it = FindSystem(systemId);
 		return it == m_Systems.end() ? nullptr : &*it;
 
 	};
+
 	const SystemEntry* SystemSchedule::FindSystemEntry(const std::string_view systemName) const {
 
 		auto it = std::ranges::find_if(
@@ -325,7 +502,6 @@ namespace Ayin {
 		return it == m_Systems.end() ? nullptr : &*it;
 
 	};
-
 
 
 };

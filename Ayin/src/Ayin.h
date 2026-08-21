@@ -48,6 +48,8 @@
 #include "Ayin/Scene/ScriptRegistry.h"
 #include "Ayin/System/Systems.h"
 #include "Ayin/System/SystemPipeline.h"
+#include "Ayin/System/SystemPipelineEditor.h"
+#include "Ayin/System/EditorSession.h"
 #include "Ayin/System/SystemSchedule.h"
 #include "Ayin/System/World.h"
 #include "Ayin/System/WorldSerializer.h"

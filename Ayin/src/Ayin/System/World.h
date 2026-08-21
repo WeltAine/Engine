@@ -34,6 +34,11 @@ namespace Ayin {
 		//ToDo: 临时的重载，用于 编辑器 的编辑模式
 		bool Update(Timestep deltaTime, EditorCamera* editorCamera);
 		bool EndWorldExecutionSession();					// 转发到 Schedule 的 End 对已经 Begin 的系统进行
+		void OnGui();
+		std::vector<SystemRuntimeView> GetRuntimeViews() const { return m_SystemSchedule.GetRuntimeViews(); };
+
+		// 在安全的 World 接口内整体替换 Schedule；失败时保持旧 Schedule 不变。
+		bool ApplyPipeline(const SystemPipeline& systemPipeline);
 
 		inline bool SessionReady() const { return m_CurrentMode != SceneMode::None && m_ActiveScene != nullptr; };
 
@@ -45,7 +50,6 @@ namespace Ayin {
 		inline const Ref<Scene> GetScene() const { return m_ActiveScene; };
 		inline Ref<Scene> GetScene() { return m_ActiveScene; };
 		inline const SystemSchedule& GetSystemSchedule() const { return m_SystemSchedule; };
-		inline SystemSchedule& GetSystemSchedule() { return m_SystemSchedule; };
 		inline SceneMode GetCurrentMode() const { return m_CurrentMode; };
 
 	};

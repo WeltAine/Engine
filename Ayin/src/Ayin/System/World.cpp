@@ -32,10 +32,12 @@ namespace Ayin {
 			return false;
 		}
 
-		m_CurrentMode = mode;
-		SystemContext systemContext{.Scene = *m_ActiveScene, .Mode = m_CurrentMode};
+		SystemContext systemContext{.Scene = *m_ActiveScene, .Mode = mode};
 		m_SystemSchedule.Begin(systemContext);
+		if (!m_SystemSchedule.IsActive())
+			return false;
 
+		m_CurrentMode = mode;
 		return true;
 
 	};
@@ -70,8 +72,11 @@ namespace Ayin {
 
 	bool World::EndWorldExecutionSession() {
 
-		if (!SessionReady()) {
-			AYIN_CORE_WARN("Invalid SceneMode or Scene..");
+		if (m_CurrentMode == SceneMode::None)
+			return true;
+
+		if (m_ActiveScene == nullptr) {
+			AYIN_CORE_WARN("World has no active Scene");
 			return false;
 		}
 
@@ -84,15 +89,58 @@ namespace Ayin {
 	};
 
 
-	void World::ResetSchedule(const SystemPipeline& systemPipeline) {
-		
-		m_SystemSchedule.Clear();
+	void World::OnGui() {
+
+		m_SystemSchedule.OnGui();
+
+	};
+
+
+	bool World::ApplyPipeline(const SystemPipeline& systemPipeline) {
+
+		// 候选 Schedule 必须在旧 Schedule 停止前完整构建。
+		if (!systemPipeline.IsValid()) {
+			AYIN_CORE_ERROR("World Apply failed because the Pipeline is invalid");
+			return false;
+		}
+
+		SystemSchedule candidate = systemPipeline.CreateDetachedSchedule();
+		if (!candidate.IsBuilt()) {
+			AYIN_CORE_ERROR("World Apply failed because the candidate Schedule could not be built");
+			return false;
+		}
+
+		const bool wasActive = m_SystemSchedule.IsActive();
+		const SceneMode previousMode = m_CurrentMode;
+
+		if (wasActive && !EndWorldExecutionSession()) {
+			AYIN_CORE_ERROR("World Apply failed because the current execution session could not end");
+			return false;
+		}
+
+		m_SystemSchedule = std::move(candidate);
 		m_CurrentMode = SceneMode::None;
 
-		systemPipeline.Build(m_SystemSchedule);
+		if (!m_SystemSchedule.AttachSystems()) {
+			AYIN_CORE_ERROR("World Apply failed because the candidate Schedule could not attach");
+			return false;
+		}
+
+		if (wasActive && !BeginWorldExecutionSession(previousMode)) {
+			AYIN_CORE_ERROR("World Apply failed because the candidate Schedule could not begin");
+			return false;
+		}
+
+		return true;
+
+	};
 
 
-	}; 
+	void World::ResetSchedule(const SystemPipeline& systemPipeline) {
+
+		ApplyPipeline(systemPipeline);
+
+	};
 
 
 

@@ -15,7 +15,7 @@ namespace Ayin {
 			.Modes{Disassemble(entry.Specification.ModeMask)},
 			.Order{entry.Specification.Order},
 			.SystemData{[&entry]() -> ::glz::raw_json {
-				const auto result = SystemRegistry::SerializeConfiguration(*entry.Instance, entry.Information.RuntimeId);
+				const auto result = SystemRegistry::SerializeConfiguration(*entry.GetInstance(), entry.Information.RuntimeId);
 				if (!result) {
 					AYIN_CORE_ERROR("Failed to serialize system '{}': {}", entry.Information.TypeKey, result.Error);
 					return SystemJson::NullSystemData;

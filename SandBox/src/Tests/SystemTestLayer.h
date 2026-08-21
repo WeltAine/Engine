@@ -36,8 +36,8 @@
 //!             Update 阶段执行、RemoveSystem 与单次 OnDetach。
 //!          c) CheckDestructorCleanupAndMove()：Schedule / World 析构兜底清理，以及
 //!             SystemSchedule 移动构造后不会遗漏或重复生命周期回调。
-//!          d) CheckScheduleBaseline()：记录当前裸 Schedule 的重复 Begin、重复 End、
-//!             Begin 前 Run 与运行中 Clear 行为；阶段 4 将据此替换为目标状态机断言。
+//!          d) CheckScheduleBaseline()：验证裸 Schedule 的状态机规则：Begin 前 Run 拒绝、
+//!             重复 Begin / End 无操作、运行中禁止结构修改，以及 Clear 自动补齐 End。
 //!          e) CheckSystemRegistry()：验证稳定 TypeKey、描述符、工厂、配置 Codec 和失败结果。
 //!          f) CheckSystemSerialization()：验证 mask 的 JSON 表达，以及现有 DTO 到
 //!             Builder 的 round-trip 骨架。
@@ -102,6 +102,7 @@ private:
 		bool SerializationRoundTripPassed = false;
 		bool WorldLifecyclePassed = false;
 		bool LiveFramePassed = false;
+		bool ApplyPassed = false;
 		bool ContextValid = true;
 		bool Completed = false;
 		bool Pass = false;
