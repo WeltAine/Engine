@@ -36,22 +36,23 @@ namespace Ayin {
 
 	};
 
-
-	class SystemSchedule;
-
+	// 系统管线序列化反序列化中间结构
 	struct SystemPipelineJson {
-
+		
 		std::vector<SystemJson> Systems;
-
+		
 		struct glaze {
 			using T = SystemPipelineJson;
 			static constexpr auto value = glz::object(
 				"Systems", &T::Systems
 			);
 		};
-
+		
 	};
+	
 
+
+	class SystemSchedule;
 
 	//! 因为序列化的来源可能是 schedule 或者 pipeline ，所以决定做成系统，而不是序列化器，用于提供序列化中间机构，对于 WorldSerializer 来说这才是真正重要的
 	class AYIN_API SystemScheduleSerializer {

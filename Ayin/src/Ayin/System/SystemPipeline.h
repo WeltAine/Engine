@@ -105,6 +105,10 @@ namespace Ayin {
 		for (const SceneMode mode : modes)
 			modeMask |= mode;
 
+
+			
+		// 确保 System 已经注册到 SystemRegistry 中
+
 		const SystemDescriptor* descriptor = SystemRegistry::GetSystemDescriptor(GetSystemID<System>());
 		if (descriptor == nullptr) {
 			AYIN_CORE_ERROR("System RuntimeId is not registered");

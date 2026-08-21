@@ -96,7 +96,7 @@ namespace Ayin {
 		const std::initializer_list<SceneMode>& defaultModes,
 		const int order) {
 
-		// 空 TypeKey、重复 TypeKey 和重复 RuntimeId 都会让持久化身份失去唯一性。
+		// 空 TypeKey、重复 TypeKey 和重复 RuntimeId 都会让持久化身份失去唯一性。（简单来说就是不规范的注册）
 		if (typeKey.empty()) {
 			AYIN_CORE_ERROR("System registration failed: TypeKey cannot be empty");
 			return false;

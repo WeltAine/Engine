@@ -12,6 +12,7 @@
 
 #include <entt/entt.hpp>
 
+//! 系统信息头文件
 
 namespace Ayin {
 
@@ -44,6 +45,7 @@ namespace Ayin {
 		return entt::type_hash<System>::value();
 	};
 
+
 	struct SystemSpecification {
 
 		SystemPhase PhaseMask = SystemPhase::None;
@@ -52,15 +54,18 @@ namespace Ayin {
 
 	};
 
+	
+	// System 的可持久化配置先以 JSON 文本保存，领域模型不因此依赖 Glaze。
+	struct SystemConfiguration {
+		
+		std::string Json = "{}";
+		
+	};
+	
+
 	// TypeKey 是定义在项目文件中的稳定身份；运行时实例不需要保存 Registry 描述符。
 	using SystemTypeKey = std::string;
 
-	// System 的可持久化配置先以 JSON 文本保存，领域模型不因此依赖 Glaze。
-	struct SystemConfiguration {
-
-		std::string Json = "{}";
-
-	};
 
 	// Pipeline 中的一个结构定义，不包含 System 实例，也不包含运行时身份。
 	struct SystemDefinition {

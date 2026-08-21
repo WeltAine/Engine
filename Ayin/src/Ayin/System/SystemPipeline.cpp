@@ -37,6 +37,8 @@ namespace Ayin {
 		definitions.reserve(m_Definitions.size());
 
 		for (const SystemDefinition& definition : m_Definitions) {
+
+			// 通过集合降重
 			if (!types.emplace(definition.Type).second) {
 				AYIN_CORE_ERROR("System '{}' appears more than once in the Pipeline", definition.Type);
 				continue;
@@ -50,6 +52,7 @@ namespace Ayin {
 			definitions.emplace_back(definition);
 		}
 
+		// 排序
 		std::stable_sort(
 			definitions.begin(),
 			definitions.end(),
@@ -72,7 +75,7 @@ namespace Ayin {
 			return *this;
 		}
 
-		if (ContainSystem(descriptor->RuntimeId)) {
+		if (ContainSystem(descriptor->RuntimeId)) {	// 防止重复添加
 			AYIN_CORE_ERROR("System '{}' has already been added", descriptor->TypeKey);
 			return *this;
 		}
@@ -84,7 +87,15 @@ namespace Ayin {
 
 		m_NextOrder = std::max(m_NextOrder, canonicalDefinition.Specification.Order + 1);
 		m_Definitions.emplace_back(std::move(canonicalDefinition));
-		SortDefinitions();
+		SortDefinitions();		//? 这个阶段的排序是必要的么？
+		//! 这个排序不是 Schedule 运行所必须的。因为即使 Builder 内部暂时保持添加顺序，Build() 时也可以统一按照 Order 排序，最终 Schedule 仍然能够得到正确顺序。
+		//! 但是，对于当前 Builder 的语义，它又是有必要的。
+		//! Builder 不只是一个构建过程中的临时容器，它之后还要直接服务于 Editor 或者其它东西
+		//! 它们读取的应该是当前 Builder 的结构顺序
+
+		//! 此外，如果排序延迟到 Build()
+		//! GetDefinitions() 暴露的是一个未规范化状态；
+		//! Builder 的调用者无法判断当前容器顺序是否可信。
 
 		return *this;
 
