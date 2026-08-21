@@ -4,34 +4,20 @@
 #include "Ayin/System/SystemSchedule.h"
 
 namespace Ayin {
-	
+
 	// ---------------------------------------------- 辅助方法 -------------------------------------------------------
 
-	SystemJson BuildSystemJson(const SystemRegistration& registration) {
-
-		return SystemJson{
-			.Name{registration.Information.Name},
-			.Phases{Disassemble(registration.Specification.PhaseMask)},
-			.Modes{Disassemble(registration.Specification.ModeMask)},
-			.Order{registration.Specification.Order},
-			.SystemData{registration.SystemData}
-		};
-
-
-	};
-
-	//? 有必要么？我们该从 Entry 中反序列化么
 	SystemJson BuildSystemJson(const SystemEntry& entry) {
 
 		return SystemJson{
-			.Name{entry.Information.Name},
+			.Name{entry.Information.TypeKey},
 			.Phases{Disassemble(entry.Specification.PhaseMask)},
 			.Modes{Disassemble(entry.Specification.ModeMask)},
 			.Order{entry.Specification.Order},
 			.SystemData{[&entry]() -> ::glz::raw_json {
 				const auto result = SystemRegistry::SerializeConfiguration(*entry.Instance, entry.Information.RuntimeId);
 				if (!result) {
-					AYIN_CORE_ERROR("Failed to serialize system '{}': {}", entry.Information.Name, result.Error);
+					AYIN_CORE_ERROR("Failed to serialize system '{}': {}", entry.Information.TypeKey, result.Error);
 					return SystemJson::NullSystemData;
 				}
 
@@ -42,19 +28,22 @@ namespace Ayin {
 	};
 
 
-
-
-
 	// --------------------------------------------------------------------------------------------------------
 
 	SystemPipeline::Builder SystemScheduleSerializer::Deserializer(const SystemPipelineJson& systemPipelineJson) {
-		
+
 		SystemPipeline::Builder builder{};
 
-		for (const auto systemJson : systemPipelineJson.Systems) {
-		
-			builder.AddSystem((SystemRegistration)systemJson);
-
+		for (const SystemJson& systemJson : systemPipelineJson.Systems) {
+			builder.AddSystem(SystemDefinition{
+				.Type{systemJson.Name},
+				.Specification{
+					.PhaseMask{Synthesis(systemJson.Phases)},
+					.ModeMask{Synthesis(systemJson.Modes)},
+					.Order{systemJson.Order}
+				},
+				.Configuration{.Json{systemJson.SystemData.str}}
+			});
 		}
 
 		return builder;
@@ -66,16 +55,14 @@ namespace Ayin {
 
 		SystemPipelineJson pipelineJson;
 
-		for (const SystemEntry& entry : schedule.GetSystems()) {
-		
+		for (const SystemEntry& entry : schedule.GetSystems())
 			pipelineJson.Systems.emplace_back(BuildSystemJson(entry));
-
-		}
 
 		return pipelineJson;
 
 	};
-	std::optional<SystemPipelineJson> SystemScheduleSerializer::BuildSystemPipelineJsonFrom(std::string_view jsonStr) {
+
+	std::optional<SystemPipelineJson> SystemScheduleSerializer::BuildSystemPipelineJsonFrom(const std::string_view jsonStr) {
 
 		SystemPipelineJson pipelineJson;
 		auto err = glz::read_json(pipelineJson, jsonStr);

@@ -175,15 +175,13 @@ namespace Ayin {
 	};
 
 
-	SystemSchedule& SystemSchedule::AddSystem(const SystemRegistration& systemRegistration) {
+	SystemSchedule& SystemSchedule::AddSystem(const SystemDefinition& definition) {
 	
 		// 获取描述符（正确的系统描述）
-		const SystemDescriptor* descriptor = SystemRegistry::GetSystemDescriptor(systemRegistration.Information.RuntimeId);
-		if (descriptor == nullptr)
-			descriptor = SystemRegistry::GetSystemDescriptor(systemRegistration.Information.Name);
+		const SystemDescriptor* descriptor = SystemRegistry::GetSystemDescriptor(definition.Type);
 
 		if (descriptor == nullptr) {
-			AYIN_CORE_ERROR("System '{}' is not registered", systemRegistration.Information.Name);
+			AYIN_CORE_ERROR("System '{}' is not registered", definition.Type);
 			return *this;
 		}
 
@@ -191,9 +189,9 @@ namespace Ayin {
 		if (FindSystem(descriptor->RuntimeId) != m_Systems.end())
 			return *this;
 
-		const int order = systemRegistration.Specification.Order < 0
+		const int order = definition.Specification.Order < 0
 			? m_NextOrder
-			: systemRegistration.Specification.Order;
+			: definition.Specification.Order;
 
 		// 构建实例和反序列化
 		Scope<ISystem> instance = SystemRegistry::CreateSystemBy(descriptor->RuntimeId);
@@ -202,9 +200,9 @@ namespace Ayin {
 			return *this;
 		}
 
-		if (systemRegistration.SystemData.str != SystemRegistration::NullSystemData) {
+		if (definition.Configuration.Json != "{}") {
 			const auto result = SystemRegistry::DeserializeConfiguration(
-				*instance, descriptor->RuntimeId, systemRegistration.SystemData.str);
+				*instance, descriptor->RuntimeId, definition.Configuration.Json);
 			if (!result) {
 				AYIN_CORE_ERROR("Failed to deserialize system '{}': {}", descriptor->TypeKey, result.Error);
 				return *this;
@@ -214,8 +212,8 @@ namespace Ayin {
 		// 插入系统
 		SystemEntry& entry = m_Systems.emplace_back(
 			SystemEntry{
-				.Information{.RuntimeId{descriptor->RuntimeId}, .Name{descriptor->TypeKey}},
-				.Specification{.PhaseMask{systemRegistration.Specification.PhaseMask}, .ModeMask{systemRegistration.Specification.ModeMask}, .Order{order}},
+				.Information{.RuntimeId{descriptor->RuntimeId}, .TypeKey{descriptor->TypeKey}},
+				.Specification{.PhaseMask{definition.Specification.PhaseMask}, .ModeMask{definition.Specification.ModeMask}, .Order{order}},
 				.Instance{std::move(instance)},
 			});
 
@@ -312,7 +310,7 @@ namespace Ayin {
 		auto it = std::ranges::find_if(
 			m_Systems,
 			[systemName](const SystemEntry& entry) -> bool {
-				return entry.Information.Name == systemName;
+				return entry.Information.TypeKey == systemName;
 			});
 		return it == m_Systems.end() ? nullptr : &*it;
 
@@ -322,7 +320,7 @@ namespace Ayin {
 		auto it = std::ranges::find_if(
 			m_Systems,
 			[systemName](const SystemEntry& entry) -> bool {
-				return entry.Information.Name == systemName;
+				return entry.Information.TypeKey == systemName;
 			});
 		return it == m_Systems.end() ? nullptr : &*it;
 

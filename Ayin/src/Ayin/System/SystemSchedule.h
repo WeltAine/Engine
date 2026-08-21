@@ -152,7 +152,6 @@ namespace Ayin {
 	// -----------------------------------------------------------------------------------------------------------------------------
 
 
-	struct SystemRegistration;
 
 	class SystemSchedule {
 
@@ -172,7 +171,7 @@ namespace Ayin {
 
 
 
-		SystemSchedule& AddSystem(const SystemRegistration& systemRegistration);
+		SystemSchedule& AddSystem(const SystemDefinition& definition);
 
 
         template<typename System>
@@ -264,7 +263,7 @@ namespace Ayin {
 		m_Systems.emplace_back(
 			std::move<SystemEntry>(
 				SystemEntry{
-				.Information{.RuntimeId{descriptor->RuntimeId}, .Name{descriptor->TypeKey}},
+				.Information{.RuntimeId{descriptor->RuntimeId}, .TypeKey{descriptor->TypeKey}},
 				.Specification{.PhaseMask{phaseMask}, .ModeMask{modeMask}, .Order{order}},
 				.Instance{CreateScope<System>()},
 				}

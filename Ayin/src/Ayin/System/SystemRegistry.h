@@ -17,9 +17,6 @@
 
 namespace Ayin {
 
-	// TypeKey 是项目文件和 Editor 使用的稳定身份；RuntimeId 只在当前进程内用于快速比较。
-	using SystemTypeKey = std::string;
-
 
 	struct SerializeSystemConfigurationResult {
 

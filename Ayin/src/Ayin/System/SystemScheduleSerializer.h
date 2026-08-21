@@ -4,7 +4,6 @@
 
 #include "Ayin/Serialization/Json/EngineEnumJson.h"
 #include "Ayin/System/SystemPipeline.h"
-#include "Ayin/System/SystemRegistry.h"
 
 #include <optional>
 #include <string>
@@ -18,11 +17,9 @@ namespace Ayin {
 		std::string Name;
 
 		std::vector<SystemPhase> Phases;
-
 		std::vector<SceneMode> Modes;
 
-		int Order = -1;											// -1 表示不指定顺序（将由程序以自动递加的顺序设定）
-
+		int Order = -1;
 		::glz::raw_json SystemData = NullSystemData;
 
 		static constexpr const char* NullSystemData = "{}";
@@ -35,24 +32,6 @@ namespace Ayin {
 				"Modes", &T::Modes,
 				"Order", &T::Order,
 				"SystemData", &T::SystemData);
-		};
-
-
-		operator SystemRegistration() const {
-		
-			const SystemDescriptor* descriptor = SystemRegistry::GetSystemDescriptor(Name);
-			return SystemRegistration{
-				// 未知 TypeKey 交给 Builder 统一拒绝，避免 DTO 转换阶段空指针解引用。
-				.Information{.RuntimeId{descriptor == nullptr ? SystemID{} : descriptor->RuntimeId}, .Name{Name}},
-				.Specification{
-					.PhaseMask{Synthesis(Phases)},
-					.ModeMask{Synthesis(Modes)},
-					.Order{Order}
-				},
-				.SystemData{SystemData}
-			};
-
-
 		};
 
 	};
@@ -73,10 +52,6 @@ namespace Ayin {
 
 	};
 
-};
-
-
-namespace Ayin {
 
 	//! 因为序列化的来源可能是 schedule 或者 pipeline ，所以决定做成系统，而不是序列化器，用于提供序列化中间机构，对于 WorldSerializer 来说这才是真正重要的
 	class AYIN_API SystemScheduleSerializer {
@@ -85,11 +60,10 @@ namespace Ayin {
 
 		static SystemPipeline::Builder Deserializer(const SystemPipelineJson& systemPipelineJson);
 
-
 		static std::optional<SystemPipelineJson> BuildSystemPipelineJson(const SystemSchedule& schedule);
 		static std::optional<SystemPipelineJson> BuildSystemPipelineJsonFrom(std::string_view jsonStr);
-		
 
 	};
+
 
 };

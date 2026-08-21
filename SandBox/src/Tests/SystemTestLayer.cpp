@@ -138,12 +138,13 @@ void SystemTestLayer::RunOneShotChecks() {
 	const bool schedulePassed = CheckScheduleLifecycle();
 	const bool cleanupPassed = CheckDestructorCleanupAndMove();
 	const bool baselinePassed = CheckScheduleBaseline();
+	const bool builderModelPassed = CheckPipelineBuilder();
 	const bool registryPassed = CheckSystemRegistry();
 	const bool serializationPassed = CheckSystemSerialization();
 	m_RanChecks = true;
 
 	// 一次性检查失败时也标记完成，使自动化运行能够退出并报告 FAIL，而不是一直挂起窗口。
-	if (!pipelinePassed || !schedulePassed || !cleanupPassed || !baselinePassed || !registryPassed || !serializationPassed || !m_State.Failure.empty()) {
+	if (!pipelinePassed || !schedulePassed || !cleanupPassed || !baselinePassed || !builderModelPassed || !registryPassed || !serializationPassed || !m_State.Failure.empty()) {
 		m_State.Completed = true;
 	}
 }
@@ -432,6 +433,59 @@ bool SystemTestLayer::CheckScheduleBaseline() {
 	return m_State.ScheduleBaselinePassed;
 }
 
+bool SystemTestLayer::CheckPipelineBuilder() {
+	// Builder 使用 vector 保存可编辑定义：同 Order 的相对顺序由 stable_sort 保留，唯一性单独检查。
+	Ayin::SystemPipeline::Builder builder;
+	builder
+		.AddSystem(Ayin::SystemDefinition{
+			.Type{"SandBox.Tests.LateSystem"},
+			.Specification{.PhaseMask{Ayin::SystemPhase::Update}, .ModeMask{Ayin::SceneMode::Editor}, .Order{5}}
+		})
+		.AddSystem(Ayin::SystemDefinition{
+			.Type{"SandBox.Tests.EarlySystem"},
+			.Specification{.PhaseMask{Ayin::SystemPhase::Update}, .ModeMask{Ayin::SceneMode::Editor}, .Order{5}}
+		})
+		.AddSystem(Ayin::SystemDefinition{
+			.Type{"SandBox.Tests.SerializationSystem"},
+			.Specification{.PhaseMask{Ayin::SystemPhase::Update}, .ModeMask{Ayin::SceneMode::Editor}, .Order{2}},
+			.Configuration{.Json{"{\"Exposure\":17}"}}
+		});
+
+	// 同一个 TypeKey 不得插入第二次；不依赖容器比较器的副作用表达唯一性。
+	builder.AddSystem(Ayin::SystemDefinition{
+		.Type{"SandBox.Tests.EarlySystem"},
+		.Specification{.PhaseMask{Ayin::SystemPhase::Presentation}, .ModeMask{Ayin::SceneMode::Runtime}, .Order{0}}
+	});
+
+	const auto& definitions = builder.GetDefinitions();
+	const bool builderOrderPassed = definitions.size() == 3 &&
+		definitions[0].Type == "SandBox.Tests.SerializationSystem" && definitions[0].Specification.Order == 2 &&
+		definitions[1].Type == "SandBox.Tests.LateSystem" && definitions[1].Specification.Order == 5 &&
+		definitions[2].Type == "SandBox.Tests.EarlySystem" && definitions[2].Specification.Order == 5 &&
+		definitions[0].Configuration.Json == "{\"Exposure\":17}";
+
+	Ayin::SystemPipeline pipeline = builder.Build();
+	const auto& pipelineDefinitions = pipeline.GetDefinitions();
+	Ayin::SystemSchedule schedule = pipeline.CreateSchedule();
+	const Ayin::SystemEntry* serializedEntry =
+		schedule.FindSystemEntry(Ayin::GetSystemID<SerializationSystem>());
+	const SerializationSystem* serializedSystem = serializedEntry == nullptr || serializedEntry->Instance == nullptr
+		? nullptr
+		: static_cast<const SerializationSystem*>(serializedEntry->Instance.get());
+	const bool pipelinePassed = pipelineDefinitions.size() == 3 &&
+		pipelineDefinitions[0].Type == definitions[0].Type &&
+		pipelineDefinitions[1].Type == definitions[1].Type &&
+		pipelineDefinitions[2].Type == definitions[2].Type &&
+		serializedSystem != nullptr && serializedSystem->Exposure == 17;
+
+	m_State.BuilderModelPassed = builderOrderPassed && pipelinePassed;
+	if (!m_State.BuilderModelPassed) {
+		SetFailure("Pipeline Builder did not preserve definition order or configuration");
+	}
+
+	return m_State.BuilderModelPassed;
+}
+
 bool SystemTestLayer::CheckSystemRegistry() {
 	// Registry 的公开边界只使用 TypeKey、ISystem 引用和 Result；Pipeline / DTO 不应参与其中。
 	const Ayin::SystemDescriptor* descriptor =
@@ -642,6 +696,7 @@ void SystemTestLayer::OnImGuiRender() {
 	RenderCheck("Destructor fallback cleanup", m_State.DestructorCleanupPassed);
 	RenderCheck("Schedule move construction", m_State.MoveConstructionPassed);
 	RenderCheck("Schedule legacy baseline", m_State.ScheduleBaselinePassed);
+	RenderCheck("Pipeline Builder model", m_State.BuilderModelPassed);
 	RenderCheck("System Registry", m_State.RegistryPassed);
 	RenderCheck("Mask JSON", m_State.MaskJsonPassed);
 	RenderCheck("Serialization round-trip", m_State.SerializationRoundTripPassed);

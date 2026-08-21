@@ -96,6 +96,7 @@ private:
 		bool DestructorCleanupPassed = false;
 		bool MoveConstructionPassed = false;
 		bool ScheduleBaselinePassed = false;
+		bool BuilderModelPassed = false;
 		bool RegistryPassed = false;
 		bool MaskJsonPassed = false;
 		bool SerializationRoundTripPassed = false;
@@ -188,6 +189,7 @@ private:
 	bool CheckScheduleLifecycle();
 	bool CheckDestructorCleanupAndMove();
 	bool CheckScheduleBaseline();
+	bool CheckPipelineBuilder();
 	bool CheckSystemRegistry();
 	bool CheckSystemSerialization();
 
