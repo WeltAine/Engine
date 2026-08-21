@@ -91,11 +91,11 @@ void SystemTestLayer::RegisterTestSystems() {
 		return;
 	}
 
-	Ayin::SystemRegistry::Registry<EarlySystem>({}, {}, 0);
-	Ayin::SystemRegistry::Registry<LateSystem>({}, {}, 0);
-	Ayin::SystemRegistry::Registry<RuntimeSystem>({}, {}, 0);
-	Ayin::SystemRegistry::Registry<LifecycleSystem>({}, {}, 0);
-	Ayin::SystemRegistry::Registry<SerializationSystem>({}, {}, 0);
+	Ayin::SystemRegistry::Register<EarlySystem>("SandBox.Tests.EarlySystem", "Early System", {}, {}, 0);
+	Ayin::SystemRegistry::Register<LateSystem>("SandBox.Tests.LateSystem", "Late System", {}, {}, 0);
+	Ayin::SystemRegistry::Register<RuntimeSystem>("SandBox.Tests.RuntimeSystem", "Runtime System", {}, {}, 0);
+	Ayin::SystemRegistry::Register<LifecycleSystem>("SandBox.Tests.LifecycleSystem", "Lifecycle System", {}, {}, 0);
+	Ayin::SystemRegistry::Register<SerializationSystem>("SandBox.Tests.SerializationSystem", "Serialization System", {}, {}, 0);
 	registered = true;
 }
 
@@ -138,11 +138,12 @@ void SystemTestLayer::RunOneShotChecks() {
 	const bool schedulePassed = CheckScheduleLifecycle();
 	const bool cleanupPassed = CheckDestructorCleanupAndMove();
 	const bool baselinePassed = CheckScheduleBaseline();
+	const bool registryPassed = CheckSystemRegistry();
 	const bool serializationPassed = CheckSystemSerialization();
 	m_RanChecks = true;
 
 	// 一次性检查失败时也标记完成，使自动化运行能够退出并报告 FAIL，而不是一直挂起窗口。
-	if (!pipelinePassed || !schedulePassed || !cleanupPassed || !baselinePassed || !serializationPassed || !m_State.Failure.empty()) {
+	if (!pipelinePassed || !schedulePassed || !cleanupPassed || !baselinePassed || !registryPassed || !serializationPassed || !m_State.Failure.empty()) {
 		m_State.Completed = true;
 	}
 }
@@ -431,6 +432,68 @@ bool SystemTestLayer::CheckScheduleBaseline() {
 	return m_State.ScheduleBaselinePassed;
 }
 
+bool SystemTestLayer::CheckSystemRegistry() {
+	// Registry 的公开边界只使用 TypeKey、ISystem 引用和 Result；Pipeline / DTO 不应参与其中。
+	const Ayin::SystemDescriptor* descriptor =
+		Ayin::SystemRegistry::GetSystemDescriptor("SandBox.Tests.SerializationSystem");
+	const bool descriptorPassed = descriptor != nullptr &&
+		descriptor->RuntimeId == Ayin::GetSystemID<SerializationSystem>() &&
+		descriptor->TypeKey == "SandBox.Tests.SerializationSystem" &&
+		descriptor->DisplayName == "Serialization System" &&
+		descriptor->DefaultSpecification.PhaseMask == Ayin::SystemPhase::None &&
+		descriptor->DefaultSpecification.ModeMask == Ayin::SceneMode::None &&
+		descriptor->DefaultSpecification.Order == 0 &&
+		Ayin::SystemRegistry::GetSystemDescriptor(descriptor->RuntimeId) == descriptor;
+
+	const std::size_t descriptorCount = Ayin::SystemRegistry::GetAllSystemDescriptors().size();
+	const bool duplicateRejected =
+		!Ayin::SystemRegistry::Register<EarlySystem>("SandBox.Tests.EarlySystem", "Early System", {}, {}, 0) &&
+		Ayin::SystemRegistry::GetAllSystemDescriptors().size() == descriptorCount;
+
+	const auto unknownWrite = Ayin::SystemRegistry::SerializeConfiguration(
+		SerializationSystem{}, "SandBox.Tests.Unknown");
+	Ayin::Scope<Ayin::ISystem> unknownInstance =
+		Ayin::SystemRegistry::CreateSystemBy("SandBox.Tests.SerializationSystem");
+	const auto unknownRead = unknownInstance == nullptr
+		? Ayin::DeserializeSystemConfigurationResult{ .Error{ "System factory returned null" } }
+		: Ayin::SystemRegistry::DeserializeConfiguration(
+			*unknownInstance, "SandBox.Tests.Unknown", "{}");
+	const bool unknownRejected =
+		Ayin::SystemRegistry::CreateSystemBy("SandBox.Tests.Unknown") == nullptr &&
+		!unknownWrite && !unknownRead;
+
+	SerializationSystem source;
+	source.Exposure = 42;
+	const auto writeResult = Ayin::SystemRegistry::SerializeConfiguration(
+		source, "SandBox.Tests.SerializationSystem");
+	Ayin::Scope<Ayin::ISystem> restored =
+		Ayin::SystemRegistry::CreateSystemBy(Ayin::GetSystemID<SerializationSystem>());
+	const auto readResult = restored == nullptr
+		? Ayin::DeserializeSystemConfigurationResult{ .Error{ "System factory returned null" } }
+		: Ayin::SystemRegistry::DeserializeConfiguration(
+			*restored, Ayin::GetSystemID<SerializationSystem>(), writeResult.Json);
+	const SerializationSystem* restoredSystem = restored == nullptr
+		? nullptr
+		: static_cast<const SerializationSystem*>(restored.get());
+	const bool configurationPassed = writeResult && readResult && restoredSystem != nullptr &&
+		restoredSystem->Exposure == 42;
+
+	EarlySystem systemWithoutConfiguration;
+	const bool emptyConfigurationPassed =
+		Ayin::SystemRegistry::DeserializeConfiguration(
+			systemWithoutConfiguration, "SandBox.Tests.EarlySystem", "{}") &&
+		!Ayin::SystemRegistry::DeserializeConfiguration(
+			systemWithoutConfiguration, "SandBox.Tests.EarlySystem", "{\"Unexpected\":1}");
+
+	m_State.RegistryPassed = descriptorPassed && duplicateRejected && unknownRejected &&
+		configurationPassed && emptyConfigurationPassed;
+	if (!m_State.RegistryPassed) {
+		SetFailure("SystemRegistry descriptor, codec or error boundary mismatch");
+	}
+
+	return m_State.RegistryPassed;
+}
+
 bool SystemTestLayer::CheckSystemSerialization() {
 	// SystemJson 的 Phases / Modes 是离散枚举数组，而不是底层整数 mask。
 	// 这个检查同时覆盖 Glaze 的枚举 metadata 和现有 Serializer 的中间 DTO。
@@ -579,6 +642,7 @@ void SystemTestLayer::OnImGuiRender() {
 	RenderCheck("Destructor fallback cleanup", m_State.DestructorCleanupPassed);
 	RenderCheck("Schedule move construction", m_State.MoveConstructionPassed);
 	RenderCheck("Schedule legacy baseline", m_State.ScheduleBaselinePassed);
+	RenderCheck("System Registry", m_State.RegistryPassed);
 	RenderCheck("Mask JSON", m_State.MaskJsonPassed);
 	RenderCheck("Serialization round-trip", m_State.SerializationRoundTripPassed);
 	RenderCheck("Live World frame", m_State.LiveFramePassed);

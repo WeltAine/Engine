@@ -3,13 +3,13 @@
 #include "Ayin/Core/Core.h"
 
 #include "Ayin/System/SystemTypes.h"
+#include "Ayin/System/SystemRegistry.h"
 
 #include <glaze/glaze.hpp>
 
 #include <concepts>
 #include <set>
 #include <string_view>
-#include <typeinfo>
 #include <vector>
 
 
@@ -145,8 +145,15 @@ namespace Ayin {
 			modeMask |= mode;
 		}
 
+		const SystemDescriptor* descriptor = SystemRegistry::GetSystemDescriptor(GetSystemID<System>());
+		if (descriptor == nullptr) {
+			AYIN_CORE_ERROR("System RuntimeId is not registered");
+			return *this;
+		}
+
 		SystemRegistration systemRegistration{
-			.Information{.RuntimeId{GetSystemID<System>()}, .Name{typeid(System).name()}},
+			// Name 在 SystemDefinition 出现前暂存 TypeKey，不能再保存编译器相关的 RTTI 名称。
+			.Information{.RuntimeId{descriptor->RuntimeId}, .Name{descriptor->TypeKey}},
 			.Specification{.PhaseMask{phaseMask}, .ModeMask{modeMask}, .Order{order}}
 		};
 

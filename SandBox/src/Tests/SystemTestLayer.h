@@ -38,7 +38,8 @@
 //!             SystemSchedule 移动构造后不会遗漏或重复生命周期回调。
 //!          d) CheckScheduleBaseline()：记录当前裸 Schedule 的重复 Begin、重复 End、
 //!             Begin 前 Run 与运行中 Clear 行为；阶段 4 将据此替换为目标状态机断言。
-//!          e) CheckSystemSerialization()：验证 mask 的 JSON 表达，以及现有 DTO 到
+//!          e) CheckSystemRegistry()：验证稳定 TypeKey、描述符、工厂、配置 Codec 和失败结果。
+//!          f) CheckSystemSerialization()：验证 mask 的 JSON 表达，以及现有 DTO 到
 //!             Builder 的 round-trip 骨架。
 //!
 //!  2. OnUpdate(deltaTime)
@@ -95,6 +96,7 @@ private:
 		bool DestructorCleanupPassed = false;
 		bool MoveConstructionPassed = false;
 		bool ScheduleBaselinePassed = false;
+		bool RegistryPassed = false;
 		bool MaskJsonPassed = false;
 		bool SerializationRoundTripPassed = false;
 		bool WorldLifecyclePassed = false;
@@ -186,6 +188,7 @@ private:
 	bool CheckScheduleLifecycle();
 	bool CheckDestructorCleanupAndMove();
 	bool CheckScheduleBaseline();
+	bool CheckSystemRegistry();
 	bool CheckSystemSerialization();
 
 	// 比较 SystemContext 中的场景和时间步是否被正确转发。

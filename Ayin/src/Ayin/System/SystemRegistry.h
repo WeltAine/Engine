@@ -9,35 +9,53 @@
 #include <concepts>
 #include <functional>
 #include <initializer_list>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
 
+
 namespace Ayin {
 
-	struct SystemRegistration;
+	// TypeKey 是项目文件和 Editor 使用的稳定身份；RuntimeId 只在当前进程内用于快速比较。
+	using SystemTypeKey = std::string;
 
-	// 系统是否具备独立的序列化要求
+
+	struct SerializeSystemConfigurationResult {
+
+		std::string Json = "{}";
+		std::string Error;
+
+		[[nodiscard]] explicit operator bool() const { return Error.empty(); }
+
+	};
+
+	struct DeserializeSystemConfigurationResult {
+
+		std::string Error;
+
+		[[nodiscard]] explicit operator bool() const { return Error.empty(); }
+
+	};
+
+
+	// 系统是否具备独立的序列化要求。
 	template<typename System>
-	concept HasSystemGlazeMeta = requires{System::glaze::value; };
+	concept HasSystemGlazeMeta = requires { System::glaze::value; };
 
-	
+
 	struct AYIN_API SystemDescriptor {
 
-		static constexpr const char* NullSystemData = "{}";
-
-		SystemInformation Information;
+		SystemID RuntimeId;
+		SystemTypeKey TypeKey;
+		std::string DisplayName;
 		SystemSpecification DefaultSpecification;
 
-		std::function<Scope<ISystem>()> CreateSystem;
-		std::function<std::string(const Scope<ISystem>&)> SerializeSystem;					// 序列化 系统的 自有数据
-		std::function<bool(Scope<ISystem>&, const std::string&)> DeserializeSystem;			// 反序列化 系统改的自有数据
+		std::function<Scope<ISystem>()> Create;
+		std::function<SerializeSystemConfigurationResult(const ISystem&)> SerializeConfiguration;
+		std::function<DeserializeSystemConfigurationResult(ISystem&, std::string_view)> DeserializeConfiguration;
 
-		// 支持从 描述符 转换为对应 注册配置
-		operator SystemRegistration() const;
-
-		};
-
+	};
 
 
 	class AYIN_API SystemRegistry {
@@ -46,19 +64,24 @@ namespace Ayin {
 
 		template<typename System>
 			requires std::derived_from<System, ISystem>&& std::default_initializable<System>
-		static void Registry(const std::initializer_list<SystemPhase>& defaultPhases, const std::initializer_list<SceneMode>& defaultModes, int order);
+		static bool Register(
+			std::string_view typeKey,
+			std::string_view displayName,
+			const std::initializer_list<SystemPhase>& defaultPhases,
+			const std::initializer_list<SceneMode>& defaultModes,
+			int order);
 
-		static Scope<ISystem> CreateSystemBy(const std::string_view systemName);
-		static Scope<ISystem> CreateSystemBy(SystemID systemId);
-		static std::string SerializeSystem(const Scope<ISystem>& system, std::string_view systemName);
-		static std::string SerializeSystem(const Scope<ISystem>& system, const SystemID systemId);
-		static bool DeserializeSystem(Scope<ISystem>& system, std::string_view systemName, const std::string& json);
-		static bool DeserializeSystem(Scope<ISystem>& system, const SystemID systemId, const std::string& json);
+		static Scope<ISystem> CreateSystemBy(std::string_view typeKey);
+		static Scope<ISystem> CreateSystemBy(SystemID runtimeId);
 
+		static SerializeSystemConfigurationResult SerializeConfiguration(const ISystem& system, std::string_view typeKey);
+		static SerializeSystemConfigurationResult SerializeConfiguration(const ISystem& system, SystemID runtimeId);
+		static DeserializeSystemConfigurationResult DeserializeConfiguration(ISystem& system, std::string_view typeKey, std::string_view json);
+		static DeserializeSystemConfigurationResult DeserializeConfiguration(ISystem& system, SystemID runtimeId, std::string_view json);
 
 		static const std::vector<SystemDescriptor>& GetAllSystemDescriptors();
-		static const SystemDescriptor* GetSystemDescriptor(std::string_view systemName);
-		static const SystemDescriptor* GetSystemDescriptor(SystemID systemId);
+		static const SystemDescriptor* GetSystemDescriptor(std::string_view typeKey);
+		static const SystemDescriptor* GetSystemDescriptor(SystemID runtimeId);
 
 	private:
 
@@ -69,120 +92,128 @@ namespace Ayin {
 
 	template<typename System>
 		requires std::derived_from<System, ISystem>&& std::default_initializable<System>
-	void SystemRegistry::Registry(const std::initializer_list<SystemPhase>& defaultPhases, const std::initializer_list<SceneMode>& defaultModes, int order) {
+	bool SystemRegistry::Register(
+		const std::string_view typeKey,
+		const std::string_view displayName,
+		const std::initializer_list<SystemPhase>& defaultPhases,
+		const std::initializer_list<SceneMode>& defaultModes,
+		const int order) {
 
-		// 系统信息
-		SystemInformation information{
-			.RuntimeId{GetSystemID<System>()},
-			.Name{typeid(System).name()}
-		};
+		// 空 TypeKey、重复 TypeKey 和重复 RuntimeId 都会让持久化身份失去唯一性。
+		if (typeKey.empty()) {
+			AYIN_CORE_ERROR("System registration failed: TypeKey cannot be empty");
+			return false;
+		}
 
-		// 系统参数
+		const SystemID runtimeId = GetSystemID<System>();
+		if (GetSystemDescriptor(typeKey) != nullptr || GetSystemDescriptor(runtimeId) != nullptr) {
+			AYIN_CORE_ERROR("System registration failed: duplicate TypeKey '{}' or RuntimeId", typeKey);
+			return false;
+		}
+
 		SystemPhase phaseMask = SystemPhase::None;
-		for (const auto& phase : defaultPhases) {
+		for (const SystemPhase phase : defaultPhases) {
 			phaseMask |= phase;
 		}
 
 		SceneMode modeMask = SceneMode::None;
-		for (const auto& mode : defaultModes) {
+		for (const SceneMode mode : defaultModes) {
 			modeMask |= mode;
 		}
 
-		SystemSpecification specification{
-			.PhaseMask{phaseMask},
-			.ModeMask{modeMask},
-			.Order{order}
+		SystemDescriptor descriptor{
+			.RuntimeId{runtimeId},
+			.TypeKey{typeKey},
+			.DisplayName{displayName.empty() ? std::string{ typeKey } : std::string{ displayName }},
+			.DefaultSpecification{
+				.PhaseMask{phaseMask},
+				.ModeMask{modeMask},
+				.Order{order}
+			},
+			.Create{
+				[]() -> Scope<ISystem> {
+					return CreateScope<System>();
+				}
+			},
+			.SerializeConfiguration{
+				[](const ISystem& system) -> SerializeSystemConfigurationResult {
+					if constexpr (HasSystemGlazeMeta<System>) {
+						try {
+							const System* concreteSystem = dynamic_cast<const System*>(&system);
+							if (concreteSystem == nullptr) {
+								return {.Error{ "System configuration type does not match its TypeKey" }};
+							}
+
+							auto result = ::glz::write_json(*concreteSystem);
+							if (!result) {
+								return {.Error{glz::format_error(result.error())}};
+							}
+
+							return {.Json{std::move(*result)}};
+						}
+						catch (const std::exception& exception) {
+							return {.Error{exception.what()}};
+						}
+						catch (...) {
+							return {.Error{"unknown exception while serializing System configuration"}};
+						}
+					}
+
+					return {};
+				}
+			},
+			.DeserializeConfiguration{
+				[](ISystem& system, const std::string_view json) -> DeserializeSystemConfigurationResult {
+					if constexpr (HasSystemGlazeMeta<System>) {
+						try {
+							System* concreteSystem = dynamic_cast<System*>(&system);
+							if (concreteSystem == nullptr) {
+								return {.Error{ "System configuration type does not match its TypeKey" }};
+							}
+
+							auto error = ::glz::read_json(*concreteSystem, json);
+							if (error) {
+								return {.Error{glz::format_error(error, json)}};
+							}
+
+							return {};
+						}
+						catch (const std::exception& exception) {
+							return {.Error{exception.what()}};
+						}
+						catch (...) {
+							return {.Error{"unknown exception while deserializing System configuration"}};
+						}
+					}
+
+					return json.empty() || json == "{}"
+						? DeserializeSystemConfigurationResult{}
+						: DeserializeSystemConfigurationResult{.Error{"System does not declare serializable configuration"}};
+				}
+			}
 		};
 
-
-		// 系统回调
-		std::function<Scope<ISystem>()> createSystem =
-			[]() -> Scope<ISystem> {
-
-			return CreateScope<System>();//！ std::unique_ptr 提供的 converting move constructor，即转换移动构造。（当模板类型具备继承关系时可以转换）
-
-			};
-
-		std::function<std::string(const Scope<ISystem>&)> serializeSystem =
-			[](const Scope<ISystem>& system_ptr) ->std::string {
-
-			if constexpr (HasSystemGlazeMeta<System>) {
-
-				if (system_ptr) {
-
-					const System* system = static_cast<const System*>(system_ptr.get());//? const Scopr<ISystem> 的 get 返回的就是 const System* 么
-
-					auto result = ::glz::write_json(*system);
-					if (!result) {
-						return SystemDescriptor::NullSystemData;
-					}
-
-					return *result;
-
-				}
-				else {
-					return SystemDescriptor::NullSystemData;
-				}
-
-			}
-
-			return SystemDescriptor::NullSystemData;
-
-			};
-
-		std::function<bool(Scope<ISystem>&, const std::string&)> deserializeSystem =
-			[](Scope<ISystem>& system_ptr, const std::string& json) -> bool {
-
-			if constexpr (HasSystemGlazeMeta<System>) {
-
-				if (system_ptr.get()) {
-
-					System* system = static_cast<System*>(system_ptr.get());
-
-					auto err = ::glz::read_json(*system, json);
-					if (err) {
-						AYIN_CORE_ERROR("Deserialize failed: {}", glz::format_error(err, json));
-						return false;
-					}
-
-					return true;
-
-				}
-				else {
-					return false;
-				}
-
-			}
-
-			return json.empty() || json == SystemDescriptor::NullSystemData;
-
-			};
-
-
-		// 系统描述符封装
-		GetAllSystemDescriptorsMutable().emplace_back(
-			SystemDescriptor{
-				.Information{std::move(information)},
-				.DefaultSpecification{std::move(specification)},
-				.CreateSystem{std::move(createSystem)},
-				.SerializeSystem{std::move(serializeSystem)},
-				.DeserializeSystem{std::move(deserializeSystem)}
-			}
-		);
+		GetAllSystemDescriptorsMutable().emplace_back(std::move(descriptor));
+		return true;
 
 	};
 
 
-
 	namespace detail {
-	
 
 		template<typename System>
 			requires std::derived_from<System, ISystem>&& std::default_initializable<System>
 		struct AYIN_API SystemRegistrar {
 
-			inline SystemRegistrar(const std::initializer_list<SystemPhase>& defaultPhases, const std::initializer_list<SceneMode>& defaultModes, int order) {
-				::Ayin::SystemRegistry::Registry<System>(defaultPhases, defaultModes, order);
+			inline SystemRegistrar(
+				const std::string_view typeKey,
+				const std::string_view displayName,
+				const std::initializer_list<SystemPhase>& defaultPhases,
+				const std::initializer_list<SceneMode>& defaultModes,
+				const int order) {
+
+				::Ayin::SystemRegistry::Register<System>(typeKey, displayName, defaultPhases, defaultModes, order);
+
 			}
 
 		};
@@ -195,10 +226,8 @@ namespace Ayin {
 #define AYIN_SCENEMODE_LIST(...) \
 	{ __VA_ARGS__ }
 
-#define AYIN_SYSTEM(System, Phases_List, Modes_list, Order) \
-		inline static ::Ayin::detail::SystemRegistrar<System> AYIN_CONCAT(_reg_, System)(Phases_List, Modes_list, Order);
-
-	// AYIN_SYSTEM(RenderSystem, AYIN_SYSTEMPHASE_LIST(Update, PostUpdate), AYIN_SCENEMODE_LIST(Editor, Runtime), 100)
+#define AYIN_SYSTEM(System, TypeKey, DisplayName, Phases_List, Modes_List, Order) \
+	inline static ::Ayin::detail::SystemRegistrar<System> AYIN_CONCAT(_reg_, System)(TypeKey, DisplayName, Phases_List, Modes_List, Order);
 
 
 };

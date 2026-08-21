@@ -40,8 +40,10 @@ namespace Ayin {
 
 		operator SystemRegistration() const {
 		
+			const SystemDescriptor* descriptor = SystemRegistry::GetSystemDescriptor(Name);
 			return SystemRegistration{
-				.Information{SystemRegistry::GetSystemDescriptor(Name)->Information},
+				// 未知 TypeKey 交给 Builder 统一拒绝，避免 DTO 转换阶段空指针解引用。
+				.Information{.RuntimeId{descriptor == nullptr ? SystemID{} : descriptor->RuntimeId}, .Name{Name}},
 				.Specification{
 					.PhaseMask{Synthesis(Phases)},
 					.ModeMask{Synthesis(Modes)},

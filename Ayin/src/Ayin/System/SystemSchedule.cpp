@@ -188,7 +188,7 @@ namespace Ayin {
 		}
 
 		// 检查是否已经存在
-		if (FindSystem(descriptor->Information.RuntimeId) != m_Systems.end())
+		if (FindSystem(descriptor->RuntimeId) != m_Systems.end())
 			return *this;
 
 		const int order = systemRegistration.Specification.Order < 0
@@ -196,21 +196,25 @@ namespace Ayin {
 			: systemRegistration.Specification.Order;
 
 		// 构建实例和反序列化
-		Scope<ISystem> instance = descriptor->CreateSystem();
+		Scope<ISystem> instance = SystemRegistry::CreateSystemBy(descriptor->RuntimeId);
 		if (!instance) {
-			AYIN_CORE_ERROR("Failed to create system '{}'", descriptor->Information.Name);
+			AYIN_CORE_ERROR("Failed to create system '{}'", descriptor->TypeKey);
 			return *this;
 		}
 
-		if (systemRegistration.SystemData.str != SystemRegistration::NullSystemData && !descriptor->DeserializeSystem(instance, systemRegistration.SystemData.str)) {
-			AYIN_CORE_ERROR("Failed to deserialize system '{}'", descriptor->Information.Name);
-			return *this;
+		if (systemRegistration.SystemData.str != SystemRegistration::NullSystemData) {
+			const auto result = SystemRegistry::DeserializeConfiguration(
+				*instance, descriptor->RuntimeId, systemRegistration.SystemData.str);
+			if (!result) {
+				AYIN_CORE_ERROR("Failed to deserialize system '{}': {}", descriptor->TypeKey, result.Error);
+				return *this;
+			}
 		}
 
 		// 插入系统
 		SystemEntry& entry = m_Systems.emplace_back(
 			SystemEntry{
-				.Information{.RuntimeId{descriptor->Information.RuntimeId}, .Name{descriptor->Information.Name}},
+				.Information{.RuntimeId{descriptor->RuntimeId}, .Name{descriptor->TypeKey}},
 				.Specification{.PhaseMask{systemRegistration.Specification.PhaseMask}, .ModeMask{systemRegistration.Specification.ModeMask}, .Order{order}},
 				.Instance{std::move(instance)},
 			});

@@ -28,7 +28,15 @@ namespace Ayin {
 			.Phases{Disassemble(entry.Specification.PhaseMask)},
 			.Modes{Disassemble(entry.Specification.ModeMask)},
 			.Order{entry.Specification.Order},
-			.SystemData{SystemRegistry::SerializeSystem(entry.Instance, entry.Information.RuntimeId)}
+			.SystemData{[&entry]() -> ::glz::raw_json {
+				const auto result = SystemRegistry::SerializeConfiguration(*entry.Instance, entry.Information.RuntimeId);
+				if (!result) {
+					AYIN_CORE_ERROR("Failed to serialize system '{}': {}", entry.Information.Name, result.Error);
+					return SystemJson::NullSystemData;
+				}
+
+				return result.Json;
+			}()}
 		};
 
 	};

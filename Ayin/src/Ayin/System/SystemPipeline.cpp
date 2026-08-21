@@ -46,12 +46,9 @@ namespace Ayin {
 
 	SystemPipeline::Builder& SystemPipeline::Builder::AddSystem(const SystemRegistration& systemRegistration) {
 	
-		// 获取描述符（正确的系统描述）(当不匹配时以 名称 为准)
+		// RuntimeId 用于进程内快速查找；持久化入口则通过 Name 中暂存的 TypeKey 解析。
 		const SystemDescriptor* descriptor = SystemRegistry::GetSystemDescriptor(systemRegistration.Information.RuntimeId);
 		if (descriptor == nullptr) {
-			descriptor = SystemRegistry::GetSystemDescriptor(systemRegistration.Information.Name);
-		}
-		else if (descriptor->Information.Name != systemRegistration.Information.Name) {
 			descriptor = SystemRegistry::GetSystemDescriptor(systemRegistration.Information.Name);
 		}
 
@@ -60,10 +57,13 @@ namespace Ayin {
 			return *this;
 		}
 
+		SystemRegistration canonicalRegistration = systemRegistration;
+		canonicalRegistration.Information.RuntimeId = descriptor->RuntimeId;
+		canonicalRegistration.Information.Name = descriptor->TypeKey;
 
-		RemoveSystem(systemRegistration.Information.Name);
+		RemoveSystem(canonicalRegistration.Information.RuntimeId);
 
-		m_Registrations.emplace(systemRegistration);
+		m_Registrations.emplace(std::move(canonicalRegistration));
 
 		m_NextOrder = std::max(m_NextOrder, systemRegistration.Specification.Order + 1);
 

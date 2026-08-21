@@ -4,6 +4,7 @@
 
 #include "Ayin/System/SystemContext.h"
 #include "Ayin/System/SystemTypes.h"
+#include "Ayin/System/SystemRegistry.h"
 
 #include <algorithm>
 #include <concepts>
@@ -12,7 +13,6 @@
 #include <set>
 #include <string>
 #include <type_traits>
-#include <typeinfo>
 #include <vector>
 
 //! 暂时只是 Scene 存储各个系统，没有一个更上层的东西，要用这个文件还需要解决系统生命周期管理的问题，用 Ref ？或者是单例？
@@ -254,11 +254,17 @@ namespace Ayin {
 		for (const SceneMode mode : modes)
 			modeMask |= mode;
 
+		const SystemDescriptor* descriptor = SystemRegistry::GetSystemDescriptor(GetSystemID<System>());
+		if (descriptor == nullptr) {
+			AYIN_CORE_ERROR("System RuntimeId is not registered");
+			return *this;
+		}
+
 		//！触发移动语义
 		m_Systems.emplace_back(
 			std::move<SystemEntry>(
 				SystemEntry{
-				.Information{.RuntimeId{GetSystemID<System>()}, .Name{typeid(System).name()}},
+				.Information{.RuntimeId{descriptor->RuntimeId}, .Name{descriptor->TypeKey}},
 				.Specification{.PhaseMask{phaseMask}, .ModeMask{modeMask}, .Order{order}},
 				.Instance{CreateScope<System>()},
 				}

@@ -1,82 +1,107 @@
 #include <AyinPch.h>
 
 #include "Ayin/System/SystemRegistry.h"
-#include "Ayin/System/SystemPipeline.h"
 
 
 namespace Ayin {
 
+	Scope<ISystem> SystemRegistry::CreateSystemBy(const std::string_view typeKey) {
 
-	SystemDescriptor::operator SystemRegistration() const {
-		return SystemRegistration{
-			.Information{Information},
-			.Specification{DefaultSpecification}
-		};
-	}
-
-
-	Scope<ISystem> SystemRegistry::CreateSystemBy(const std::string_view systemName) {
-		
-		const SystemDescriptor* systemDescriptor = GetSystemDescriptor(systemName);
-
-		if (systemDescriptor == nullptr)
+		const SystemDescriptor* descriptor = GetSystemDescriptor(typeKey);
+		if (descriptor == nullptr) {
 			return nullptr;
+		}
 
-		return systemDescriptor->CreateSystem();
-	
+		try {
+			return descriptor->Create();
+		}
+		catch (const std::exception& exception) {
+			AYIN_CORE_ERROR("Failed to create System '{}': {}", typeKey, exception.what());
+		}
+		catch (...) {
+			AYIN_CORE_ERROR("Failed to create System '{}': unknown exception", typeKey);
+		}
+
+		return nullptr;
+
 	};
-	Scope<ISystem> SystemRegistry::CreateSystemBy(SystemID systemId) {
 
-		const SystemDescriptor* systemDescriptor = GetSystemDescriptor(systemId);
+	Scope<ISystem> SystemRegistry::CreateSystemBy(const SystemID runtimeId) {
 
-		if (systemDescriptor == nullptr)
+		const SystemDescriptor* descriptor = GetSystemDescriptor(runtimeId);
+		if (descriptor == nullptr) {
 			return nullptr;
+		}
 
-		return systemDescriptor->CreateSystem();
-
-	};
-
-
-	std::string SystemRegistry::SerializeSystem(const Scope<ISystem>& system, std::string_view systemName) {
-		
-		const SystemDescriptor* systemDescriptor = GetSystemDescriptor(systemName);
-
-		if (systemDescriptor == nullptr)
-			return SystemDescriptor::NullSystemData;
-
-		return systemDescriptor->SerializeSystem(system);
-
-	};
-	std::string SystemRegistry::SerializeSystem(const Scope<ISystem>& system, const SystemID systemId) {
-	
-		const SystemDescriptor* systemDescriptor = GetSystemDescriptor(systemId);
-
-		if (systemDescriptor == nullptr)
-			return SystemDescriptor::NullSystemData;
-
-		return systemDescriptor->SerializeSystem(system);
+		return CreateSystemBy(descriptor->TypeKey);
 
 	};
 
 
-	bool SystemRegistry::DeserializeSystem(Scope<ISystem>& system, std::string_view systemName, const std::string& json) {
+	SerializeSystemConfigurationResult SystemRegistry::SerializeConfiguration(const ISystem& system, const std::string_view typeKey) {
 
-		const SystemDescriptor* systemDescriptor = GetSystemDescriptor(systemName);
+		const SystemDescriptor* descriptor = GetSystemDescriptor(typeKey);
+		if (descriptor == nullptr) {
+			return {.Error{fmt::format("System '{}' is not registered", typeKey)}};
+		}
 
-		if (systemDescriptor == nullptr)
-			return false;
-
-		return systemDescriptor->DeserializeSystem(system, json);
+		try {
+			return descriptor->SerializeConfiguration(system);
+		}
+		catch (const std::exception& exception) {
+			return {.Error{exception.what()}};
+		}
+		catch (...) {
+			return {.Error{"unknown exception while serializing System configuration"}};
+		}
 
 	};
-	bool SystemRegistry::DeserializeSystem(Scope<ISystem>& system, const SystemID systemId, const std::string& json) {
-		
-		const SystemDescriptor* systemDescriptor = GetSystemDescriptor(systemId);
 
-		if (systemDescriptor == nullptr)
-			return false;
+	SerializeSystemConfigurationResult SystemRegistry::SerializeConfiguration(const ISystem& system, const SystemID runtimeId) {
 
-		return systemDescriptor->DeserializeSystem(system, json);
+		const SystemDescriptor* descriptor = GetSystemDescriptor(runtimeId);
+		if (descriptor == nullptr) {
+			return {.Error{"System RuntimeId is not registered"}};
+		}
+
+		return SerializeConfiguration(system, descriptor->TypeKey);
+
+	};
+
+
+	DeserializeSystemConfigurationResult SystemRegistry::DeserializeConfiguration(
+		ISystem& system,
+		const std::string_view typeKey,
+		const std::string_view json) {
+
+		const SystemDescriptor* descriptor = GetSystemDescriptor(typeKey);
+		if (descriptor == nullptr) {
+			return {.Error{fmt::format("System '{}' is not registered", typeKey)}};
+		}
+
+		try {
+			return descriptor->DeserializeConfiguration(system, json);
+		}
+		catch (const std::exception& exception) {
+			return {.Error{exception.what()}};
+		}
+		catch (...) {
+			return {.Error{"unknown exception while deserializing System configuration"}};
+		}
+
+	};
+
+	DeserializeSystemConfigurationResult SystemRegistry::DeserializeConfiguration(
+		ISystem& system,
+		const SystemID runtimeId,
+		const std::string_view json) {
+
+		const SystemDescriptor* descriptor = GetSystemDescriptor(runtimeId);
+		if (descriptor == nullptr) {
+			return {.Error{"System RuntimeId is not registered"}};
+		}
+
+		return DeserializeConfiguration(system, descriptor->TypeKey, json);
 
 	};
 
@@ -86,42 +111,36 @@ namespace Ayin {
 		return GetAllSystemDescriptorsMutable();
 
 	};
-	const SystemDescriptor* SystemRegistry::GetSystemDescriptor(std::string_view systemName) {
-	
-		auto it = std::ranges::find_if(
-			GetAllSystemDescriptors(),
-			[&systemName](const SystemDescriptor& descriptor) -> bool {
-				
-				return descriptor.Information.Name == systemName;
 
+	const SystemDescriptor* SystemRegistry::GetSystemDescriptor(const std::string_view typeKey) {
+
+		const auto& descriptors = GetAllSystemDescriptors();
+		auto it = std::ranges::find_if(
+			descriptors,
+			[typeKey](const SystemDescriptor& descriptor) -> bool {
+				return descriptor.TypeKey == typeKey;
 			});
 
-		if (it != GetAllSystemDescriptors().end())
-			return &(*it);
-
-		return nullptr;
+		return it == descriptors.end() ? nullptr : &*it;
 
 	};
-	const SystemDescriptor* SystemRegistry::GetSystemDescriptor(SystemID systemId) {
-	
+
+	const SystemDescriptor* SystemRegistry::GetSystemDescriptor(const SystemID runtimeId) {
+
+		const auto& descriptors = GetAllSystemDescriptors();
 		auto it = std::ranges::find_if(
-			GetAllSystemDescriptors(),
-			[&systemId](const SystemDescriptor& descriptor) -> bool {
-
-				return descriptor.Information.RuntimeId == systemId;
-
+			descriptors,
+			[runtimeId](const SystemDescriptor& descriptor) -> bool {
+				return descriptor.RuntimeId == runtimeId;
 			});
 
-		if (it != GetAllSystemDescriptors().end())
-			return &(*it);
-
-		return nullptr;
+		return it == descriptors.end() ? nullptr : &*it;
 
 	};
 
 
 	std::vector<SystemDescriptor>& SystemRegistry::GetAllSystemDescriptorsMutable() {
-	
+
 		static std::vector<SystemDescriptor> systemDescriptors;
 
 		return systemDescriptors;
