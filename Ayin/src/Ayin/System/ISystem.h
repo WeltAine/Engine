@@ -27,7 +27,7 @@ namespace Ayin {
 
 		virtual inline void OnEnd(const SystemContext& systemContext) {};
 
-		virtual inline void OnGui() {};
+		virtual inline void OnEditorGui() {};
 
 	};
 

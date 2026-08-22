@@ -123,24 +123,6 @@ namespace Ayin {
 	};
 
 
-	//? 对所有系统 OnGui ？这也太离谱了吧，编辑器中也只会对选中的 system 进行交互而已！用网格或者蓝图显示 Schedule 的系统结构！
-	void SystemSchedule::OnGui() {
-
-		for (SystemEntry& entry : m_Systems) {
-			try {
-				entry.Instance->OnGui();
-			}
-			catch (const std::exception& exception) {
-				AYIN_CORE_ERROR("System '{}' failed during OnGui: {}", entry.Information.TypeKey, exception.what());
-			}
-			catch (...) {
-				AYIN_CORE_ERROR("System '{}' failed during OnGui", entry.Information.TypeKey);
-			}
-		}
-
-	};
-
-
 	void SystemSchedule::End(const SystemContext& systemContext) {
 
 		if (!IsActive()) {

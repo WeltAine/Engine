@@ -74,6 +74,7 @@ private:
 		std::unordered_map<std::string, int> DetachCount;
 		std::unordered_map<std::string, int> BeginCount;
 		std::unordered_map<std::string, int> EndCount;
+		std::unordered_map<std::string, int> EditorGuiCount;
 		// Trace 只保存最近一次调度的执行轨迹，例如 Early:Update。
 		std::vector<std::string> Trace;
 		// 生命周期轨迹用于验证正序进入和逆序退出规则。
@@ -88,6 +89,7 @@ private:
 		bool ExplicitOrderPassed = false;
 		bool ModeFilteringPassed = false;
 		bool ContextForwardingPassed = false;
+		bool EditorGuiPassed = false;
 		bool DuplicateAddPassed = false;
 		bool RemovePassed = false;
 		bool AttachOrderPassed = false;
@@ -119,6 +121,7 @@ private:
 		void OnDetach() override;
 		void OnBegin(const Ayin::SystemContext& context) override;
 		void OnEnd(const Ayin::SystemContext& context) override;
+		void OnEditorGui() override;
 
 	protected:
 		virtual const char* Name() const = 0;

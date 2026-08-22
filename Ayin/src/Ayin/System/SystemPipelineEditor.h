@@ -29,9 +29,6 @@ namespace Ayin {
 		inline const SystemSchedule& GetPreviewSchedule() const { return m_PreviewSchedule; };
 		inline SystemSchedule& GetPreviewSchedule() { return m_PreviewSchedule; };
 
-		// 预览状态下允许显示 System 自己的配置面板，但不运行生命周期和 Update。
-		inline void OnGui() { m_PreviewSchedule.OnGui(); };
-
 	private:
 
 		SystemPipeline::Builder m_Builder;

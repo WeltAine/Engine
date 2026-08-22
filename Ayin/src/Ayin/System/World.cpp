@@ -92,9 +92,30 @@ namespace Ayin {
 	};
 
 
-	void World::OnGui() {
+	ISystem* World::FindSystemInstance(const SystemID systemId) {
 
-		m_SystemSchedule.OnGui();
+		return m_SystemSchedule.FindSystemInstance(systemId);
+
+	};
+
+
+	const ISystem* World::FindSystemInstance(const SystemID systemId) const {
+
+		return m_SystemSchedule.FindSystemInstance(systemId);
+
+	};
+
+
+	ISystem* World::FindSystemInstance(const std::string_view systemName) {
+
+		return m_SystemSchedule.FindSystemInstance(systemName);
+
+	};
+
+
+	const ISystem* World::FindSystemInstance(const std::string_view systemName) const {
+
+		return m_SystemSchedule.FindSystemInstance(systemName);
 
 	};
 

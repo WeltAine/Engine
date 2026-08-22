@@ -158,6 +158,23 @@ bool SystemTestLayer::CheckPipelineAndWorld() {
 	m_State.ExpectedScene = m_Scene.get();
 	m_State.ExpectedDelta = expectedDelta.GetSeconds();
 
+	// Editor 通过 World 的通用实例访问自行选择 System；World 不负责包装 GUI 调用。
+	const std::size_t lifecycleTraceSizeBeforeGui = m_State.LifecycleTrace.size();
+	Ayin::ISystem* selectedSystem = m_World->FindSystemInstance(Ayin::GetSystemID<EarlySystem>());
+	const Ayin::World& constWorld = *m_World;
+	const bool worldSystemAccessPassed = selectedSystem != nullptr &&
+		m_World->FindSystemInstance("SandBox.Tests.EarlySystem") == selectedSystem &&
+		constWorld.FindSystemInstance(Ayin::GetSystemID<EarlySystem>()) != nullptr;
+	if (selectedSystem != nullptr)
+		selectedSystem->OnEditorGui();
+	m_State.EditorGuiPassed = worldSystemAccessPassed &&
+		m_State.EditorGuiCount["Early"] == 1 &&
+		m_State.LifecycleTrace.size() == lifecycleTraceSizeBeforeGui;
+	if (!m_State.EditorGuiPassed) {
+		SetFailure("World system access or direct System editor GUI invocation failed");
+		passed = false;
+	}
+
 	// 非活动 World 不允许 Update/End，None 也不能作为会话模式。
 	if (m_World->Update(expectedDelta) || m_World->EndWorldExecutionSession() ||
 		m_World->BeginWorldExecutionSession(Ayin::SceneMode::None)) {
@@ -683,6 +700,7 @@ void SystemTestLayer::OnImGuiRender() {
 	RenderCheck("Explicit order", m_State.ExplicitOrderPassed);
 	RenderCheck("Mode filtering", m_State.ModeFilteringPassed);
 	RenderCheck("Context forwarding", m_State.ContextForwardingPassed);
+	RenderCheck("Direct System editor GUI", m_State.EditorGuiPassed);
 	RenderCheck("World lifecycle", m_State.WorldLifecyclePassed);
 	RenderCheck("Duplicate add", m_State.DuplicateAddPassed);
 	RenderCheck("Schedule structure frozen", m_State.RemovePassed);
@@ -741,6 +759,11 @@ void SystemTestLayer::ProbeSystem::OnBegin(const Ayin::SystemContext& context) {
 		s_State->LifecycleTrace.emplace_back(
 			std::string{ Name() } + ":Begin:" + ModeName(context.Mode));
 	}
+}
+
+void SystemTestLayer::ProbeSystem::OnEditorGui() {
+	if (s_State != nullptr)
+		++s_State->EditorGuiCount[Name()];
 }
 
 void SystemTestLayer::ProbeSystem::OnEnd(const Ayin::SystemContext& context) {

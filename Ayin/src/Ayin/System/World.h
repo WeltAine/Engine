@@ -6,6 +6,8 @@
 #include "Ayin/System/SystemPipeline.h"
 #include "Ayin/System/SystemSchedule.h"
 
+#include <string_view>
+
 namespace Ayin {
 
 	class EditorCamera;
@@ -34,8 +36,12 @@ namespace Ayin {
 		//ToDo: 临时的重载，用于 编辑器 的编辑模式
 		bool Update(Timestep deltaTime, EditorCamera* editorCamera);
 		bool EndWorldExecutionSession();					// 转发到 Schedule 的 End 对已经 Begin 的系统进行
-		void OnGui();
 		std::vector<SystemRuntimeView> GetRuntimeViews() const { return m_SystemSchedule.GetRuntimeViews(); };
+
+		ISystem* FindSystemInstance(SystemID systemId);
+		const ISystem* FindSystemInstance(SystemID systemId) const;
+		ISystem* FindSystemInstance(std::string_view systemName);
+		const ISystem* FindSystemInstance(std::string_view systemName) const;
 
 		// 在安全的 World 接口内整体替换 Schedule；失败时保持旧 Schedule 不变。
 		bool ApplyPipeline(const SystemPipeline& systemPipeline);
