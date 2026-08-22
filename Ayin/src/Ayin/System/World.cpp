@@ -39,8 +39,7 @@ namespace Ayin {
 		}
 
 		SystemContext systemContext{.Scene = *m_ActiveScene, .Mode = mode};
-		m_SystemSchedule.Begin(systemContext);
-		if (!m_SystemSchedule.IsActive())
+		if (!m_SystemSchedule.Begin(systemContext))
 			return false;
 
 		m_CurrentMode = mode;
@@ -132,6 +131,13 @@ namespace Ayin {
 		}
 
 		SystemSchedule candidate = systemPipeline.CreateSchedule();
+		return ApplySchedule(std::move(candidate));
+
+	};
+
+
+	bool World::ApplySchedule(SystemSchedule&& candidate) {
+
 		if (!candidate.IsBuilt()) {
 			AYIN_CORE_ERROR("World Apply failed because the candidate Schedule could not be built");
 			return false;

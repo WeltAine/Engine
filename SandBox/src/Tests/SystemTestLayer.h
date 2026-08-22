@@ -170,6 +170,13 @@ private:
 		}
 	};
 
+	class FailingBeginSystem final : public Ayin::ISystem {
+	public:
+		void OnBegin(const Ayin::SystemContext&) override {
+			throw std::runtime_error{ "intentional begin failure" };
+		}
+	};
+
 	class LifecycleSystem final : public ProbeSystem {
 	protected:
 		// 单独用于测试重复添加、移除和 OnDetach 生命周期。

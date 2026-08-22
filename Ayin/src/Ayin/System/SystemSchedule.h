@@ -57,7 +57,7 @@ namespace Ayin {
 		SystemSchedule& operator=(SystemSchedule&& other) noexcept;
 
 
-		void Begin(const SystemContext& systemContext);
+		bool Begin(const SystemContext& systemContext);
 		void Run(const SystemContext& context);
 		void End(const SystemContext& systemContext);
 		// 显式结束当前会话并释放所有 System。调用者必须提供真实上下文。

@@ -96,6 +96,7 @@ void SystemTestLayer::RegisterTestSystems() {
 	Ayin::SystemRegistry::Register<RuntimeSystem>("SandBox.Tests.RuntimeSystem", "Runtime System", {}, {}, 0);
 	Ayin::SystemRegistry::Register<LifecycleSystem>("SandBox.Tests.LifecycleSystem", "Lifecycle System", {}, {}, 0);
 	Ayin::SystemRegistry::Register<FailingAttachSystem>("SandBox.Tests.FailingAttachSystem", "Failing Attach System", {}, {}, 0);
+	Ayin::SystemRegistry::Register<FailingBeginSystem>("SandBox.Tests.FailingBeginSystem", "Failing Begin System", {}, {}, 0);
 	Ayin::SystemRegistry::Register<SerializationSystem>("SandBox.Tests.SerializationSystem", "Serialization System", {}, {}, 0);
 	registered = true;
 }
@@ -330,10 +331,36 @@ bool SystemTestLayer::CheckPipelineAndWorld() {
 		failingApplyWorld.GetSystemSchedule().IsActive() &&
 		failingApplyWorld.FindSystemInstance(originalSystemId) == failingOriginalSystem;
 	failingApplyWorld.EndWorldExecutionSession();
+
+	// OnBegin 失败同样回滚：候选已经 Attach，但不能留下半启动的活动 Schedule。
+	Ayin::SystemPipeline::Builder failingBeginBuilder;
+	failingBeginBuilder
+		.AddSystem<EarlySystem>({}, { Ayin::SceneMode::Editor })
+		.AddSystem<FailingBeginSystem>({}, { Ayin::SceneMode::Editor });
+	const Ayin::SystemPipeline failingBeginPipeline = failingBeginBuilder.Build();
+	Ayin::World failingBeginApplyWorld{ m_Scene, m_Pipeline };
+	Ayin::ISystem* failingBeginOriginalSystem = failingBeginApplyWorld.FindSystemInstance(originalSystemId);
+	const bool failingBeginApplyStarted = failingBeginApplyWorld.BeginWorldExecutionSession(Ayin::SceneMode::Editor);
+	m_State.LifecycleTrace.clear();
+	const bool failingBeginApplyRejected = failingBeginApplyStarted && !failingBeginApplyWorld.ApplyPipeline(failingBeginPipeline);
+	const std::vector<std::string> expectedBeginFailureTrace{
+		"Late:End:Editor", "Early:End:Editor",
+		"Runtime:Detach", "Late:Detach", "Early:Detach",
+		"Early:Attach", "Early:Begin:Editor", "Early:End:Editor", "Early:Detach",
+		"Early:Attach", "Late:Attach", "Runtime:Attach",
+		"Early:Begin:Editor", "Late:Begin:Editor"
+	};
+	const bool failingBeginApplyRolledBack = failingBeginApplyWorld.GetCurrentMode() == Ayin::SceneMode::Editor &&
+		failingBeginApplyWorld.GetSystemSchedule().IsActive() &&
+		failingBeginApplyWorld.FindSystemInstance(originalSystemId) == failingBeginOriginalSystem &&
+		m_State.LifecycleTrace == expectedBeginFailureTrace;
+	failingBeginApplyWorld.EndWorldExecutionSession();
+
 	m_State.ApplyFailurePassed = invalidApplyRejected && invalidApplyKeptWorld &&
-		failingApplyRejected && failingApplyRolledBack;
+		failingApplyRejected && failingApplyRolledBack &&
+		failingBeginApplyRejected && failingBeginApplyRolledBack;
 	if (!m_State.ApplyFailurePassed) {
-		AYIN_CORE_ERROR("Apply failure checks: invalidRejected={}, invalidKept={}, failingRejected={}, rollback={}", invalidApplyRejected, invalidApplyKeptWorld, failingApplyRejected, failingApplyRolledBack);
+		AYIN_CORE_ERROR("Apply failure checks: invalidRejected={}, invalidKept={}, attachRejected={}, attachRollback={}, beginRejected={}, beginRollback={}", invalidApplyRejected, invalidApplyKeptWorld, failingApplyRejected, failingApplyRolledBack, failingBeginApplyRejected, failingBeginApplyRolledBack);
 		SetFailure("World Apply failure boundary mismatch");
 	}
 
@@ -710,6 +737,73 @@ bool SystemTestLayer::CheckEditorInteractionBoundaries() {
 		passed = false;
 	}
 
+	// 候选 Schedule 的创建失败必须发生在临时 World 仍然运行时；不能因为无效配置提前结束 Simulation / Runtime。
+	bool candidateBuildFailureKeptWorld = false;
+	{
+		m_State.LifecycleTrace.clear();
+		Ayin::EditorSession candidateFailureSession{ m_Scene, m_Pipeline };
+		const bool candidateFailureEditorBegan =
+			candidateFailureSession.GetEditorWorld().BeginWorldExecutionSession(Ayin::SceneMode::Editor);
+		const bool candidateFailureSimulationBegan = candidateFailureEditorBegan &&
+			candidateFailureSession.BeginSimulation(Ayin::CreateRef<Ayin::Scene>());
+
+		Ayin::SystemPipeline::Builder invalidCandidateBuilder;
+		invalidCandidateBuilder.AddSystem(Ayin::SystemDefinition{
+			.Type{"SandBox.Tests.SerializationSystem"},
+			.Specification{.PhaseMask{Ayin::SystemPhase::Update}, .ModeMask{Ayin::SceneMode::Simulation}},
+			.Configuration{.Json{"{\"Exposure\":"}}
+		});
+		const Ayin::SystemPipeline invalidCandidatePipeline = invalidCandidateBuilder.Build();
+
+		m_State.LifecycleTrace.clear();
+		const bool candidateBuildRejected = !candidateFailureSession.ApplyPipeline(invalidCandidatePipeline);
+		candidateBuildFailureKeptWorld = candidateFailureEditorBegan && candidateFailureSimulationBegan &&
+			candidateBuildRejected && candidateFailureSession.GetTemporaryWorld() != nullptr &&
+			candidateFailureSession.GetTemporaryWorld()->SessionReady() &&
+			candidateFailureSession.GetEditorWorld().SessionReady() &&
+			candidateFailureSession.GetPipeline().GetDefinitions().size() == m_Pipeline.GetDefinitions().size() &&
+			m_State.LifecycleTrace.empty();
+
+		candidateFailureSession.StopTemporaryWorld();
+		candidateFailureSession.GetEditorWorld().EndWorldExecutionSession();
+	}
+
+	// Attach 失败不能更新持久 Pipeline；临时 World 已结束，EditorWorld 则由 World 回滚并继续运行。
+	bool candidateAttachFailureRolledBack = false;
+	{
+		m_State.LifecycleTrace.clear();
+		Ayin::EditorSession attachFailureSession{ m_Scene, m_Pipeline };
+		const bool attachFailureEditorBegan =
+			attachFailureSession.GetEditorWorld().BeginWorldExecutionSession(Ayin::SceneMode::Editor);
+		const bool attachFailureSimulationBegan = attachFailureEditorBegan &&
+			attachFailureSession.BeginSimulation(Ayin::CreateRef<Ayin::Scene>());
+		Ayin::ISystem* originalEditorSystem =
+			attachFailureSession.GetEditorWorld().FindSystemInstance(Ayin::GetSystemID<EarlySystem>());
+
+		Ayin::SystemPipeline::Builder failingCandidateBuilder;
+		failingCandidateBuilder.AddSystem<FailingAttachSystem>({}, { Ayin::SceneMode::Editor });
+		const Ayin::SystemPipeline failingCandidatePipeline = failingCandidateBuilder.Build();
+
+		m_State.LifecycleTrace.clear();
+		const bool candidateAttachRejected = !attachFailureSession.ApplyPipeline(failingCandidatePipeline);
+		const std::vector<std::string> expectedAttachFailureTrace{
+			"Late:End:Simulation", "Early:End:Simulation",
+			"Runtime:Detach", "Late:Detach", "Early:Detach",
+			"Late:End:Editor", "Early:End:Editor",
+			"Runtime:Detach", "Late:Detach", "Early:Detach",
+			"Early:Attach", "Late:Attach", "Runtime:Attach",
+			"Early:Begin:Editor", "Late:Begin:Editor"
+		};
+		candidateAttachFailureRolledBack = attachFailureEditorBegan && attachFailureSimulationBegan &&
+			candidateAttachRejected && attachFailureSession.GetTemporaryWorld() == nullptr &&
+			attachFailureSession.GetEditorWorld().SessionReady() &&
+			attachFailureSession.GetPipeline().GetDefinitions().size() == m_Pipeline.GetDefinitions().size() &&
+			attachFailureSession.GetEditorWorld().FindSystemInstance(Ayin::GetSystemID<EarlySystem>()) == originalEditorSystem &&
+			m_State.LifecycleTrace == expectedAttachFailureTrace;
+
+		attachFailureSession.GetEditorWorld().EndWorldExecutionSession();
+	}
+
 	// Simulation / Runtime 的结构 Apply 必须先结束临时 World，再把新 Pipeline 提交到 EditorWorld。
 	m_State.LifecycleTrace.clear();
 	Ayin::EditorSession editorSession{ m_Scene, m_Pipeline };
@@ -744,7 +838,8 @@ bool SystemTestLayer::CheckEditorInteractionBoundaries() {
 		editorSession.GetTemporaryWorld()->FindSystemInstance(Ayin::GetSystemID<EarlySystem>()) != nullptr &&
 		editorSession.GetTemporaryWorld()->FindSystemInstance(Ayin::GetSystemID<LateSystem>()) == nullptr;
 	editorSession.StopTemporaryWorld();
-	m_State.EditorSessionPassed = editorWorldBegan && simulationBegan && temporarySceneUsed && sessionApplied && temporaryStopped &&
+	m_State.EditorSessionPassed = candidateBuildFailureKeptWorld && candidateAttachFailureRolledBack &&
+		editorWorldBegan && simulationBegan && temporarySceneUsed && sessionApplied && temporaryStopped &&
 		persistentPipelineUpdated && newTemporaryWorldUsesPipeline &&
 		sessionApplyLifecyclePassed;
 	if (!m_State.EditorSessionPassed) {

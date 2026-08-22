@@ -40,30 +40,30 @@ namespace Ayin {
 	};
 
 
-	void SystemSchedule::Begin(const SystemContext& systemContext) {
+	bool SystemSchedule::Begin(const SystemContext& systemContext) {
 
 		if (!m_TopologySealed) {
 			AYIN_CORE_WARN("SystemSchedule must be built before Begin");
-			return;
+			return false;
 		}
 
 		if (!m_Attached) {
 			AYIN_CORE_WARN("SystemSchedule must be attached before Begin");
-			return;
+			return false;
 		}
 
 		if (IsActive()) {
 			AYIN_CORE_WARN("SystemSchedule is already active");
-			return;
+			return false;
 		}
 
 		if (systemContext.Mode == SceneMode::None) {
 			AYIN_CORE_WARN("SystemSchedule can not begin with SceneMode::None");
-			return;
+			return false;
 		}
 
 
-		// 开始对该模式下可以运行的 System 进行 OnBegin()，并记录已经成功 Begin 的 System
+		// OnBegin 是运行会话的入口；任意 System 失败都要逆序结束已经成功 Begin 的 System。
 		m_BegunSystems.clear();
 		m_LifecycleState = LifecycleState::Active;
 
@@ -78,11 +78,17 @@ namespace Ayin {
 			}
 			catch (const std::exception& exception) {
 				AYIN_CORE_ERROR("System '{}' failed during OnBegin: {}", entry.Information.TypeKey, exception.what());
+				End(systemContext);
+				return false;
 			}
 			catch (...) {
 				AYIN_CORE_ERROR("System '{}' failed during OnBegin", entry.Information.TypeKey);
+				End(systemContext);
+				return false;
 			}
 		}
+
+		return true;
 
 	};
 

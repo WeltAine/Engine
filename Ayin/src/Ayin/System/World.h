@@ -11,13 +11,18 @@
 namespace Ayin {
 
 	class EditorCamera;
+	class EditorSession;
 	class Scene;
 
 	class World {
 
 		friend class WorldSerializer;
+		friend class EditorSession;
 	
 	private:
+
+		// EditorSession 会先创建候选 Schedule，再在确定临时 World 可以结束后交给 World 提交。
+		bool ApplySchedule(SystemSchedule&& candidate);
 
 		Ref<Scene> m_ActiveScene;
 		SystemSchedule m_SystemSchedule;

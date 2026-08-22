@@ -99,11 +99,17 @@ namespace Ayin {
 		if (!systemPipeline.IsValid())
 			return false;
 
-		// Apply 先结束临时 World，确保结构修改统一回到 EditorWorld 提交。
+		// 候选 System、配置和执行计划必须在任何现有 World 结束前完成。
+		SystemSchedule candidate = systemPipeline.CreateSchedule();
+		if (!candidate.IsBuilt())
+			return false;
+
+		// 预检成功后才结束临时 World；如果候选创建失败，当前 Simulation / Runtime 会话保持不变。
 		if (m_TemporaryWorld != nullptr)
 			StopTemporaryWorld();
 
-		if (!m_EditorWorld.ApplyPipeline(systemPipeline))
+		// World 继续独占 Attach / Begin / End / Detach 的时机控制。
+		if (!m_EditorWorld.ApplySchedule(std::move(candidate)))
 			return false;
 
 		m_Pipeline = systemPipeline;
