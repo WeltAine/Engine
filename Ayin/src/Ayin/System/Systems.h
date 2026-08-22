@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Ayin/System/ISystem.h"
+#include "Ayin/System/SystemRegistry.h"
 
 
 namespace Ayin {
@@ -57,4 +57,44 @@ namespace Ayin {
 
 
 	};
+
+
+	// 内建 System 由本头文件完成静态注册，保证 Editor 和客户端只要包含 Systems.h，
+	// 就能够通过稳定 TypeKey 从 SystemRegistry 查询默认 Pipeline 所需的描述符。
+	AYIN_SYSTEM(
+		DestroySystem,
+		"Ayin.System.Destroy",
+		"Destroy",
+		AYIN_SYSTEMPHASE_LIST(SystemPhase::PreUpdate),
+		AYIN_SCENEMODE_LIST(SceneMode::Editor, SceneMode::Simulation, SceneMode::Runtime),
+		0
+	);
+
+	AYIN_SYSTEM(
+		ScriptSystem,
+		"Ayin.System.Script",
+		"Script",
+		AYIN_SYSTEMPHASE_LIST(SystemPhase::PreUpdate, SystemPhase::Update),
+		AYIN_SCENEMODE_LIST(SceneMode::Editor, SceneMode::Simulation, SceneMode::Runtime),
+		1
+	);
+
+	AYIN_SYSTEM(
+		CameraSystem,
+		"Ayin.System.Camera",
+		"Camera",
+		AYIN_SYSTEMPHASE_LIST(SystemPhase::Update),
+		AYIN_SCENEMODE_LIST(SceneMode::Editor, SceneMode::Simulation, SceneMode::Runtime),
+		2
+	);
+
+	AYIN_SYSTEM(
+		RenderSystem,
+		"Ayin.System.Render",
+		"Render",
+		AYIN_SYSTEMPHASE_LIST(SystemPhase::Update),
+		AYIN_SCENEMODE_LIST(SceneMode::Editor, SceneMode::Simulation, SceneMode::Runtime),
+		3
+	);
+
 };

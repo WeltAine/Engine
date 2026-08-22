@@ -223,8 +223,10 @@ namespace Ayin {
 #define AYIN_SCENEMODE_LIST(...) \
 	{ __VA_ARGS__ }
 
+// System 注册定义在命名空间作用域；inline 让同一 System 的头文件注册变量在整个程序中只有一份。
+// 不能在这里保留 static，否则每个包含该头文件的编译单元都会各自尝试重复注册。
 #define AYIN_SYSTEM(System, TypeKey, DisplayName, Phases_List, Modes_List, Order) \
-	inline static ::Ayin::detail::SystemRegistrar<System> AYIN_CONCAT(_reg_, System)(TypeKey, DisplayName, Phases_List, Modes_List, Order);
+	inline ::Ayin::detail::SystemRegistrar<System> AYIN_CONCAT(_reg_, System)(TypeKey, DisplayName, Phases_List, Modes_List, Order);
 
 
 };

@@ -512,6 +512,40 @@ void EditorLayer::DrawGizmoToolbarOverlay(ImVec2 sceneMin, ImVec2 sceneSize) {
 
 
 //场景导入导出
+Ayin::SystemPipeline EditorLayer::CreateDefaultSystemPipeline() const {
+
+	Ayin::SystemPipeline::Builder builder;
+
+	// 当前 Scene 文件还没有保存 Pipeline；新建和载入场景暂时都使用这一份内建默认结构。
+	// 这里故意通过 Registry 查询，而不是直接按 C++ 类型 AddSystem，借此统一验证
+	// AYIN_SYSTEM 注册、稳定 TypeKey 和 Pipeline 构建三者之间的实际路径。
+	auto addDefaultSystem = [&builder](const std::string_view typeKey) {
+
+		const Ayin::SystemDescriptor* descriptor = Ayin::SystemRegistry::GetSystemDescriptor(typeKey);
+		AYIN_CORE_ASSERT(descriptor != nullptr, "Default System '{}' is not registered", typeKey);
+		if (descriptor == nullptr)
+			return;
+
+		builder.AddSystem(Ayin::SystemDefinition{
+			.Type{descriptor->TypeKey},
+			.Specification{descriptor->DefaultSpecification},
+			.Configuration{}
+		});
+
+	};
+
+	// PreUpdate: Destroy -> Script；Update: Script -> Camera -> Render。
+	// 一个全局 Order 同时保留这两个阶段内的相对顺序。
+	addDefaultSystem("Ayin.System.Destroy");
+	addDefaultSystem("Ayin.System.Script");
+	addDefaultSystem("Ayin.System.Camera");
+	addDefaultSystem("Ayin.System.Render");
+
+	return builder.Build();
+
+};
+
+
 void EditorLayer::OpenScene() {
 
 	std::optional<std::string> filePath = Ayin::FileDialogs::OpenFile({ {"Scenen", "json"}}, nullptr);
@@ -531,7 +565,7 @@ void EditorLayer::OpenScene() {
 		m_ActiveWorld.Reset();
 		m_EditorSession.reset();
 
-		m_EditorSession = Ayin::CreateScope<Ayin::EditorSession>(m_EditorScene, Ayin::SystemPipeline{});
+		m_EditorSession = Ayin::CreateScope<Ayin::EditorSession>(m_EditorScene, CreateDefaultSystemPipeline());
 		if (!m_EditorSession->GetEditorWorld().BeginWorldExecutionSession(Ayin::SceneMode::Editor))
 			AYIN_CORE_ERROR("Failed to begin the EditorWorld execution session");
 
@@ -555,7 +589,7 @@ void EditorLayer::NewScene() {
 	m_ActiveWorld.Reset();
 	m_EditorSession.reset();
 
-	m_EditorSession = Ayin::CreateScope<Ayin::EditorSession>(m_EditorScene, Ayin::SystemPipeline{});
+	m_EditorSession = Ayin::CreateScope<Ayin::EditorSession>(m_EditorScene, CreateDefaultSystemPipeline());
 	if (!m_EditorSession->GetEditorWorld().BeginWorldExecutionSession(Ayin::SceneMode::Editor))
 		AYIN_CORE_ERROR("Failed to begin the EditorWorld execution session");
 

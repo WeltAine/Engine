@@ -41,6 +41,8 @@ private:
 	void DrawGizmoToolbarOverlay(ImVec2 sceneMin, ImVec2 sceneSize);
 
 	// 场景导入导出
+	Ayin::SystemPipeline CreateDefaultSystemPipeline() const;
+
 	void OpenScene();
 	void NewScene();
 	void SaveScene();

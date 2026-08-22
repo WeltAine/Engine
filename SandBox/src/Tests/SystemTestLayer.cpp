@@ -4,6 +4,7 @@
 #include "TestEnvironment.h"
 
 #include <Ayin/Core/Application.h>
+#include <Ayin/System/Systems.h>
 
 #include <cmath>
 #include <imgui.h>
@@ -605,6 +606,47 @@ bool SystemTestLayer::CheckSystemRegistry() {
 		descriptor->DefaultSpecification.Order == 0 &&
 		Ayin::SystemRegistry::GetSystemDescriptor(descriptor->RuntimeId) == descriptor;
 
+	// 内建 System 使用 AYIN_SYSTEM 在 Systems.h 中注册；默认 Pipeline 依赖这些描述符，
+	// 所以这里同时验证 TypeKey、工厂和默认阶段 / Mode / Order。
+	auto isBuiltinSystemRegistered = [](
+		const std::string_view typeKey,
+		const Ayin::SystemID runtimeId,
+		const Ayin::SystemPhase phaseMask,
+		const int order) {
+
+		const Ayin::SystemDescriptor* builtinDescriptor =
+			Ayin::SystemRegistry::GetSystemDescriptor(typeKey);
+		return builtinDescriptor != nullptr &&
+			builtinDescriptor->RuntimeId == runtimeId &&
+			builtinDescriptor->DefaultSpecification.PhaseMask == phaseMask &&
+			builtinDescriptor->DefaultSpecification.ModeMask == Ayin::SceneMode::AllSceneMode &&
+			builtinDescriptor->DefaultSpecification.Order == order &&
+			Ayin::SystemRegistry::CreateSystemBy(typeKey) != nullptr;
+
+	};
+
+	const bool builtinSystemsRegistered =
+		isBuiltinSystemRegistered(
+			"Ayin.System.Destroy",
+			Ayin::GetSystemID<Ayin::DestroySystem>(),
+			Ayin::SystemPhase::PreUpdate,
+			0) &&
+		isBuiltinSystemRegistered(
+			"Ayin.System.Script",
+			Ayin::GetSystemID<Ayin::ScriptSystem>(),
+			Ayin::SystemPhase::PreUpdate | Ayin::SystemPhase::Update,
+			1) &&
+		isBuiltinSystemRegistered(
+			"Ayin.System.Camera",
+			Ayin::GetSystemID<Ayin::CameraSystem>(),
+			Ayin::SystemPhase::Update,
+			2) &&
+		isBuiltinSystemRegistered(
+			"Ayin.System.Render",
+			Ayin::GetSystemID<Ayin::RenderSystem>(),
+			Ayin::SystemPhase::Update,
+			3);
+
 	const std::size_t descriptorCount = Ayin::SystemRegistry::GetAllSystemDescriptors().size();
 	const bool duplicateRejected =
 		!Ayin::SystemRegistry::Register<EarlySystem>("SandBox.Tests.EarlySystem", "Early System", {}, {}, 0) &&
@@ -645,10 +687,10 @@ bool SystemTestLayer::CheckSystemRegistry() {
 		!Ayin::SystemRegistry::DeserializeConfiguration(
 			systemWithoutConfiguration, "SandBox.Tests.EarlySystem", "{\"Unexpected\":1}");
 
-	m_State.RegistryPassed = descriptorPassed && duplicateRejected && unknownRejected &&
+	m_State.RegistryPassed = descriptorPassed && builtinSystemsRegistered && duplicateRejected && unknownRejected &&
 		configurationPassed && emptyConfigurationPassed;
 	if (!m_State.RegistryPassed) {
-		SetFailure("SystemRegistry descriptor, codec or error boundary mismatch");
+		SetFailure("SystemRegistry descriptor, built-in registration, codec or error boundary mismatch");
 	}
 
 	return m_State.RegistryPassed;
