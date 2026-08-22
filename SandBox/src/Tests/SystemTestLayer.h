@@ -33,11 +33,11 @@
 //!          a) CheckPipelineAndWorld()：World 的非法状态、模式过滤、Begin/End 正逆序、
 //!             TransitionMode、SystemContext 转发、空 Scene 拒绝。
 //!          b) CheckScheduleLifecycle()：裸 SystemSchedule 的重复注册、显式 Order、
-//!             Update 阶段执行、RemoveSystem 与单次 OnDetach。
+//!             Update 阶段执行和单次生命周期调用。
 //!          c) CheckDestructorCleanupAndMove()：Schedule / World 析构兜底清理，以及
 //!             SystemSchedule 移动构造后不会遗漏或重复生命周期回调。
 //!          d) CheckScheduleBaseline()：验证裸 Schedule 的状态机规则：Begin 前 Run 拒绝、
-//!             重复 Begin / End 无操作、运行中禁止结构修改，以及 Clear 自动补齐 End。
+//!             重复 Begin / End 无操作以及 World 控制的生命周期边界。
 //!          e) CheckSystemRegistry()：验证稳定 TypeKey、描述符、工厂、配置 Codec 和失败结果。
 //!          f) CheckSystemSerialization()：验证 mask 的 JSON 表达，以及现有 DTO 到
 //!             Builder 的 round-trip 骨架。

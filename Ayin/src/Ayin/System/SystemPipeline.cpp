@@ -237,16 +237,6 @@ namespace Ayin {
 	SystemSchedule SystemPipeline::CreateSchedule() const {
 
 		SystemSchedule schedule{};
-		if (Build(schedule) && !schedule.AttachSystems())
-			schedule.ClearSystems();
-		return schedule;
-
-	};
-
-	//? 可安全替代的未 Attach 的 schedule？
-	SystemSchedule SystemPipeline::CreateDetachedSchedule() const {
-
-		SystemSchedule schedule{};
 		Build(schedule);
 		return schedule;
 

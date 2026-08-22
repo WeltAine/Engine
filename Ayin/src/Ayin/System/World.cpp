@@ -9,7 +9,10 @@ namespace Ayin {
 	
 	World::World(Ref<Scene> scene, const SystemPipeline& systemPipeline)
 		:m_ActiveScene{ scene }, m_SystemSchedule{systemPipeline.CreateSchedule()}
-	{};
+	{
+		if (m_SystemSchedule.IsBuilt() && !m_SystemSchedule.AttachSystems())
+			AYIN_CORE_ERROR("World failed to attach its initial Schedule");
+	};
 
 	World::~World() {
 
@@ -104,7 +107,7 @@ namespace Ayin {
 			return false;
 		}
 
-		SystemSchedule candidate = systemPipeline.CreateDetachedSchedule();
+		SystemSchedule candidate = systemPipeline.CreateSchedule();
 		if (!candidate.IsBuilt()) {
 			AYIN_CORE_ERROR("World Apply failed because the candidate Schedule could not be built");
 			return false;
