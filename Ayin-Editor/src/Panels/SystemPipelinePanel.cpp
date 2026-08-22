@@ -21,6 +21,39 @@ namespace Ayin {
 	};
 
 
+	std::optional<SystemPipeline> SystemPipelinePanel::TakePendingPipeline() {
+
+		if (!m_PendingPipeline)
+			return std::nullopt;
+
+		SystemPipeline pipeline = std::move(*m_PendingPipeline);
+		m_PendingPipeline.reset();
+		return pipeline;
+
+	};
+
+
+	void SystemPipelinePanel::CompleteApply() {
+
+		CancelEditing();
+
+	};
+
+
+	void SystemPipelinePanel::RejectApply(const std::string_view error) {
+
+		m_LastError = error;
+
+	};
+
+
+	void SystemPipelinePanel::KeepEditingAfterApplyFailure(const View<World> world) {
+
+		m_World = world;
+
+	};
+
+
 	void SystemPipelinePanel::OnImGuiRender() {
 
 		ImGui::Begin("System Pipeline");
@@ -40,6 +73,10 @@ namespace Ayin {
 		}
 
 		DrawToolbar();
+
+		const bool applyPending = m_PendingPipeline.has_value();
+		if (applyPending)
+			ImGui::BeginDisabled();
 
 		if (!m_LastError.empty()) {
 			ImGui::TextColored(ImVec4{ 0.95f, 0.35f, 0.35f, 1.0f }, "%s", m_LastError.c_str());
@@ -64,6 +101,9 @@ namespace Ayin {
 			DrawRuntimeProperties();
 		ImGui::EndChild();
 
+		if (applyPending)
+			ImGui::EndDisabled();
+
 		ImGui::End();
 
 	};
@@ -86,7 +126,26 @@ namespace Ayin {
 			CancelEditing();
 
 		ImGui::SameLine();
-		ImGui::TextDisabled("Apply will be available after the EditorSession Apply stage");
+		if (m_PendingPipeline) {
+			ImGui::BeginDisabled();
+			ImGui::Button("Apply");
+			ImGui::EndDisabled();
+			ImGui::SameLine();
+			ImGui::TextDisabled("Apply is pending");
+			return;
+		}
+
+		if (!ImGui::Button("Apply"))
+			return;
+
+		const std::optional<SystemPipeline> pipeline = m_PipelineEditor.BuildPipeline();
+		if (!pipeline) {
+			m_LastError = "Failed to build the candidate System Pipeline";
+			return;
+		}
+
+		m_PendingPipeline = std::move(*pipeline);
+		m_LastError.clear();
 
 	};
 
@@ -440,6 +499,7 @@ namespace Ayin {
 	void SystemPipelinePanel::CancelEditing() {
 
 		m_PipelineEditor.Cancel();
+		m_PendingPipeline.reset();
 		m_SelectedSystemType.clear();
 		m_LastError.clear();
 

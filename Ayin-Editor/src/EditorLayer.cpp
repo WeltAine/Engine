@@ -112,20 +112,20 @@ void EditorLayer::OnDetach() {
 
 	AYIN_PROFILE_FUNCTION();
 
-	if (m_ActiveWorld != nullptr && m_ActiveWorld != m_EditorWorld)
-		m_ActiveWorld->EndWorldExecutionSession();
-
-	if (m_EditorWorld != nullptr)
-		m_EditorWorld->EndWorldExecutionSession();
-
-	m_ActiveWorld = nullptr;
-	m_EditorWorld = nullptr;
+	// EditorSession 销毁时会先结束临时 World，再结束持久 EditorWorld。
+	m_SystemPipelinePanel.SetContext(nullptr);
+	m_ActiveWorld.Reset();
+	m_EditorSession.reset();
+	m_TempScene = nullptr;
 
 };
 
 void EditorLayer::OnUpdate(Ayin::Timestep deltaTime) {
 
 	AYIN_PROFILE_FUNCTION();
+
+	// ImGui 中产生的 Apply 请求延后到下一帧，在任何 Schedule Update 之前统一处理。
+	ProcessSystemPipelineApply();
 
 	// 窗内部口缩放
 	//? 关于viewpoint在缩放时（主窗口不缩放），的黑屏问题
@@ -180,7 +180,7 @@ void EditorLayer::OnUpdate(Ayin::Timestep deltaTime) {
 		};
 
 		// Scene 仍然负责当前的渲染流程；World 在同一帧驱动 System Schedule。
-		if (m_ActiveWorld != nullptr) {
+		if (m_ActiveWorld) {
 			if (m_EditorState == EditorState::Runtime)
 				m_ActiveWorld->Update(deltaTime);
 			else
@@ -527,12 +527,15 @@ void EditorLayer::OpenScene() {
 
 		m_SceneHierarchyPanel.SetContext(m_EditorScene);
 
-		if (m_EditorWorld != nullptr && m_EditorWorld->SessionReady())
-			m_EditorWorld->EndWorldExecutionSession();
+		m_SystemPipelinePanel.SetContext(nullptr);
+		m_ActiveWorld.Reset();
+		m_EditorSession.reset();
 
-		m_EditorWorld = Ayin::CreateRef<Ayin::World>(m_EditorScene, m_SystemPipeline);
-		m_EditorWorld->BeginWorldExecutionSession(Ayin::SceneMode::Editor);
-		m_ActiveWorld = m_EditorWorld;
+		m_EditorSession = Ayin::CreateScope<Ayin::EditorSession>(m_EditorScene, Ayin::SystemPipeline{});
+		if (!m_EditorSession->GetEditorWorld().BeginWorldExecutionSession(Ayin::SceneMode::Editor))
+			AYIN_CORE_ERROR("Failed to begin the EditorWorld execution session");
+
+		m_ActiveWorld.Reset(&m_EditorSession->GetEditorWorld());
 	}
 
 };
@@ -548,12 +551,15 @@ void EditorLayer::NewScene() {
 
 	m_EditorScene->OnViewportResize(m_SceneSize.x, m_SceneSize.y);
 
-	if (m_EditorWorld != nullptr && m_EditorWorld->SessionReady())
-		m_EditorWorld->EndWorldExecutionSession();
+	m_SystemPipelinePanel.SetContext(nullptr);
+	m_ActiveWorld.Reset();
+	m_EditorSession.reset();
 
-	m_EditorWorld = Ayin::CreateRef<Ayin::World>(m_EditorScene, m_SystemPipeline);
-	m_EditorWorld->BeginWorldExecutionSession(Ayin::SceneMode::Editor);
-	m_ActiveWorld = m_EditorWorld;
+	m_EditorSession = Ayin::CreateScope<Ayin::EditorSession>(m_EditorScene, Ayin::SystemPipeline{});
+	if (!m_EditorSession->GetEditorWorld().BeginWorldExecutionSession(Ayin::SceneMode::Editor))
+		AYIN_CORE_ERROR("Failed to begin the EditorWorld execution session");
+
+	m_ActiveWorld.Reset(&m_EditorSession->GetEditorWorld());
 
 };
 
@@ -571,7 +577,7 @@ void EditorLayer::SaveScene() {
 
 void EditorLayer::ChangeEditorState(EditorState state) {
 
-	if (m_EditorState == state)
+	if (m_EditorState == state || m_EditorSession == nullptr)
 		return;
 
 	// UUID 无法被复制（因为那是不合法的）
@@ -586,38 +592,72 @@ void EditorLayer::ChangeEditorState(EditorState state) {
 
 		};
 
-	// 临时 World 结束时显式关闭会话；EditorWorld 保持为持久的编辑运行实例。
-	if (m_ActiveWorld != nullptr && m_ActiveWorld != m_EditorWorld)
-		m_ActiveWorld->EndWorldExecutionSession();
-
 	switch (state) {
 
 	case EditorState::Editor:
+		m_EditorSession->StopTemporaryWorld();
 		m_SceneHierarchyPanel.SetContext(m_EditorScene);
 		m_TempScene = nullptr;
-		m_ActiveWorld = m_EditorWorld;
+		m_ActiveWorld.Reset(&m_EditorSession->GetEditorWorld());
 		break;
 	case EditorState::Simulate:
 	case EditorState::Runtime:
 		copyScene();
 		m_SceneHierarchyPanel.SetContext(m_TempScene);
 
-		m_ActiveWorld = Ayin::CreateRef<Ayin::World>(m_TempScene, m_SystemPipeline);
-		if (!m_ActiveWorld->BeginWorldExecutionSession(
-			state == EditorState::Simulate
-				? Ayin::SceneMode::Simulation
-				: Ayin::SceneMode::Runtime)) {
+		const bool began = state == EditorState::Simulate
+			? m_EditorSession->BeginSimulation(m_TempScene)
+			: m_EditorSession->BeginRuntime(m_TempScene);
+		if (!began) {
 
-			m_ActiveWorld = m_EditorWorld;
 			m_TempScene = nullptr;
 			m_SceneHierarchyPanel.SetContext(m_EditorScene);
+			m_ActiveWorld.Reset(&m_EditorSession->GetEditorWorld());
 			return;
 		}
 
+		m_ActiveWorld.Reset(m_EditorSession->GetTemporaryWorld());
 		break;
 
 	};
 
 	m_EditorState = state;
+
+};
+
+
+void EditorLayer::ProcessSystemPipelineApply() {
+
+	const std::optional<Ayin::SystemPipeline> pipeline = m_SystemPipelinePanel.TakePendingPipeline();
+	if (!pipeline)
+		return;
+
+	if (m_EditorSession == nullptr) {
+		m_SystemPipelinePanel.RejectApply("The EditorSession is not available");
+		return;
+	}
+
+	// EditorSession 会在这里结束临时 World，并且始终把结构 Apply 提交到持久 EditorWorld。
+	if (!m_EditorSession->ApplyPipeline(*pipeline)) {
+
+		// 当前 Apply 的失败边界仍然由 World / EditorSession 定义；草稿保留在面板中，用户可以继续修改。
+		if (m_EditorSession->GetTemporaryWorld() == nullptr && m_EditorState != EditorState::Editor) {
+			m_TempScene = nullptr;
+			m_SceneHierarchyPanel.SetContext(m_EditorScene);
+			m_ActiveWorld.Reset(&m_EditorSession->GetEditorWorld());
+			m_EditorState = EditorState::Editor;
+			m_SystemPipelinePanel.KeepEditingAfterApplyFailure(m_ActiveWorld);
+		}
+
+		m_SystemPipelinePanel.RejectApply("Failed to apply the candidate System Pipeline");
+		return;
+	}
+
+	// Apply 成功后回到持久 EditorWorld；下次 Simulation / Runtime 会从新的持久 Pipeline 创建临时 World。
+	m_TempScene = nullptr;
+	m_SceneHierarchyPanel.SetContext(m_EditorScene);
+	m_ActiveWorld.Reset(&m_EditorSession->GetEditorWorld());
+	m_EditorState = EditorState::Editor;
+	m_SystemPipelinePanel.CompleteApply();
 
 };

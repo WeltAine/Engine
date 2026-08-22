@@ -33,7 +33,9 @@ namespace Ayin {
 		const SystemPipeline& GetPipeline() const { return m_Pipeline; };
 
 		bool BeginSimulation();
+		bool BeginSimulation(const Ref<Scene>& scene);
 		bool BeginRuntime();
+		bool BeginRuntime(const Ref<Scene>& scene);
 		void StopTemporaryWorld();
 
 		// Apply 始终提交到持久 EditorWorld；临时 World 只负责结束当前运行会话。
@@ -41,7 +43,7 @@ namespace Ayin {
 
 	private:
 
-		bool BeginTemporaryWorld(SceneMode mode);
+		bool BeginTemporaryWorld(const Ref<Scene>& scene, SceneMode mode);
 
 	private:
 

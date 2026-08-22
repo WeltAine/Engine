@@ -41,23 +41,35 @@ namespace Ayin {
 
 	bool EditorSession::BeginSimulation() {
 
-		return BeginTemporaryWorld(SceneMode::Simulation);
+		return BeginSimulation(m_Scene);
+
+	};
+
+	bool EditorSession::BeginSimulation(const Ref<Scene>& scene) {
+
+		return BeginTemporaryWorld(scene, SceneMode::Simulation);
 
 	};
 
 	bool EditorSession::BeginRuntime() {
 
-		return BeginTemporaryWorld(SceneMode::Runtime);
+		return BeginRuntime(m_Scene);
 
 	};
 
-	bool EditorSession::BeginTemporaryWorld(const SceneMode mode) {
+	bool EditorSession::BeginRuntime(const Ref<Scene>& scene) {
 
-		if (mode == SceneMode::None || !m_Pipeline.IsValid())
+		return BeginTemporaryWorld(scene, SceneMode::Runtime);
+
+	};
+
+	bool EditorSession::BeginTemporaryWorld(const Ref<Scene>& scene, const SceneMode mode) {
+
+		if (scene == nullptr || mode == SceneMode::None || !m_Pipeline.IsValid())
 			return false;
 
 		StopTemporaryWorld();
-		m_TemporaryWorld = CreateScope<World>(m_Scene, m_Pipeline);
+		m_TemporaryWorld = CreateScope<World>(scene, m_Pipeline);
 		m_TemporaryMode = mode;
 
 		if (!m_TemporaryWorld->BeginWorldExecutionSession(mode)) {

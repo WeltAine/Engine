@@ -713,7 +713,11 @@ bool SystemTestLayer::CheckEditorInteractionBoundaries() {
 	// Simulation / Runtime 的结构 Apply 必须先结束临时 World，再把新 Pipeline 提交到 EditorWorld。
 	m_State.LifecycleTrace.clear();
 	Ayin::EditorSession editorSession{ m_Scene, m_Pipeline };
-	const bool simulationBegan = editorSession.BeginSimulation();
+	const bool editorWorldBegan = editorSession.GetEditorWorld().BeginWorldExecutionSession(Ayin::SceneMode::Editor);
+	const Ayin::Ref<Ayin::Scene> temporaryScene = Ayin::CreateRef<Ayin::Scene>();
+	const bool simulationBegan = editorWorldBegan && editorSession.BeginSimulation(temporaryScene);
+	const bool temporarySceneUsed = editorSession.GetTemporaryWorld() != nullptr &&
+		editorSession.GetTemporaryWorld()->GetScene() == temporaryScene;
 	Ayin::SystemPipeline::Builder replacementBuilder;
 	replacementBuilder.AddSystem<EarlySystem>(
 		{ Ayin::SystemPhase::Update },
@@ -724,11 +728,13 @@ bool SystemTestLayer::CheckEditorInteractionBoundaries() {
 	const std::vector<std::string> expectedSessionApplyTrace{
 		"Late:End:Simulation", "Early:End:Simulation",
 		"Runtime:Detach", "Late:Detach", "Early:Detach",
+		"Late:End:Editor", "Early:End:Editor",
 		"Runtime:Detach", "Late:Detach", "Early:Detach",
-		"Early:Attach"
+		"Early:Attach", "Early:Begin:Editor"
 	};
 	const bool temporaryStopped = editorSession.GetTemporaryWorld() == nullptr;
-	const bool persistentPipelineUpdated = editorSession.GetPipeline().GetDefinitions().size() == 1 &&
+	const bool persistentPipelineUpdated = editorSession.GetEditorWorld().SessionReady() &&
+		editorSession.GetPipeline().GetDefinitions().size() == 1 &&
 		editorSession.GetEditorWorld().FindSystemInstance(Ayin::GetSystemID<EarlySystem>()) != nullptr &&
 		editorSession.GetEditorWorld().FindSystemInstance(Ayin::GetSystemID<LateSystem>()) == nullptr;
 	const bool sessionApplyLifecyclePassed =
@@ -738,7 +744,7 @@ bool SystemTestLayer::CheckEditorInteractionBoundaries() {
 		editorSession.GetTemporaryWorld()->FindSystemInstance(Ayin::GetSystemID<EarlySystem>()) != nullptr &&
 		editorSession.GetTemporaryWorld()->FindSystemInstance(Ayin::GetSystemID<LateSystem>()) == nullptr;
 	editorSession.StopTemporaryWorld();
-	m_State.EditorSessionPassed = sessionApplied && temporaryStopped &&
+	m_State.EditorSessionPassed = editorWorldBegan && simulationBegan && temporarySceneUsed && sessionApplied && temporaryStopped &&
 		persistentPipelineUpdated && newTemporaryWorldUsesPipeline &&
 		sessionApplyLifecyclePassed;
 	if (!m_State.EditorSessionPassed) {

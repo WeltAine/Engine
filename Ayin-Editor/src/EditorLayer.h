@@ -46,6 +46,7 @@ private:
 	void SaveScene();
 
 	void ChangeEditorState(EditorState state);
+	void ProcessSystemPipelineApply();
 
 private:
 
@@ -67,8 +68,8 @@ private:
 
 	//						编辑用场景				运行模拟时场景
 	Ayin::Ref<Ayin::Scene> m_EditorScene = nullptr, m_TempScene = nullptr;
-	Ayin::SystemPipeline m_SystemPipeline;
-	Ayin::Ref<Ayin::World> m_EditorWorld = nullptr, m_ActiveWorld = nullptr;
+	Ayin::Scope<Ayin::EditorSession> m_EditorSession = nullptr;
+	Ayin::View<Ayin::World> m_ActiveWorld;
 	EditorState m_EditorState = EditorState::Editor;
 	
 
