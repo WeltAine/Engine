@@ -2,6 +2,7 @@
 
 #include <Ayin.h>
 
+#include <array>
 #include <optional>
 #include <string_view>
 
@@ -29,6 +30,8 @@ namespace Ayin {
 	private:
 
 		void DrawToolbar();
+		void DrawSystemFilter();
+		void DrawSplitter(float height);
 
 		void DrawRuntimeList(const SystemSchedule& schedule);
 		void DrawBuilderList();
@@ -41,6 +44,8 @@ namespace Ayin {
 		bool RebuildPreview();
 		void CancelEditing();
 
+		bool PassesSystemFilter(std::string_view typeKey, std::string_view displayName) const;
+
 		static std::string GetPhaseText(SystemPhase phaseMask);
 		static std::string GetModeText(SceneMode modeMask);
 
@@ -49,6 +54,9 @@ namespace Ayin {
 		View<World> m_World;
 		SystemPipelineEditor m_PipelineEditor;
 		std::optional<SystemPipeline> m_PendingPipeline;
+		// 纯面板状态：筛选和分栏宽度不会回写 Builder 或实时 Schedule。
+		std::array<char, 128> m_SystemFilter{};
+		float m_ListWidth = 0.0f;
 		SystemTypeKey m_SelectedSystemType;
 		std::string m_LastError;
 

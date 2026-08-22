@@ -2,6 +2,9 @@
 
 #include <imgui.h>
 
+#include <algorithm>
+#include <cctype>
+
 #include "Panels/SystemPipelinePanel.h"
 
 
@@ -83,18 +86,34 @@ namespace Ayin {
 			ImGui::Separator();
 		}
 
-		const float listWidth = std::max(240.0f, ImGui::GetContentRegionAvail().x * 0.42f);
+		// 筛选和分栏只改变面板的观察方式，不改变选中 System 或任何 Pipeline 结构。
+		DrawSystemFilter();
+		ImGui::Separator();
 
-		ImGui::BeginChild("##SystemList", ImVec2{ listWidth, 0.0f }, ImGuiChildFlags_Borders);
+		constexpr float minimumListWidth = 220.0f;
+		constexpr float minimumPropertiesWidth = 260.0f;
+		constexpr float splitterWidth = 6.0f;
+
+		const ImVec2 availableSize = ImGui::GetContentRegionAvail();
+		const float maximumListWidth = std::max(
+			minimumListWidth,
+			availableSize.x - splitterWidth - minimumPropertiesWidth);
+		if (m_ListWidth <= 0.0f)
+			m_ListWidth = std::max(minimumListWidth, availableSize.x * 0.42f);
+		m_ListWidth = std::clamp(m_ListWidth, minimumListWidth, maximumListWidth);
+
+		ImGui::BeginChild("##SystemList", ImVec2{ m_ListWidth, availableSize.y }, ImGuiChildFlags_Borders);
 		if (m_PipelineEditor.IsEditing())
 			DrawBuilderList();
 		else
 			DrawRuntimeList(schedule);
 		ImGui::EndChild();
 
-		ImGui::SameLine();
+		ImGui::SameLine(0.0f, 0.0f);
+		DrawSplitter(availableSize.y);
+		ImGui::SameLine(0.0f, 0.0f);
 
-		ImGui::BeginChild("##SystemProperties", ImVec2{ 0.0f, 0.0f }, ImGuiChildFlags_Borders);
+		ImGui::BeginChild("##SystemProperties", ImVec2{ 0.0f, availableSize.y }, ImGuiChildFlags_Borders);
 		if (m_PipelineEditor.IsEditing())
 			DrawPreviewProperties();
 		else
@@ -150,6 +169,35 @@ namespace Ayin {
 	};
 
 
+	void SystemPipelinePanel::DrawSystemFilter() {
+
+		ImGui::SetNextItemWidth(-72.0f);
+		ImGui::InputTextWithHint(
+			"##SystemFilter",
+			"Search System...",
+			m_SystemFilter.data(),
+			m_SystemFilter.size());
+
+		ImGui::SameLine();
+		if (ImGui::Button("Clear") && m_SystemFilter.front() != '\0')
+			m_SystemFilter.fill('\0');
+
+	};
+
+
+	void SystemPipelinePanel::DrawSplitter(const float height) {
+
+		// Splitter 只保存当前面板宽度；下一帧会统一处理窗口缩放后的范围收束。
+		ImGui::InvisibleButton("##SystemListSplitter", ImVec2{ 6.0f, height });
+		if (ImGui::IsItemActive())
+			m_ListWidth += ImGui::GetIO().MouseDelta.x;
+
+		if (ImGui::IsItemHovered() || ImGui::IsItemActive())
+			ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+
+	};
+
+
 	void SystemPipelinePanel::DrawRuntimeList(const SystemSchedule& schedule) {
 
 		const std::vector<SystemEntry>& systems = schedule.GetSystems();
@@ -158,6 +206,8 @@ namespace Ayin {
 			ImGui::TextUnformatted("The current Schedule contains no System");
 			return;
 		}
+
+		std::size_t visibleSystemCount = 0;
 
 		constexpr ImGuiTableFlags tableFlags =
 			ImGuiTableFlags_BordersInnerV |
@@ -176,6 +226,14 @@ namespace Ayin {
 
 		for (const SystemEntry& entry : systems) {
 
+			const SystemDescriptor* descriptor = SystemRegistry::GetSystemDescriptor(entry.Information.RuntimeId);
+			const std::string_view displayName = descriptor == nullptr
+				? std::string_view{}
+				: std::string_view{ descriptor->DisplayName };
+			if (!PassesSystemFilter(entry.Information.TypeKey, displayName))
+				continue;
+
+			++visibleSystemCount;
 			const bool selected = m_SelectedSystemType == entry.Information.TypeKey;
 
 			ImGui::PushID(static_cast<int>(entry.Information.RuntimeId));
@@ -202,6 +260,9 @@ namespace Ayin {
 
 		ImGui::EndTable();
 
+		if (visibleSystemCount == 0)
+			ImGui::TextDisabled("No System matches the current filter");
+
 	};
 
 
@@ -221,6 +282,8 @@ namespace Ayin {
 			return;
 		}
 
+		std::size_t visibleDefinitionCount = 0;
+
 		constexpr ImGuiTableFlags tableFlags =
 			ImGuiTableFlags_BordersInnerV |
 			ImGuiTableFlags_RowBg |
@@ -238,6 +301,14 @@ namespace Ayin {
 
 		for (const SystemDefinition& definition : definitions) {
 
+			const SystemDescriptor* descriptor = SystemRegistry::GetSystemDescriptor(definition.Type);
+			const std::string_view displayName = descriptor == nullptr
+				? std::string_view{}
+				: std::string_view{ descriptor->DisplayName };
+			if (!PassesSystemFilter(definition.Type, displayName))
+				continue;
+
+			++visibleDefinitionCount;
 			const bool selected = m_SelectedSystemType == definition.Type;
 
 			ImGui::PushID(definition.Type.c_str());
@@ -263,6 +334,9 @@ namespace Ayin {
 		}
 
 		ImGui::EndTable();
+
+		if (visibleDefinitionCount == 0)
+			ImGui::TextDisabled("No System matches the current filter");
 
 	};
 
@@ -502,6 +576,34 @@ namespace Ayin {
 		m_PendingPipeline.reset();
 		m_SelectedSystemType.clear();
 		m_LastError.clear();
+
+	};
+
+
+	bool SystemPipelinePanel::PassesSystemFilter(
+		const std::string_view typeKey,
+		const std::string_view displayName) const {
+
+		// 搜索不区分大小写，同时匹配稳定 TypeKey 和可读 DisplayName。
+		const std::string_view filter{ m_SystemFilter.data() };
+		if (filter.empty())
+			return true;
+
+		auto containsIgnoringCase = [filter](const std::string_view value) {
+
+			const auto result = std::ranges::search(
+				value,
+				filter,
+				[](const char left, const char right) {
+					return std::tolower(static_cast<unsigned char>(left)) ==
+						std::tolower(static_cast<unsigned char>(right));
+				});
+
+			return !result.empty();
+
+		};
+
+		return containsIgnoringCase(typeKey) || containsIgnoringCase(displayName);
 
 	};
 
