@@ -4,6 +4,7 @@
 
 #include "Panels/SceneHierarchyPanel.h"
 #include "Panels/PropertiesPanel.h"
+#include "Panels/SystemPipelinePanel.h"
 
 #include <ImGuizmo.h>
 
@@ -66,6 +67,7 @@ private:
 
 	//						编辑用场景				运行模拟时场景
 	Ayin::Ref<Ayin::Scene> m_EditorScene = nullptr, m_TempScene = nullptr;
+	Ayin::SystemPipeline m_SystemPipeline;
 	Ayin::Ref<Ayin::World> m_EditorWorld = nullptr, m_ActiveWorld = nullptr;
 	EditorState m_EditorState = EditorState::Editor;
 	
@@ -73,6 +75,7 @@ private:
 	//面板测试
 	Ayin::SceneHierarchyPanel m_SceneHierarchyPanel;
 	Ayin::PropertiesPanel m_PropertiesPanel;
+	Ayin::SystemPipelinePanel m_SystemPipelinePanel;
 
 };
 

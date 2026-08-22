@@ -108,7 +108,20 @@ void EditorLayer::OnAttach() {
 	m_SceneHierarchyPanel.SetContext(m_EditorScene);
 
 };
-void EditorLayer::OnDetach() { AYIN_PROFILE_FUNCTION(); };
+void EditorLayer::OnDetach() {
+
+	AYIN_PROFILE_FUNCTION();
+
+	if (m_ActiveWorld != nullptr && m_ActiveWorld != m_EditorWorld)
+		m_ActiveWorld->EndWorldExecutionSession();
+
+	if (m_EditorWorld != nullptr)
+		m_EditorWorld->EndWorldExecutionSession();
+
+	m_ActiveWorld = nullptr;
+	m_EditorWorld = nullptr;
+
+};
 
 void EditorLayer::OnUpdate(Ayin::Timestep deltaTime) {
 
@@ -165,6 +178,14 @@ void EditorLayer::OnUpdate(Ayin::Timestep deltaTime) {
 			break;
 
 		};
+
+		// Scene 仍然负责当前的渲染流程；World 在同一帧驱动 System Schedule。
+		if (m_ActiveWorld != nullptr) {
+			if (m_EditorState == EditorState::Runtime)
+				m_ActiveWorld->Update(deltaTime);
+			else
+				m_ActiveWorld->Update(deltaTime, &m_EditorCamera);
+		}
 
 		Ayin::RenderCommand::SetClearColor({ clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w });
 
@@ -278,6 +299,10 @@ void EditorLayer::OnImGuiRender() {
 
 	m_PropertiesPanel.SetContext(m_SceneHierarchyPanel.GetSelectedEntity());
 	m_PropertiesPanel.OnImGuiRender();
+
+	// System 面板直接观察当前 World；它不会经由 World 或 Schedule 转发 GUI 请求。
+	m_SystemPipelinePanel.SetContext(m_ActiveWorld);
+	m_SystemPipelinePanel.OnImGuiRender();
 
 
 
@@ -501,6 +526,13 @@ void EditorLayer::OpenScene() {
 		m_EditorScene->OnViewportResize(m_SceneSize.x, m_SceneSize.y);
 
 		m_SceneHierarchyPanel.SetContext(m_EditorScene);
+
+		if (m_EditorWorld != nullptr && m_EditorWorld->SessionReady())
+			m_EditorWorld->EndWorldExecutionSession();
+
+		m_EditorWorld = Ayin::CreateRef<Ayin::World>(m_EditorScene, m_SystemPipeline);
+		m_EditorWorld->BeginWorldExecutionSession(Ayin::SceneMode::Editor);
+		m_ActiveWorld = m_EditorWorld;
 	}
 
 };
@@ -515,6 +547,13 @@ void EditorLayer::NewScene() {
 	mainCamera.AddComponent<Ayin::CameraComponent>(Ayin::CameraProp{ .Type{Ayin::Camera::CameraType::Perspective} });
 
 	m_EditorScene->OnViewportResize(m_SceneSize.x, m_SceneSize.y);
+
+	if (m_EditorWorld != nullptr && m_EditorWorld->SessionReady())
+		m_EditorWorld->EndWorldExecutionSession();
+
+	m_EditorWorld = Ayin::CreateRef<Ayin::World>(m_EditorScene, m_SystemPipeline);
+	m_EditorWorld->BeginWorldExecutionSession(Ayin::SceneMode::Editor);
+	m_ActiveWorld = m_EditorWorld;
 
 };
 
@@ -547,20 +586,34 @@ void EditorLayer::ChangeEditorState(EditorState state) {
 
 		};
 
+	// 临时 World 结束时显式关闭会话；EditorWorld 保持为持久的编辑运行实例。
+	if (m_ActiveWorld != nullptr && m_ActiveWorld != m_EditorWorld)
+		m_ActiveWorld->EndWorldExecutionSession();
 
 	switch (state) {
 
 	case EditorState::Editor:
 		m_SceneHierarchyPanel.SetContext(m_EditorScene);
 		m_TempScene = nullptr;
+		m_ActiveWorld = m_EditorWorld;
 		break;
 	case EditorState::Simulate:
-		copyScene();
-		m_SceneHierarchyPanel.SetContext(m_TempScene);
-		break;
 	case EditorState::Runtime:
 		copyScene();
 		m_SceneHierarchyPanel.SetContext(m_TempScene);
+
+		m_ActiveWorld = Ayin::CreateRef<Ayin::World>(m_TempScene, m_SystemPipeline);
+		if (!m_ActiveWorld->BeginWorldExecutionSession(
+			state == EditorState::Simulate
+				? Ayin::SceneMode::Simulation
+				: Ayin::SceneMode::Runtime)) {
+
+			m_ActiveWorld = m_EditorWorld;
+			m_TempScene = nullptr;
+			m_SceneHierarchyPanel.SetContext(m_EditorScene);
+			return;
+		}
+
 		break;
 
 	};
