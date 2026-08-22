@@ -108,6 +108,7 @@ private:
 		bool RegistryPassed = false;
 		bool MaskJsonPassed = false;
 		bool SerializationRoundTripPassed = false;
+		bool SerializationFailurePassed = false;
 		bool WorldLifecyclePassed = false;
 		bool LiveFramePassed = false;
 		bool ApplyPassed = false;

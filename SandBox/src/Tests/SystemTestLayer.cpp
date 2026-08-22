@@ -146,7 +146,7 @@ void SystemTestLayer::RunOneShotChecks() {
 	m_RanChecks = true;
 
 	// 一次性检查失败时也标记完成，使自动化运行能够退出并报告 FAIL，而不是一直挂起窗口。
-	if (!pipelinePassed || !schedulePassed || !cleanupPassed || !baselinePassed || !builderModelPassed || !registryPassed || !serializationPassed || !editorInteractionPassed || !m_State.ApplyFailurePassed || !m_State.SystemObservationPassed || !m_State.Failure.empty()) {
+	if (!pipelinePassed || !schedulePassed || !cleanupPassed || !baselinePassed || !builderModelPassed || !registryPassed || !serializationPassed || !m_State.SerializationFailurePassed || !editorInteractionPassed || !m_State.ApplyFailurePassed || !m_State.SystemObservationPassed || !m_State.Failure.empty()) {
 		m_State.Completed = true;
 	}
 }
@@ -548,7 +548,16 @@ bool SystemTestLayer::CheckPipelineBuilder() {
 		pipelineDefinitions[2].Type == definitions[2].Type &&
 		serializedSystem != nullptr && serializedSystem->Exposure == 17;
 
-	m_State.BuilderModelPassed = builderOrderPassed && pipelinePassed;
+
+	// Build 只读取 Builder 的当前快照；之后继续修改 Builder 不会反向改变已经生成的 Pipeline。
+	builder.SetSystemConfiguration(
+		Ayin::GetSystemID<SerializationSystem>(),
+		Ayin::SystemConfiguration{.Json{"{\"Exposure\":29}"}});
+	const Ayin::SystemPipeline editedPipeline = builder.Build();
+	const bool builderRemainsEditable =
+		pipelineDefinitions[0].Configuration.Json == "{\"Exposure\":17}" &&
+		editedPipeline.GetDefinitions()[0].Configuration.Json == "{\"Exposure\":29}";
+	m_State.BuilderModelPassed = builderOrderPassed && pipelinePassed && builderRemainsEditable;
 	if (!m_State.BuilderModelPassed) {
 		SetFailure("Pipeline Builder did not preserve definition order or configuration");
 	}
@@ -686,8 +695,8 @@ bool SystemTestLayer::CheckEditorInteractionBoundaries() {
 }
 
 bool SystemTestLayer::CheckSystemSerialization() {
-	// SystemJson 的 Phases / Modes 是离散枚举数组，而不是底层整数 mask。
-	// 这个检查同时覆盖 Glaze 的枚举 metadata 和现有 Serializer 的中间 DTO。
+	// Document 中的 Phases / Modes 是离散枚举数组，而不是底层整数 mask。
+	// 这个检查同时覆盖 Document、Glaze metadata，以及 Schedule -> Builder 的映射失败边界。
 	Ayin::SystemPipeline::Builder sourceBuilder;
 	sourceBuilder.AddSystem(Ayin::SystemDefinition{
 		.Type{"SandBox.Tests.SerializationSystem"},
@@ -705,21 +714,21 @@ bool SystemTestLayer::CheckSystemSerialization() {
 	}
 
 	static_cast<SerializationSystem*>(sourceInstance)->Exposure = 42;
-	const std::optional<Ayin::SystemPipelineJson> pipelineJson =
-		Ayin::SystemScheduleSerializer::BuildSystemPipelineJson(source);
-	if (!pipelineJson || pipelineJson->Systems.size() != 1) {
-		SetFailure("Schedule did not produce one system JSON record");
+	const std::optional<Ayin::SystemPipelineDocument> document =
+		Ayin::SystemScheduleSerializer::Serialize(source);
+	if (!document || document->Systems.size() != 1) {
+		SetFailure("Schedule did not produce one System Pipeline document entry");
 		return false;
 	}
 
-	const Ayin::SystemJson& systemJson = pipelineJson->Systems.front();
+	const Ayin::SystemPipelineEntryDocument& entry = document->Systems.front();
 	const bool maskShapePassed =
-		systemJson.Phases == std::vector<Ayin::SystemPhase>{ Ayin::SystemPhase::Update, Ayin::SystemPhase::Presentation } &&
-		systemJson.Modes == std::vector<Ayin::SceneMode>{ Ayin::SceneMode::Editor, Ayin::SceneMode::Runtime };
+		entry.Phases == std::vector<Ayin::SystemPhase>{ Ayin::SystemPhase::Update, Ayin::SystemPhase::Presentation } &&
+		entry.Modes == std::vector<Ayin::SceneMode>{ Ayin::SceneMode::Editor, Ayin::SceneMode::Runtime };
 
-	auto writtenJson = glz::write_json(*pipelineJson);
+	auto writtenJson = glz::write_json(*document);
 	if (!writtenJson) {
-		SetFailure("System pipeline JSON write failed");
+		SetFailure("System Pipeline document JSON write failed");
 		return false;
 	}
 
@@ -730,26 +739,58 @@ bool SystemTestLayer::CheckSystemSerialization() {
 		writtenJson->find("\"Runtime\"") != std::string::npos;
 	m_State.MaskJsonPassed = maskShapePassed && namedMaskPassed;
 
-	const std::optional<Ayin::SystemPipelineJson> parsedJson =
-		Ayin::SystemScheduleSerializer::BuildSystemPipelineJsonFrom(*writtenJson);
-	if (!parsedJson) {
-		SetFailure("System pipeline JSON read failed");
+	const std::optional<Ayin::SystemPipelineDocument> parsedDocument =
+		Ayin::SystemScheduleSerializer::Parse(*writtenJson);
+	if (!parsedDocument) {
+		SetFailure("System Pipeline document JSON read failed");
 		return false;
 	}
 
-	Ayin::SystemPipeline::Builder builder = Ayin::SystemScheduleSerializer::Deserializer(*parsedJson);
-	Ayin::SystemPipeline pipeline = builder.Build();
+	auto builder = Ayin::SystemScheduleSerializer::Deserialize(*parsedDocument);
+	if (!builder) {
+		SetFailure("System Pipeline document did not create a Builder");
+		return false;
+	}
+
+	Ayin::SystemPipeline pipeline = builder->Build();
 	Ayin::SystemSchedule restored = pipeline.CreateSchedule();
 	const SerializationSystem* restoredSystem = static_cast<const SerializationSystem*>(
 		restored.FindSystemInstance(Ayin::GetSystemID<SerializationSystem>()));
 
-	m_State.SerializationRoundTripPassed = m_State.MaskJsonPassed && restoredSystem != nullptr &&
-		restoredSystem->Exposure == 42;
-	if (!m_State.SerializationRoundTripPassed)
-		SetFailure("System JSON round-trip did not preserve masks or configuration");
+	m_State.SerializationRoundTripPassed = m_State.MaskJsonPassed && pipeline.IsValid() &&
+		restored.IsBuilt() && restoredSystem != nullptr && restoredSystem->Exposure == 42;
+	if (!m_State.SerializationRoundTripPassed) {
+		SetFailure("System Pipeline document round-trip did not preserve masks or configuration");
+		return false;
+	}
 
-	return m_State.SerializationRoundTripPassed;
+	// Parse 只负责 JSON 语法和 DTO；Registry 身份与重复 System 在 Document -> Builder 时拒绝。
+	Ayin::SystemPipelineDocument unknownDocument = *parsedDocument;
+	unknownDocument.Systems.front().Type = "SandBox.Tests.UnknownSystem";
+
+	Ayin::SystemPipelineDocument duplicateDocument = *parsedDocument;
+	duplicateDocument.Systems.emplace_back(duplicateDocument.Systems.front());
+
+	Ayin::SystemPipelineDocument invalidConfigurationDocument = *parsedDocument;
+	invalidConfigurationDocument.Systems.front().Configuration = ::glz::raw_json{ "{\"Exposure\":" };
+	auto invalidConfigurationBuilder = Ayin::SystemScheduleSerializer::Deserialize(invalidConfigurationDocument);
+	const Ayin::SystemPipeline invalidConfigurationPipeline = invalidConfigurationBuilder
+		? invalidConfigurationBuilder->Build()
+		: Ayin::SystemPipeline{};
+	const Ayin::SystemSchedule invalidConfigurationSchedule = invalidConfigurationPipeline.CreateSchedule();
+
+	m_State.SerializationFailurePassed =
+		!Ayin::SystemScheduleSerializer::Parse("{\"Systems\":[") &&
+		!Ayin::SystemScheduleSerializer::Deserialize(unknownDocument) &&
+		!Ayin::SystemScheduleSerializer::Deserialize(duplicateDocument) &&
+		invalidConfigurationBuilder && invalidConfigurationPipeline.IsValid() &&
+		!invalidConfigurationSchedule.IsBuilt();
+	if (!m_State.SerializationFailurePassed)
+		SetFailure("System Pipeline document failure boundary mismatch");
+
+	return m_State.SerializationRoundTripPassed && m_State.SerializationFailurePassed;
 }
+
 void SystemTestLayer::RunLiveFrame(const Ayin::Timestep deltaTime) {
 	// 这是对主循环路径的最终验证：使用真实帧时间调用 World 一次完整生命周期。
 	m_State.Trace.clear();
@@ -839,6 +880,7 @@ void SystemTestLayer::OnImGuiRender() {
 	RenderCheck("System Registry", m_State.RegistryPassed);
 	RenderCheck("Mask JSON", m_State.MaskJsonPassed);
 	RenderCheck("Serialization round-trip", m_State.SerializationRoundTripPassed);
+	RenderCheck("Serialization failure boundary", m_State.SerializationFailurePassed);
 	RenderCheck("Live World frame", m_State.LiveFramePassed);
 	RenderCheck("World Apply", m_State.ApplyPassed);
 	RenderCheck("World Apply failure boundary", m_State.ApplyFailurePassed);

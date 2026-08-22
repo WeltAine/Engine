@@ -7,11 +7,15 @@ namespace Ayin {
 
 	bool SystemPipelineEditor::Begin(const SystemSchedule& schedule) {
 
-		const auto document = SystemScheduleSerializer::BuildSystemPipelineJson(schedule);
+		const auto document = SystemScheduleSerializer::Serialize(schedule);
 		if (!document)
 			return false;
 
-		m_Builder = SystemScheduleSerializer::Deserializer(*document);
+		const auto builder = SystemScheduleSerializer::Deserialize(*document);
+		if (!builder)
+			return false;
+
+		m_Builder = *builder;
 		if (!RebuildPreview()) {
 			Cancel();
 			return false;
@@ -41,14 +45,20 @@ namespace Ayin {
 
 	bool SystemPipelineEditor::SyncPreviewConfiguration() {
 
-		const auto document = SystemScheduleSerializer::BuildSystemPipelineJson(m_PreviewSchedule);
+		const auto document = SystemScheduleSerializer::Serialize(m_PreviewSchedule);
 		if (!document)
 			return false;
 
-		for (const SystemJson& system : document->Systems) {
+		for (const SystemPipelineEntryDocument& entry : document->Systems) {
+			const SystemDescriptor* descriptor = SystemRegistry::GetSystemDescriptor(entry.Type);
+			if (descriptor == nullptr) {
+				AYIN_CORE_ERROR("Preview refers to unknown System '{}'", entry.Type);
+				return false;
+			}
+
 			m_Builder.SetSystemConfiguration(
-				SystemRegistry::GetSystemDescriptor(system.Name)->RuntimeId,
-				SystemConfiguration{ .Json{ system.SystemData.str } });
+				descriptor->RuntimeId,
+				SystemConfiguration{ .Json{ entry.Configuration.str } });
 		}
 
 		return true;

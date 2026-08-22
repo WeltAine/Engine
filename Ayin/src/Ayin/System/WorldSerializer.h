@@ -13,7 +13,7 @@ namespace Ayin {
 
 		SceneJson Scene;
 
-		SystemPipelineJson SystemPipeline;
+		SystemPipelineDocument SystemPipeline;
 
 		struct glaze {
 			using T = WorldJson;

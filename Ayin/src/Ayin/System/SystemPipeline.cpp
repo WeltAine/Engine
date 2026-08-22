@@ -30,7 +30,7 @@ namespace Ayin {
 	};
 
 
-	SystemPipeline SystemPipeline::Builder::Build() {
+	SystemPipeline SystemPipeline::Builder::Build() const {
 
 		std::unordered_set<SystemTypeKey> types;
 		DefinitionList definitions;

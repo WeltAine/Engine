@@ -78,19 +78,22 @@ namespace Ayin {
 		if (!worldJson)
 			return false;
 
+		// 先将 System Document 完整转换为 Pipeline；失败时不改动当前 World。
+		auto builder = SystemScheduleSerializer::Deserialize(worldJson->SystemPipeline);
+		if (!builder)
+			return false;
+
+		SystemPipeline pipeline = builder->Build();
+		if (!pipeline.IsValid())
+			return false;
+
 		// 场景反序列化
 		m_World->m_ActiveScene = nullptr;
 
 		SceneSerializer sceneSerializer{ m_World->m_ActiveScene };
 		sceneSerializer.DeserializerFrom(worldJson->Scene);
 
-		
-		// 系统管线反序列化
-		SystemPipeline::Builder builder = SystemScheduleSerializer::Deserializer(worldJson->SystemPipeline);
-
-		m_World->ResetSchedule(builder.Build());
-
-		return true;
+		return m_World->ApplyPipeline(pipeline);
 
 	};
 
@@ -100,17 +103,14 @@ namespace Ayin {
 		SceneSerializer sceneSerializer{m_World->m_ActiveScene};
 		std::optional<SceneJson> sceneJson = sceneSerializer.BuildSceneJson();
 
-		std::optional<SystemPipelineJson> systemPipelineJson = SystemScheduleSerializer::BuildSystemPipelineJson(m_World->m_SystemSchedule);
+		std::optional<SystemPipelineDocument> systemPipelineDocument = SystemScheduleSerializer::Serialize(m_World->m_SystemSchedule);
+		if (!sceneJson || !systemPipelineDocument)
+			return std::nullopt;
 
-		WorldJson worldJson;
-
-		if (sceneJson)
-			worldJson.Scene = *sceneJson;
-
-		if (systemPipelineJson)
-			worldJson.SystemPipeline = *systemPipelineJson;
-		
-		return worldJson;
+		return WorldJson{
+			.Scene{*sceneJson},
+			.SystemPipeline{*systemPipelineDocument}
+		};
 
 	};
 	std::optional<WorldJson> WorldSerializer::BuildWorldJson(std::string_view jsonStr) {

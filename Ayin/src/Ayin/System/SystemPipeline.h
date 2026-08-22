@@ -16,8 +16,6 @@ namespace Ayin {
 
 	class AYIN_API SystemPipeline {
 
-		friend class SystemScheduleSerializer;
-
 	public:
 
 		class AYIN_API Builder {
@@ -33,7 +31,7 @@ namespace Ayin {
 			Builder() = default;
 			Builder(const SystemPipeline& pipeline);
 
-			SystemPipeline Build();
+			SystemPipeline Build() const;
 
 			Builder& AddSystem(const SystemDefinition& definition);
 
