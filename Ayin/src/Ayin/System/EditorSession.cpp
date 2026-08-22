@@ -87,13 +87,12 @@ namespace Ayin {
 		if (!systemPipeline.IsValid())
 			return false;
 
-		// EditorWorld 先完成候选 Schedule 构建；失败时临时 World 仍保持原状态。
-		if (!m_EditorWorld.ApplyPipeline(systemPipeline))
-			return false;
-
-		// Apply 成功后再结束临时 World，避免无效草稿破坏当前运行会话。
+		// Apply 先结束临时 World，确保结构修改统一回到 EditorWorld 提交。
 		if (m_TemporaryWorld != nullptr)
 			StopTemporaryWorld();
+
+		if (!m_EditorWorld.ApplyPipeline(systemPipeline))
+			return false;
 
 		m_Pipeline = systemPipeline;
 		return true;

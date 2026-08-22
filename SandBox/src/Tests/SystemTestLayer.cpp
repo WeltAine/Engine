@@ -141,10 +141,11 @@ void SystemTestLayer::RunOneShotChecks() {
 	const bool builderModelPassed = CheckPipelineBuilder();
 	const bool registryPassed = CheckSystemRegistry();
 	const bool serializationPassed = CheckSystemSerialization();
+	const bool editorInteractionPassed = CheckEditorInteractionBoundaries();
 	m_RanChecks = true;
 
 	// 一次性检查失败时也标记完成，使自动化运行能够退出并报告 FAIL，而不是一直挂起窗口。
-	if (!pipelinePassed || !schedulePassed || !cleanupPassed || !baselinePassed || !builderModelPassed || !registryPassed || !serializationPassed || !m_State.Failure.empty()) {
+	if (!pipelinePassed || !schedulePassed || !cleanupPassed || !baselinePassed || !builderModelPassed || !registryPassed || !serializationPassed || !editorInteractionPassed || !m_State.Failure.empty()) {
 		m_State.Completed = true;
 	}
 }
@@ -561,6 +562,73 @@ bool SystemTestLayer::CheckSystemRegistry() {
 	return m_State.RegistryPassed;
 }
 
+bool SystemTestLayer::CheckEditorInteractionBoundaries() {
+	bool passed = true;
+
+	// Preview 由当前 Schedule 序列化而来，但它只用于编辑显示，不应 Attach 或复用实时实例。
+	m_State.LifecycleTrace.clear();
+	Ayin::SystemPipelineEditor pipelineEditor;
+	const bool editorBegan = pipelineEditor.Begin(m_World->GetSystemSchedule());
+	Ayin::SystemSchedule& preview = pipelineEditor.GetPreviewSchedule();
+	Ayin::ISystem* runtimeSystem = m_World->FindSystemInstance(Ayin::GetSystemID<EarlySystem>());
+	Ayin::ISystem* previewSystem = preview.FindSystemInstance(Ayin::GetSystemID<EarlySystem>());
+	const bool previewBoundaryPassed = editorBegan &&
+		preview.IsBuilt() && !preview.IsAttached() &&
+		previewSystem != nullptr && previewSystem != runtimeSystem &&
+		m_State.LifecycleTrace.empty();
+
+	const int editorGuiCountBefore = m_State.EditorGuiCount["Early"];
+	if (previewSystem != nullptr)
+		previewSystem->OnEditorGui();
+	const bool previewGuiPassed =
+		m_State.EditorGuiCount["Early"] == editorGuiCountBefore + 1 &&
+		m_State.LifecycleTrace.empty();
+	pipelineEditor.Cancel();
+	m_State.EditorInteractionPassed = previewBoundaryPassed && previewGuiPassed;
+	if (!m_State.EditorInteractionPassed) {
+		SetFailure("SystemPipelineEditor preview boundary mismatch");
+		passed = false;
+	}
+
+	// Simulation / Runtime 的结构 Apply 必须先结束临时 World，再把新 Pipeline 提交到 EditorWorld。
+	m_State.LifecycleTrace.clear();
+	Ayin::EditorSession editorSession{ m_Scene, m_Pipeline };
+	const bool simulationBegan = editorSession.BeginSimulation();
+	Ayin::SystemPipeline::Builder replacementBuilder;
+	replacementBuilder.AddSystem<EarlySystem>(
+		{ Ayin::SystemPhase::Update },
+		{ Ayin::SceneMode::Editor, Ayin::SceneMode::Simulation });
+	const Ayin::SystemPipeline replacementPipeline = replacementBuilder.Build();
+	m_State.LifecycleTrace.clear();
+	const bool sessionApplied = simulationBegan && editorSession.ApplyPipeline(replacementPipeline);
+	const std::vector<std::string> expectedSessionApplyTrace{
+		"Late:End:Simulation", "Early:End:Simulation",
+		"Runtime:Detach", "Late:Detach", "Early:Detach",
+		"Runtime:Detach", "Late:Detach", "Early:Detach",
+		"Early:Attach"
+	};
+	const bool temporaryStopped = editorSession.GetTemporaryWorld() == nullptr;
+	const bool persistentPipelineUpdated = editorSession.GetPipeline().GetDefinitions().size() == 1 &&
+		editorSession.GetEditorWorld().FindSystemInstance(Ayin::GetSystemID<EarlySystem>()) != nullptr &&
+		editorSession.GetEditorWorld().FindSystemInstance(Ayin::GetSystemID<LateSystem>()) == nullptr;
+	const bool sessionApplyLifecyclePassed =
+		m_State.LifecycleTrace == expectedSessionApplyTrace;
+	const bool newTemporaryWorldUsesPipeline =
+		editorSession.BeginSimulation() &&
+		editorSession.GetTemporaryWorld()->FindSystemInstance(Ayin::GetSystemID<EarlySystem>()) != nullptr &&
+		editorSession.GetTemporaryWorld()->FindSystemInstance(Ayin::GetSystemID<LateSystem>()) == nullptr;
+	editorSession.StopTemporaryWorld();
+	m_State.EditorSessionPassed = sessionApplied && temporaryStopped &&
+		persistentPipelineUpdated && newTemporaryWorldUsesPipeline &&
+		sessionApplyLifecyclePassed;
+	if (!m_State.EditorSessionPassed) {
+		SetFailure("EditorSession multi-World Apply boundary mismatch");
+		passed = false;
+	}
+
+	return passed;
+}
+
 bool SystemTestLayer::CheckSystemSerialization() {
 	// SystemJson 的 Phases / Modes 是离散枚举数组，而不是底层整数 mask。
 	// 这个检查同时覆盖 Glaze 的枚举 metadata 和现有 Serializer 的中间 DTO。
@@ -716,6 +784,8 @@ void SystemTestLayer::OnImGuiRender() {
 	RenderCheck("Serialization round-trip", m_State.SerializationRoundTripPassed);
 	RenderCheck("Live World frame", m_State.LiveFramePassed);
 	RenderCheck("World Apply", m_State.ApplyPassed);
+	RenderCheck("Editor interaction boundaries", m_State.EditorInteractionPassed);
+	RenderCheck("EditorSession Apply", m_State.EditorSessionPassed);
 	if (!m_State.Failure.empty()) {
 		ImGui::Separator();
 		ImGui::Text("Failure: %s", m_State.Failure.c_str());

@@ -4,6 +4,8 @@
 #include "Ayin/Core/Timestep.h"
 #include "Ayin/Scene/Scene.h"
 #include "Ayin/System/SystemPipeline.h"
+#include "Ayin/System/SystemPipelineEditor.h"
+#include "Ayin/System/EditorSession.h"
 #include "Ayin/System/SystemRegistry.h"
 #include "Ayin/System/SystemSchedule.h"
 #include "Ayin/System/SystemScheduleSerializer.h"
@@ -41,6 +43,8 @@
 //!          e) CheckSystemRegistry()：验证稳定 TypeKey、描述符、工厂、配置 Codec 和失败结果。
 //!          f) CheckSystemSerialization()：验证 mask 的 JSON 表达，以及现有 DTO 到
 //!             Builder 的 round-trip 骨架。
+//!          g) CheckEditorInteractionBoundaries()：验证 Preview 与实时实例隔离，以及
+//!             Simulation Apply 回到 EditorWorld 的多 World 语义。
 //!
 //!  2. OnUpdate(deltaTime)
 //!       -> 若一次性检查全部通过，RunLiveFrame(deltaTime) 使用 Application 提供的真实帧时间
@@ -105,6 +109,8 @@ private:
 		bool WorldLifecyclePassed = false;
 		bool LiveFramePassed = false;
 		bool ApplyPassed = false;
+		bool EditorInteractionPassed = false;
+		bool EditorSessionPassed = false;
 		bool ContextValid = true;
 		bool Completed = false;
 		bool Pass = false;
@@ -196,6 +202,7 @@ private:
 	bool CheckPipelineBuilder();
 	bool CheckSystemRegistry();
 	bool CheckSystemSerialization();
+	bool CheckEditorInteractionBoundaries();
 
 	// 比较 SystemContext 中的场景和时间步是否被正确转发。
 	std::vector<std::string> ExpectedEditorTrace() const;
