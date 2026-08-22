@@ -39,16 +39,6 @@ namespace Ayin {
 
 	};
 
-	// Editor 使用的只读运行时视图；View 不拥有 System，也不能替换 Schedule 拓扑。
-	//? 既然是编辑器中使用，和 Ayin 核心无关，那是否应该出现在这里？还是应该放在 Ayin-Editor 模块中？关于防止Order 被更改或者 可用模式被修改，是否应该让 Ayin-Editor 来承担，而非 Ayin-Core？毕竟 Ayin-Core 只是提供了一个 Schedule 的运行时视图，至于编辑器中如何使用这个视图，应该由 Ayin-Editor 来决定。
-	struct SystemRuntimeView {
-
-		const SystemInformation* Information = nullptr;
-		const SystemSpecification* Specification = nullptr;
-		const ISystem* Instance = nullptr;
-
-	};
-
 
 	class SystemSchedule {
 
@@ -78,8 +68,8 @@ namespace Ayin {
 		inline bool IsAttached() const { return m_Attached; };
 
 
+		// 只读条目同时提供 System 的稳定信息和只读实例观察，不允许修改 Schedule 拓扑。
 		const std::vector<SystemEntry>& GetSystems() const { return m_Systems; };
-		std::vector<SystemRuntimeView> GetRuntimeViews() const;
 
 		ISystem* FindSystemInstance(SystemID systemId);
 		const ISystem* FindSystemInstance(SystemID systemId) const;

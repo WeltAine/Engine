@@ -146,7 +146,7 @@ void SystemTestLayer::RunOneShotChecks() {
 	m_RanChecks = true;
 
 	// 一次性检查失败时也标记完成，使自动化运行能够退出并报告 FAIL，而不是一直挂起窗口。
-	if (!pipelinePassed || !schedulePassed || !cleanupPassed || !baselinePassed || !builderModelPassed || !registryPassed || !serializationPassed || !editorInteractionPassed || !m_State.ApplyFailurePassed || !m_State.Failure.empty()) {
+	if (!pipelinePassed || !schedulePassed || !cleanupPassed || !baselinePassed || !builderModelPassed || !registryPassed || !serializationPassed || !editorInteractionPassed || !m_State.ApplyFailurePassed || !m_State.SystemObservationPassed || !m_State.Failure.empty()) {
 		m_State.Completed = true;
 	}
 }
@@ -167,6 +167,21 @@ bool SystemTestLayer::CheckPipelineAndWorld() {
 	const bool worldSystemAccessPassed = selectedSystem != nullptr &&
 		m_World->FindSystemInstance("SandBox.Tests.EarlySystem") == selectedSystem &&
 		constWorld.FindSystemInstance(Ayin::GetSystemID<EarlySystem>()) != nullptr;
+
+	// Schedule 只暴露 const 条目；Editor 可以读取名称、规格和实例，但不通过此接口改写拓扑。
+	const Ayin::SystemSchedule& observedSchedule = constWorld.GetSystemSchedule();
+	const std::vector<Ayin::SystemEntry>& observedSystems = observedSchedule.GetSystems();
+	const Ayin::SystemEntry* observedEarly = observedSchedule.FindSystemEntry(Ayin::GetSystemID<EarlySystem>());
+	m_State.SystemObservationPassed = observedSystems.size() == 3 &&
+		observedEarly != nullptr &&
+		observedEarly->Information.TypeKey == "SandBox.Tests.EarlySystem" &&
+		observedEarly->Specification.Order == 0 &&
+		observedEarly->GetInstance() == selectedSystem;
+	if (!m_State.SystemObservationPassed) {
+		SetFailure("SystemSchedule read-only observation mismatch");
+		passed = false;
+	}
+
 	if (selectedSystem != nullptr)
 		selectedSystem->OnEditorGui();
 	m_State.EditorGuiPassed = worldSystemAccessPassed &&
@@ -810,6 +825,7 @@ void SystemTestLayer::OnImGuiRender() {
 	RenderCheck("Mode filtering", m_State.ModeFilteringPassed);
 	RenderCheck("Context forwarding", m_State.ContextForwardingPassed);
 	RenderCheck("Direct System editor GUI", m_State.EditorGuiPassed);
+	RenderCheck("Read-only System observation", m_State.SystemObservationPassed);
 	RenderCheck("World lifecycle", m_State.WorldLifecyclePassed);
 	RenderCheck("Duplicate add", m_State.DuplicateAddPassed);
 	RenderCheck("Schedule structure frozen", m_State.RemovePassed);

@@ -36,7 +36,6 @@ namespace Ayin {
 		//ToDo: 临时的重载，用于 编辑器 的编辑模式
 		bool Update(Timestep deltaTime, EditorCamera* editorCamera);
 		bool EndWorldExecutionSession();					// 转发到 Schedule 的 End 对已经 Begin 的系统进行
-		std::vector<SystemRuntimeView> GetRuntimeViews() const { return m_SystemSchedule.GetRuntimeViews(); };
 
 		ISystem* FindSystemInstance(SystemID systemId);
 		const ISystem* FindSystemInstance(SystemID systemId) const;

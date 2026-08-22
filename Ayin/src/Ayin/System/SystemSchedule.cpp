@@ -425,24 +425,6 @@ namespace Ayin {
 	};
 
 
-	std::vector<SystemRuntimeView> SystemSchedule::GetRuntimeViews() const {
-
-		std::vector<SystemRuntimeView> views;
-		views.reserve(m_Systems.size());
-
-		for (const SystemEntry& entry : m_Systems) {
-			views.emplace_back(SystemRuntimeView{
-				.Information{ &entry.Information },
-				.Specification{ &entry.Specification },
-				.Instance{ entry.GetInstance() }
-			});
-		}
-
-		return views;
-
-	};
-
-
 	ISystem* SystemSchedule::FindSystemInstance(const SystemID systemId) {
 
 		auto it = FindSystem(systemId);

@@ -95,6 +95,7 @@ private:
 		bool ModeFilteringPassed = false;
 		bool ContextForwardingPassed = false;
 		bool EditorGuiPassed = false;
+		bool SystemObservationPassed = false;
 		bool DuplicateAddPassed = false;
 		bool RemovePassed = false;
 		bool AttachOrderPassed = false;
