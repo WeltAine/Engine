@@ -7,9 +7,12 @@ namespace Ayin {
 
 	SystemSchedule::~SystemSchedule() {
 
-		if (IsActive())
+		if (IsActive()) {
 			AYIN_CORE_WARN("SystemSchedule was destroyed while active; World should End it before destruction");
+			return;
+		}
 
+		// Schedule 只能在 Idle 状态下执行 Detach；World 会在析构或替换前主动完成这一步。
 		DetachSystems();
 
 	};
@@ -25,10 +28,11 @@ namespace Ayin {
 		if (this == &other)
 			return *this;
 
-		if (IsActive())
-			AYIN_CORE_WARN("Replacing an active SystemSchedule; the owner should End it first");
+		if (IsActive() || m_Attached || !m_AttachSequence.empty()) {
+			AYIN_CORE_WARN("Replacing a live SystemSchedule; the owner should End and Detach it first");
+			return *this;
+		}
 
-		DetachSystems();
 		MoveFrom(std::move(other));
 
 		return *this;
@@ -238,6 +242,9 @@ namespace Ayin {
 		if (m_Attached)
 			return true;
 
+		if (!m_AttachSequence.empty())
+			DetachSystems();
+
 		for (SystemIndex index = 0; index < m_Systems.size(); ++index) {
 			SystemEntry& entry = m_Systems[index];
 
@@ -284,6 +291,11 @@ namespace Ayin {
 
 
 	void SystemSchedule::DetachSystems() {
+
+		if (IsActive()) {
+			AYIN_CORE_WARN("SystemSchedule must End before Detach");
+			return;
+		}
 
 		if (!m_Attached && m_AttachSequence.empty())
 			return;

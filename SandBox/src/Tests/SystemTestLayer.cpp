@@ -95,6 +95,7 @@ void SystemTestLayer::RegisterTestSystems() {
 	Ayin::SystemRegistry::Register<LateSystem>("SandBox.Tests.LateSystem", "Late System", {}, {}, 0);
 	Ayin::SystemRegistry::Register<RuntimeSystem>("SandBox.Tests.RuntimeSystem", "Runtime System", {}, {}, 0);
 	Ayin::SystemRegistry::Register<LifecycleSystem>("SandBox.Tests.LifecycleSystem", "Lifecycle System", {}, {}, 0);
+	Ayin::SystemRegistry::Register<FailingAttachSystem>("SandBox.Tests.FailingAttachSystem", "Failing Attach System", {}, {}, 0);
 	Ayin::SystemRegistry::Register<SerializationSystem>("SandBox.Tests.SerializationSystem", "Serialization System", {}, {}, 0);
 	registered = true;
 }
@@ -145,7 +146,7 @@ void SystemTestLayer::RunOneShotChecks() {
 	m_RanChecks = true;
 
 	// 一次性检查失败时也标记完成，使自动化运行能够退出并报告 FAIL，而不是一直挂起窗口。
-	if (!pipelinePassed || !schedulePassed || !cleanupPassed || !baselinePassed || !builderModelPassed || !registryPassed || !serializationPassed || !editorInteractionPassed || !m_State.Failure.empty()) {
+	if (!pipelinePassed || !schedulePassed || !cleanupPassed || !baselinePassed || !builderModelPassed || !registryPassed || !serializationPassed || !editorInteractionPassed || !m_State.ApplyFailurePassed || !m_State.Failure.empty()) {
 		m_State.Completed = true;
 	}
 }
@@ -176,8 +177,8 @@ bool SystemTestLayer::CheckPipelineAndWorld() {
 		passed = false;
 	}
 
-	// 非活动 World 不允许 Update/End，None 也不能作为会话模式。
-	if (m_World->Update(expectedDelta) || m_World->EndWorldExecutionSession() ||
+	// 非活动 World 不允许 Update；重复 End 是幂等空操作，None 也不能作为会话模式。
+	if (m_World->Update(expectedDelta) ||
 		m_World->BeginWorldExecutionSession(Ayin::SceneMode::None)) {
 		SetFailure("World accepted an operation in an invalid state");
 		passed = false;
@@ -225,7 +226,8 @@ bool SystemTestLayer::CheckPipelineAndWorld() {
 	};
 	m_State.ModeFilteringPassed = m_State.Trace == runtimeTrace &&
 		m_State.LifecycleTrace == expectedRuntimeLifecycle;
-	if (!m_State.ModeFilteringPassed || m_World->EndWorldExecutionSession()) {
+	const bool repeatedEndNoOp = m_World->EndWorldExecutionSession() && !m_World->SessionReady();
+	if (!m_State.ModeFilteringPassed || !repeatedEndNoOp) {
 		SetFailure("runtime mode filtering or End state mismatch");
 		passed = false;
 	}
@@ -273,19 +275,58 @@ bool SystemTestLayer::CheckPipelineAndWorld() {
 	const bool applySucceeded = applyStarted && applyWorld.ApplyPipeline(replacementPipeline);
 	const std::vector<std::string> expectedApplyLifecycle{
 		"Early:Attach", "Late:Attach", "Runtime:Attach",
-		"Early:Begin:Editor", "Late:Begin:Editor", "Runtime:Detach", "Late:Detach", "Early:Detach",
-		"Early:Attach", "Early:Begin:Editor"
+		"Early:Begin:Editor", "Late:Begin:Editor", "Late:End:Editor", "Early:End:Editor", "Runtime:Detach", "Late:Detach", "Early:Detach",
+		"Early:Attach", "Early:Begin:Editor", "Early:End:Editor"
 	};
 	const bool applyEnded = applySucceeded && applyWorld.EndWorldExecutionSession();
 	m_State.ApplyPassed = candidateConstructionPassed && applyEnded && m_State.LifecycleTrace == expectedApplyLifecycle;
 	if (!m_State.ApplyPassed)
 		SetFailure("World Apply lifecycle replacement mismatch");
+	// 候选 Schedule 构建失败时，旧 World 不应结束当前会话或替换 System 实例。
+	Ayin::SystemPipeline::Builder invalidBuilder;
+	invalidBuilder.AddSystem(Ayin::SystemDefinition{
+		.Type{"SandBox.Tests.SerializationSystem"},
+		.Specification{.PhaseMask{Ayin::SystemPhase::Update}, .ModeMask{Ayin::SceneMode::Editor}},
+		.Configuration{.Json{"{\"Exposure\":"}}
+	});
+	const Ayin::SystemPipeline invalidPipeline = invalidBuilder.Build();
+	Ayin::World invalidApplyWorld{ m_Scene, m_Pipeline };
+	const Ayin::SystemID originalSystemId = Ayin::GetSystemID<EarlySystem>();
+	Ayin::ISystem* originalSystem = invalidApplyWorld.FindSystemInstance(originalSystemId);
+	const bool invalidApplyStarted = invalidApplyWorld.BeginWorldExecutionSession(Ayin::SceneMode::Editor);
+	m_State.LifecycleTrace.clear();
+	const bool invalidApplyRejected = invalidApplyStarted && !invalidApplyWorld.ApplyPipeline(invalidPipeline);
+	const bool invalidApplyKeptWorld = invalidApplyWorld.GetCurrentMode() == Ayin::SceneMode::Editor &&
+		invalidApplyWorld.GetSystemSchedule().IsActive() &&
+		invalidApplyWorld.FindSystemInstance(originalSystemId) == originalSystem &&
+		m_State.LifecycleTrace.empty();
+	invalidApplyWorld.EndWorldExecutionSession();
+
+	// 候选 Schedule Attach 失败时，World 回滚到旧 Schedule；失败的候选不会泄漏生命周期状态。
+	Ayin::SystemPipeline::Builder failingBuilder;
+	failingBuilder.AddSystem<FailingAttachSystem>({}, { Ayin::SceneMode::Editor });
+	const Ayin::SystemPipeline failingPipeline = failingBuilder.Build();
+	Ayin::World failingApplyWorld{ m_Scene, m_Pipeline };
+	Ayin::ISystem* failingOriginalSystem = failingApplyWorld.FindSystemInstance(originalSystemId);
+	const bool failingApplyStarted = failingApplyWorld.BeginWorldExecutionSession(Ayin::SceneMode::Editor);
+	m_State.LifecycleTrace.clear();
+	const bool failingApplyRejected = failingApplyStarted && !failingApplyWorld.ApplyPipeline(failingPipeline);
+	const bool failingApplyRolledBack = failingApplyWorld.GetCurrentMode() == Ayin::SceneMode::Editor &&
+		failingApplyWorld.GetSystemSchedule().IsActive() &&
+		failingApplyWorld.FindSystemInstance(originalSystemId) == failingOriginalSystem;
+	failingApplyWorld.EndWorldExecutionSession();
+	m_State.ApplyFailurePassed = invalidApplyRejected && invalidApplyKeptWorld &&
+		failingApplyRejected && failingApplyRolledBack;
+	if (!m_State.ApplyFailurePassed) {
+		AYIN_CORE_ERROR("Apply failure checks: invalidRejected={}, invalidKept={}, failingRejected={}, rollback={}", invalidApplyRejected, invalidApplyKeptWorld, failingApplyRejected, failingApplyRolledBack);
+		SetFailure("World Apply failure boundary mismatch");
+	}
 
 	// 空 Scene 不能建立会话，后续 Update/End 也必须保持拒绝。
 	Ayin::SystemPipeline::Builder emptyBuilder;
 	Ayin::World emptyWorld(nullptr, emptyBuilder.Build());
 	if (emptyWorld.BeginWorldExecutionSession(Ayin::SceneMode::Runtime) ||
-		emptyWorld.Update(expectedDelta) || emptyWorld.EndWorldExecutionSession()) {
+		emptyWorld.Update(expectedDelta) || !emptyWorld.EndWorldExecutionSession()) {
 		SetFailure("World accepted a null scene");
 		passed = false;
 	}
@@ -784,6 +825,7 @@ void SystemTestLayer::OnImGuiRender() {
 	RenderCheck("Serialization round-trip", m_State.SerializationRoundTripPassed);
 	RenderCheck("Live World frame", m_State.LiveFramePassed);
 	RenderCheck("World Apply", m_State.ApplyPassed);
+	RenderCheck("World Apply failure boundary", m_State.ApplyFailurePassed);
 	RenderCheck("Editor interaction boundaries", m_State.EditorInteractionPassed);
 	RenderCheck("EditorSession Apply", m_State.EditorSessionPassed);
 	if (!m_State.Failure.empty()) {

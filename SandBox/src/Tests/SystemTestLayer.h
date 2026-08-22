@@ -13,6 +13,7 @@
 
 #include <array>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -109,6 +110,7 @@ private:
 		bool WorldLifecyclePassed = false;
 		bool LiveFramePassed = false;
 		bool ApplyPassed = false;
+		bool ApplyFailurePassed = false;
 		bool EditorInteractionPassed = false;
 		bool EditorSessionPassed = false;
 		bool ContextValid = true;
@@ -157,6 +159,13 @@ private:
 	protected:
 		// 只允许 Runtime 模式执行，用来检查模式掩码过滤。
 		const char* Name() const override { return "Runtime"; }
+	};
+
+	class FailingAttachSystem final : public Ayin::ISystem {
+	public:
+		void OnAttach() override {
+			throw std::runtime_error{ "intentional attach failure" };
+		}
 	};
 
 	class LifecycleSystem final : public ProbeSystem {

@@ -16,9 +16,12 @@ namespace Ayin {
 
 	World::~World() {
 
-		// 未开始过或已经正常结束的 World 无需清理，也不应产生非法调用警告。
-		if (SessionReady())
-			EndWorldExecutionSession();
+		// World 先结束运行会话，再负责 Schedule 的 Detach；Schedule 析构只处理已经 Idle 的对象。
+		if (SessionReady() && !EndWorldExecutionSession())
+			AYIN_CORE_ERROR("World failed to end its execution session during destruction");
+
+		if (m_SystemSchedule.IsAttached())
+			m_SystemSchedule.DetachSystems();
 
 	};
 
@@ -142,16 +145,40 @@ namespace Ayin {
 			return false;
 		}
 
-		m_SystemSchedule = std::move(candidate);
+		// Move assignment 不再替调用者 Detach；World 在替换前显式完成旧 Schedule 的清理。
+		m_SystemSchedule.DetachSystems();
+		SystemSchedule previous = std::move(m_SystemSchedule);
 		m_CurrentMode = SceneMode::None;
+		m_SystemSchedule = std::move(candidate);
+
+		const auto restorePreviousSchedule = [this, &previous, wasActive, previousMode]() -> bool {
+			m_SystemSchedule.DetachSystems();
+			m_SystemSchedule = std::move(previous);
+
+			if (!m_SystemSchedule.AttachSystems()) {
+				AYIN_CORE_ERROR("World Apply rollback failed because the previous Schedule could not attach");
+				m_CurrentMode = SceneMode::None;
+				return false;
+			}
+
+			if (wasActive && !BeginWorldExecutionSession(previousMode)) {
+				AYIN_CORE_ERROR("World Apply rollback failed because the previous Schedule could not begin");
+				m_CurrentMode = SceneMode::None;
+				return false;
+			}
+
+			return true;
+		};
 
 		if (!m_SystemSchedule.AttachSystems()) {
 			AYIN_CORE_ERROR("World Apply failed because the candidate Schedule could not attach");
+			restorePreviousSchedule();
 			return false;
 		}
 
 		if (wasActive && !BeginWorldExecutionSession(previousMode)) {
 			AYIN_CORE_ERROR("World Apply failed because the candidate Schedule could not begin");
+			restorePreviousSchedule();
 			return false;
 		}
 

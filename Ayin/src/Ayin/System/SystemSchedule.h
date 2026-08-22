@@ -106,10 +106,9 @@ namespace Ayin {
 		bool BuildSystem(const SystemDefinition& definition);	// 构建单个系统，创建实例并保存到 m_Systems 中
 		bool FinishConstruction();	// 构建完成后（完成各阶段内部系统顺序规划），拓扑关系被封印，不能再修改
 
-		//! 重在调用 各系统的 OnAttach() / OnDetach()，设置 m_AttachSequence，标记 m_Attached，不会改变拓扑结构
-		bool AttachSystems();		// 根据 m_Systems 顺序触发 OnAttach()，并记录顺序到 m_AttachSequence，标记 m_Attached = true
-		void DetachSystems();		// 根据 m_AttachSequence 顺序触发 OnDetach()，清空 m_AttachSequence，标记 m_Attached = false
-		//? 我觉得 m_AttachSequence 应该在构建完成时也确定下来，而不是 AttachSystem() 的时候才决定，太怪了，也迁移到 RebuildExecutionPlans 中吧
+		//! 重在调用各系统的 OnAttach() / OnDetach()，标记 m_Attached，不会改变拓扑结构。
+		bool AttachSystems();		// 根据 m_Systems 顺序触发 OnAttach()，记录实际成功 Attach 的 System，标记 m_Attached = true
+		void DetachSystems();		// 根据 m_AttachSequence 逆序触发 OnDetach()，清空记录，标记 m_Attached = false
 
 		void ClearSystems();		// 清空所有系统（可以说就是 Schedule 的 Clear 键），调用 DetachSystems()，清空 m_Systems，标记 m_TopologySealed = false	（只有该方法会解开拓扑封印）
 
@@ -128,7 +127,8 @@ namespace Ayin {
 		std::vector<SystemEntry> m_Systems;
 
 		// Attach 顺序、Begin 顺序和各 Update 阶段都保存独立索引计划。
-		std::vector<SystemIndex> m_AttachSequence;		// 在 Atach 的时候记录顺序，而非根据 m_attachSequence 决定顺序
+		// Attach 顺序与 m_Systems 保持一致；单独记录成功回调的 System，能够正确处理 OnAttach 异常导致的部分 Attach。
+		std::vector<SystemIndex> m_AttachSequence;
 		std::vector<SystemIndex> m_BeginPlan;
 		std::array<std::vector<SystemIndex>, PhaseCount> m_PhasePlans;
 		std::vector<SystemIndex> m_BegunSystems;
