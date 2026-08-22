@@ -16,18 +16,22 @@ namespace Ayin {
 			return false;
 
 		m_Builder = *builder;
+		m_IsEditing = true;
 		if (!RebuildPreview()) {
 			Cancel();
 			return false;
 		}
 
-		m_IsEditing = true;
 		return true;
 
 	};
 
 
 	bool SystemPipelineEditor::RebuildPreview() {
+
+		// 结构重建前先保存 Preview 参数，避免 Builder 的定义修改吞掉尚未 Apply 的配置草稿。
+		if (m_IsEditing && !SyncPreviewConfiguration())
+			return false;
 
 		SystemPipeline pipeline = m_Builder.Build();
 		if (!pipeline.IsValid())

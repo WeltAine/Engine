@@ -2,11 +2,9 @@
 
 #include <Ayin.h>
 
-#include <optional>
-
 namespace Ayin {
 
-	// System Pipeline 面板只观察当前运行中的 World；结构编辑、Preview 和 Apply 由后续阶段实现。
+	// System Pipeline 面板直接组织 Monitor / Editor 的交互；它只保存 World 的非拥有观察，并不参与 Apply。
 	class SystemPipelinePanel {
 
 	public:
@@ -19,8 +17,18 @@ namespace Ayin {
 
 	private:
 
-		void DrawSystemList(const SystemSchedule& schedule);
-		void DrawSystemProperties();
+		void DrawToolbar();
+
+		void DrawRuntimeList(const SystemSchedule& schedule);
+		void DrawBuilderList();
+
+		void DrawRuntimeProperties();
+		void DrawPreviewProperties();
+		void DrawAddSystemPopup();
+
+		bool BeginEditing();
+		bool RebuildPreview();
+		void CancelEditing();
 
 		static std::string GetPhaseText(SystemPhase phaseMask);
 		static std::string GetModeText(SceneMode modeMask);
@@ -28,7 +36,9 @@ namespace Ayin {
 	private:
 
 		View<World> m_World;
-		std::optional<SystemID> m_SelectedSystem;
+		SystemPipelineEditor m_PipelineEditor;
+		SystemTypeKey m_SelectedSystemType;
+		std::string m_LastError;
 
 	};
 

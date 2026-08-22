@@ -19,7 +19,6 @@ namespace Ayin {
 
 		bool Begin(const SystemSchedule& schedule);
 		bool RebuildPreview();
-		bool SyncPreviewConfiguration();
 		std::optional<SystemPipeline> BuildPipeline();
 		void Cancel();
 
@@ -30,6 +29,8 @@ namespace Ayin {
 		inline SystemSchedule& GetPreviewSchedule() { return m_PreviewSchedule; };
 
 	private:
+
+		bool SyncPreviewConfiguration();
 
 		SystemPipeline::Builder m_Builder;
 		SystemSchedule m_PreviewSchedule;

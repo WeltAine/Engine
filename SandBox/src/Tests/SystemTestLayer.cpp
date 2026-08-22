@@ -648,10 +648,65 @@ bool SystemTestLayer::CheckEditorInteractionBoundaries() {
 	const bool previewGuiPassed =
 		m_State.EditorGuiCount["Early"] == editorGuiCountBefore + 1 &&
 		m_State.LifecycleTrace.empty();
+
+	// Builder 的结构变化只重建 Preview；实时 World 中的 LateSystem 不会因此被移除。
+	pipelineEditor.GetBuilder().RemoveSystem(Ayin::GetSystemID<LateSystem>());
+	pipelineEditor.GetBuilder().AddSystem(Ayin::SystemDefinition{
+		.Type{"SandBox.Tests.LifecycleSystem"},
+		.Specification{
+			.PhaseMask{Ayin::SystemPhase::Update},
+			.ModeMask{Ayin::SceneMode::Editor},
+			.Order{12}
+		}
+	});
+	const bool previewRebuilt = pipelineEditor.RebuildPreview();
+	const bool previewStructurePassed = previewRebuilt &&
+		pipelineEditor.GetPreviewSchedule().FindSystemInstance(Ayin::GetSystemID<LateSystem>()) == nullptr &&
+		pipelineEditor.GetPreviewSchedule().FindSystemInstance(Ayin::GetSystemID<LifecycleSystem>()) != nullptr &&
+		m_World->FindSystemInstance(Ayin::GetSystemID<LateSystem>()) != nullptr &&
+		m_State.LifecycleTrace.empty();
+
+	// Preview 重建会先同步当前参数；结构变化不会丢失尚未 Apply 的配置草稿。
+	Ayin::SystemPipeline::Builder configurationBuilder;
+	configurationBuilder.AddSystem<SerializationSystem>(
+		{ Ayin::SystemPhase::Update },
+		{ Ayin::SceneMode::Editor });
+	Ayin::SystemPipelineEditor configurationEditor;
+	Ayin::SystemSchedule configurationSchedule = configurationBuilder.Build().CreateSchedule();
+	auto* sourceConfigurationSystem = static_cast<SerializationSystem*>(
+		configurationSchedule.FindSystemInstance(Ayin::GetSystemID<SerializationSystem>()));
+	const bool configurationEditorBegan = configurationEditor.Begin(configurationSchedule);
+	auto* configurationPreview = static_cast<SerializationSystem*>(
+		configurationEditor.GetPreviewSchedule().FindSystemInstance(Ayin::GetSystemID<SerializationSystem>()));
+	if (configurationPreview != nullptr)
+		configurationPreview->Exposure = 37;
+
+	configurationEditor.GetBuilder().AddSystem(Ayin::SystemDefinition{
+		.Type{"SandBox.Tests.LifecycleSystem"},
+		.Specification{
+			.PhaseMask{Ayin::SystemPhase::Update},
+			.ModeMask{Ayin::SceneMode::Editor},
+			.Order{1}
+		}
+	});
+	const bool configurationPreviewRebuilt = configurationEditor.RebuildPreview();
+	auto* rebuiltConfigurationPreview = static_cast<SerializationSystem*>(
+		configurationEditor.GetPreviewSchedule().FindSystemInstance(Ayin::GetSystemID<SerializationSystem>()));
+	const bool previewConfigurationPassed = configurationEditorBegan && configurationPreviewRebuilt &&
+		sourceConfigurationSystem != nullptr && sourceConfigurationSystem->Exposure == 1 &&
+		rebuiltConfigurationPreview != nullptr && rebuiltConfigurationPreview->Exposure == 37 &&
+		!configurationEditor.GetPreviewSchedule().IsAttached() &&
+		m_State.LifecycleTrace.empty();
+	configurationEditor.Cancel();
+
 	pipelineEditor.Cancel();
-	m_State.EditorInteractionPassed = previewBoundaryPassed && previewGuiPassed;
+	const bool cancelPassed = !pipelineEditor.IsEditing() &&
+		pipelineEditor.GetBuilder().GetDefinitions().empty() &&
+		!pipelineEditor.GetPreviewSchedule().IsBuilt();
+	m_State.EditorInteractionPassed = previewBoundaryPassed && previewGuiPassed &&
+		previewStructurePassed && previewConfigurationPassed && cancelPassed;
 	if (!m_State.EditorInteractionPassed) {
-		SetFailure("SystemPipelineEditor preview boundary mismatch");
+		SetFailure("SystemPipelineEditor Preview lifecycle, structure or configuration boundary mismatch");
 		passed = false;
 	}
 
