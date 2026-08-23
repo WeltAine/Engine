@@ -182,7 +182,7 @@ namespace Ayin{
 	// -----------------------------------------------------------------------------------------------------
 
 
-	void RenderSystem::OnUpdate(const SystemContext& systemContext) {
+	void RenderSystem::OnPresentationUpdate(const SystemContext& systemContext) {
 
 		uint8_t max_RenderOrder = 0;
 		Camera* mainCamera = nullptr;

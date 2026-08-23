@@ -42,7 +42,7 @@ namespace Ayin {
 		//ToDo: 相机处理
 		virtual void OnBegin(const SystemContext& systemContext) override {};
 
-		virtual void OnUpdate(const SystemContext& systemContext) override;
+		virtual void OnPresentationUpdate(const SystemContext& systemContext) override;
 
 		virtual void OnEnd(const SystemContext& systemContext) override {};
 
@@ -92,7 +92,7 @@ namespace Ayin {
 		RenderSystem,
 		"Ayin.System.Render",
 		"Render",
-		AYIN_SYSTEMPHASE_LIST(SystemPhase::Update),
+		AYIN_SYSTEMPHASE_LIST(SystemPhase::Presentation),
 		AYIN_SCENEMODE_LIST(SceneMode::Editor, SceneMode::Simulation, SceneMode::Runtime),
 		3
 	);
