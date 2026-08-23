@@ -165,20 +165,6 @@ void EditorLayer::OnUpdate(Ayin::Timestep deltaTime) {
 
 		Ayin::Renderer2D::ResetStatistics();
 
-		switch (m_EditorState) {
-			
-		case EditorState::Editor:
-			m_EditorScene->OnUpdateEditor(deltaTime, m_EditorCamera);
-			break;
-		case EditorState::Simulate:
-			m_TempScene->OnUpdateSimulation(deltaTime, m_EditorCamera);
-			break;
-		case EditorState::Runtime:
-			m_TempScene->OnUpdateRuntime(deltaTime);
-			break;
-
-		};
-
 		// Scene 仍然负责当前的渲染流程；World 在同一帧驱动 System Schedule。
 		if (m_ActiveWorld) {
 			if (m_EditorState == EditorState::Runtime)
