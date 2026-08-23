@@ -29,6 +29,8 @@ namespace Ayin {
 		friend class Scene;
 		friend struct EntityHash;
 
+		friend class ScriptableEntity;
+
 	public:
 
 		Entity() = default;

@@ -6,6 +6,8 @@
 
 #include "Ayin/Core/Timestep.h"
 
+#include "Ayin/Scene/ICanChangeScene.h"
+
 
 #include <optional>
 #include <string>
@@ -15,7 +17,7 @@ namespace Ayin{
 
 	class ScriptSystem;
 
-	class ScriptableEntity {
+	class ScriptableEntity : protected ICanChangeScene {
 
 		friend class Scene;
 		friend class SceneSerializer;
@@ -28,6 +30,7 @@ namespace Ayin{
 		virtual ~ScriptableEntity() = default;
 
 		inline void SetEntity(const Entity& entity) { m_Entity = entity; };
+		inline const Entity GetEntity() { return m_Entity; };
 
 		virtual inline std::optional<std::string> GetScriptName() const { return std::nullopt; };
 		virtual inline std::optional<entt::id_type> GetScriptID() const { return std::nullopt; };
@@ -40,9 +43,14 @@ namespace Ayin{
 		decltype(auto) GetComponents();
 
 	protected:
+
 		virtual void OnCreate() {};
 		virtual void OnUpdate(Timestep deltaTime) {};
 		virtual void OnDestroy() {};
+
+	private:
+
+		virtual inline View<Scene> GetScene() override { return m_Entity.m_Scene; };
 
 	private:
 
